@@ -34,10 +34,10 @@ class HomePage extends GetView<AuthController> {
                 CircleAvatar(
                   radius: 60,
                   backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  child: controller.currentUser?.avatar != null
+                  child: controller.currentUser?.profilePhoto != null
                       ? ClipOval(
                           child: Image.network(
-                            controller.currentUser!.avatar!,
+                            controller.currentUser!.profilePhoto!,
                             width: 120,
                             height: 120,
                             fit: BoxFit.cover,
@@ -58,7 +58,7 @@ class HomePage extends GetView<AuthController> {
                 Text('Welcome Back!', style: AppTextStyles.heading1),
                 const SizedBox(height: 8),
                 Text(
-                  controller.currentUser?.name ?? 'User',
+                  controller.currentUser?.fullName ?? 'User',
                   style: AppTextStyles.heading2,
                 ),
                 const SizedBox(height: 8),
@@ -80,8 +80,8 @@ class HomePage extends GetView<AuthController> {
                       children: [
                         _buildInfoRow(
                           Icons.badge_outlined,
-                          'User ID',
-                          controller.currentUser?.id ?? 'N/A',
+                          'NIP',
+                          controller.currentUser?.nip ?? 'N/A',
                         ),
                         const Divider(height: 24),
                         _buildInfoRow(
@@ -92,8 +92,14 @@ class HomePage extends GetView<AuthController> {
                         const Divider(height: 24),
                         _buildInfoRow(
                           Icons.person_outline,
-                          'Name',
-                          controller.currentUser?.name ?? 'N/A',
+                          'Username',
+                          controller.currentUser?.username ?? 'N/A',
+                        ),
+                        const Divider(height: 24),
+                        _buildInfoRow(
+                          Icons.work_outline,
+                          'Role',
+                          controller.currentUser?.role ?? 'N/A',
                         ),
                       ],
                     ),

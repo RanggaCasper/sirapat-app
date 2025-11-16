@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
 import 'package:sirapat_app/data/repositories/auth_repository_impl.dart';
 import 'package:sirapat_app/domain/usecases/login_usecase.dart';
+import 'package:sirapat_app/domain/usecases/register_usecase.dart';
 import 'package:sirapat_app/domain/usecases/get_current_user_usecase.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
+import 'package:sirapat_app/presentation/controllers/forgot_password_controller.dart';
 
 class AuthBinding extends Bindings {
   @override
@@ -12,16 +14,20 @@ class AuthBinding extends Bindings {
 
     // Use Cases
     Get.lazyPut(() => LoginUseCase(Get.find<AuthRepositoryImpl>()));
+    Get.lazyPut(() => RegisterUseCase(Get.find<AuthRepositoryImpl>()));
     Get.lazyPut(() => GetCurrentUserUseCase(Get.find<AuthRepositoryImpl>()));
 
-    // Controller
+    // Controllers
     Get.put(
       AuthController(
         Get.find<LoginUseCase>(),
+        Get.find<RegisterUseCase>(),
         Get.find<GetCurrentUserUseCase>(),
         Get.find<AuthRepositoryImpl>(),
       ),
       permanent: true,
     );
+
+    Get.lazyPut(() => ForgotPasswordController());
   }
 }

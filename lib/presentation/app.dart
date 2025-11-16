@@ -4,6 +4,8 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/presentation/controllers/auth_binding.dart';
 import 'package:sirapat_app/presentation/pages/splash_page.dart';
 import 'package:sirapat_app/presentation/pages/login_page.dart';
+import 'package:sirapat_app/presentation/pages/register_page.dart';
+import 'package:sirapat_app/presentation/pages/forgot_password_page.dart';
 import 'package:sirapat_app/presentation/pages/home_page.dart';
 
 class App extends StatelessWidget {
@@ -29,6 +31,12 @@ class App extends StatelessWidget {
         GetPage(
           name: '/login',
           page: () => LoginPage(),
+          binding: AuthBinding(),
+        ),
+        GetPage(name: '/register', page: () => RegisterPage()),
+        GetPage(
+          name: '/forgot-password',
+          page: () => ForgotPasswordPage(),
           binding: AuthBinding(),
         ),
         GetPage(

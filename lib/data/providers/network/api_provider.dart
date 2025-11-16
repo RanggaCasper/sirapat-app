@@ -54,6 +54,9 @@ class APIProvider {
         throw UnauthorisedException(response.data.toString());
       case 404:
         throw NotFoundException('Resource not found');
+      case 422:
+        // Validation error - return data untuk di-parse sebagai ApiException
+        return response.data;
       case 500:
       case 502:
       case 503:

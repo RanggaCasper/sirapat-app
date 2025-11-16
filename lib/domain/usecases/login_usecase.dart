@@ -3,10 +3,10 @@ import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/repositories/auth_repository.dart';
 
 class LoginParams {
-  final String email;
+  final String nip;
   final String password;
 
-  LoginParams({required this.email, required this.password});
+  LoginParams({required this.nip, required this.password});
 }
 
 class LoginUseCase extends ParamUseCase<User, LoginParams> {
@@ -16,6 +16,6 @@ class LoginUseCase extends ParamUseCase<User, LoginParams> {
 
   @override
   Future<User> execute(LoginParams params) {
-    return _repository.login(params.email, params.password);
+    return _repository.login(params.nip, params.password);
   }
 }
