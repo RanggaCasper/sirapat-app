@@ -1,0 +1,48 @@
+Aplikasi Rapat
+├── 👤 ALL ROLE
+│   ├── 🔑 Auth
+│   │   ├── ✅ Login
+│   │   ├── ✅ Register
+│   │   ├── ✅ Forgot Password (dengan OTP)
+│   │   └── ✅ Logout
+│   └── 🧑‍💻 Profile
+│       └──  Lihat & Edit Profil
+│
+├── 👑 MASTER
+│   ├── 👥 Manajemen User
+│   │   ├──  Create
+│   │   └──  Update Role
+│   ├── 🏢 ✅Manajemen Divisi
+│   │   └──  CRUD
+│   └── 📂 Manajemen Rapat
+│       └──  CRUD (Hanya melihat buatan sendiri)
+│
+├── 🧑‍💼 ADMIN
+│   └── 🗓️ Manajemen Rapat
+│       ├──  Create (Auto Passcode & QR)
+│       ├──  Read (Hanya buatan sendiri)
+│       ├── 🔄 Update
+│       │   ├──  Update Notulensi
+│       │   └──  Update Status Rapat
+│       ├──  Delete
+│       ├──  Invitation
+│       ├──  Riwayat Rapat
+│       ├──  Upload Document
+│       └── 🎙️ Voice Assistant
+│           ├── 🚧 Record Audio
+│           ├── 🚧 Convert to Text
+│           └── 🚧 Summarize Text
+│
+└── 👥 PEGAWAI
+    ├── 🚪 Interaksi Rapat
+    │   ├──  Join Rapat
+    │   │   ├── 🚧 Scan QR (Auto Absen)
+    │   │   └── 🚧 Join via Passcode/Link
+    │   └── 🚧 Chat Notulen
+    └── 📊 Riwayat & Statistik
+        ├──  Lihat Riwayat Rapat
+        ├──  Lihat Hasil Notulen
+        ├──  Lihat Status Kehadiran
+        └──  Lihat Statistik Kehadiran
+
+
