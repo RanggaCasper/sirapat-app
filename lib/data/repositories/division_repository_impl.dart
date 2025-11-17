@@ -24,8 +24,19 @@ class DivisionRepositoryImpl extends DivisionRepository {
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
         (data) {
-          // Handle if data is a list
+          // Check if data is a Map with 'data' key (nested structure)
+          if (data is Map<String, dynamic> && data.containsKey('data')) {
+            final innerData = data['data'];
+            if (innerData is List) {
+              final divisions = innerData.map((item) {
+                return DivisionModel.fromJson(item as Map<String, dynamic>);
+              }).toList();
+              return divisions;
+            }
+          }
+          // Handle if data is directly a list
           if (data is List) {
+            print('Data is directly a List with ${data.length} items');
             return data
                 .map(
                   (item) =>
@@ -33,10 +44,15 @@ class DivisionRepositoryImpl extends DivisionRepository {
                 )
                 .toList();
           }
-          // Handle if data is wrapped in another object
+          // Return empty list if structure doesn't match
+          print('Data structure does not match expected format');
           return [];
         },
       );
+
+      print('API Response status: ${apiResponse.status}');
+      print('API Response data: ${apiResponse.data}');
+      print('API Response data type: ${apiResponse.data.runtimeType}');
 
       // Check if request failed (status = false)
       if (!apiResponse.status) {
@@ -45,10 +61,13 @@ class DivisionRepositoryImpl extends DivisionRepository {
       }
 
       // Return list of divisions
-      if (apiResponse.data is List<DivisionModel>) {
-        return apiResponse.data as List<Division>;
+      if (apiResponse.data is List) {
+        final divisionList = (apiResponse.data as List).cast<Division>();
+        print('Returning ${divisionList.length} divisions');
+        return divisionList;
       }
 
+      print('API Response data is not a List, returning empty list');
       return [];
     } on ApiException catch (e) {
       print('ApiException caught: ${e.message}');
@@ -63,20 +82,20 @@ class DivisionRepositoryImpl extends DivisionRepository {
   }
 
   @override
-  Future<Division> getById(int id) async{
+  Future<Division> getById(int id) async {
     try {
       // Make API call
       final request = DivisionGetByIdRequest(id);
       final response = await request.request();
 
       // Debug: print response
-      print('Get Division API Response: $response');      
+      print('Get Division API Response: $response');
 
       // Parse response
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
         (data) => DivisionModel.fromJson(data as Map<String, dynamic>),
-      );      
+      );
 
       // Check if request failed (status = false)
       if (!apiResponse.status || apiResponse.data == null) {

@@ -1,16 +1,12 @@
-class DivisionModel {
-  final int? id;
-  final String name;
-  final String? description;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
+import 'package:sirapat_app/domain/entities/division.dart';
 
+class DivisionModel extends Division {
   DivisionModel({
-    this.id,
-    required this.name,
-    this.description,
-    this.createdAt,
-    this.updatedAt,
+    super.id,
+    required super.name,
+    super.description,
+    super.createdAt,
+    super.updatedAt,
   });
 
   factory DivisionModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +46,28 @@ class DivisionModel {
       description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  // Convert DivisionModel to Division entity
+  Division toEntity() {
+    return Division(
+      id: id,
+      name: name,
+      description: description,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
+  // Create DivisionModel from Division entity
+  factory DivisionModel.fromEntity(Division division) {
+    return DivisionModel(
+      id: division.id,
+      name: division.name,
+      description: division.description,
+      createdAt: division.createdAt,
+      updatedAt: division.updatedAt,
     );
   }
 }

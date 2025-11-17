@@ -21,9 +21,7 @@ class DivisionPage extends GetView<DivisionController> {
       ),
       body: Obx(() {
         if (controller.isLoadingObs.value) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (controller.divisions.isEmpty) {
@@ -31,11 +29,7 @@ class DivisionPage extends GetView<DivisionController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.folder_open,
-                  size: 80,
-                  color: Colors.grey[400],
-                ),
+                Icon(Icons.folder_open, size: 80, color: Colors.grey[400]),
                 const SizedBox(height: 16),
                 Text(
                   'Belum ada divisi',
@@ -48,10 +42,7 @@ class DivisionPage extends GetView<DivisionController> {
                 const SizedBox(height: 8),
                 Text(
                   'Tap tombol + untuk menambah divisi',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
@@ -94,9 +85,7 @@ class DivisionPage extends GetView<DivisionController> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _showDetailDialog(division),
@@ -118,7 +107,7 @@ class DivisionPage extends GetView<DivisionController> {
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // Content
               Expanded(
                 child: Column(
@@ -135,10 +124,7 @@ class DivisionPage extends GetView<DivisionController> {
                       const SizedBox(height: 4),
                       Text(
                         division.description!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -146,7 +132,7 @@ class DivisionPage extends GetView<DivisionController> {
                   ],
                 ),
               ),
-              
+
               // Actions
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -189,27 +175,25 @@ class DivisionPage extends GetView<DivisionController> {
             _buildDetailRow('Deskripsi', division.description ?? '-'),
             if (division.createdAt != null) ...[
               const SizedBox(height: 12),
-              _buildDetailRow(
-                'Dibuat',
-                _formatDate(division.createdAt!),
-              ),
+              _buildDetailRow('Dibuat', _formatDate(division.createdAt!)),
             ],
             if (division.updatedAt != null) ...[
               const SizedBox(height: 12),
-              _buildDetailRow(
-                'Diperbarui',
-                _formatDate(division.updatedAt!),
-              ),
+              _buildDetailRow('Diperbarui', _formatDate(division.updatedAt!)),
             ],
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () {
+              Get.closeAllSnackbars();
+              Get.back();
+            },
             child: const Text('Tutup'),
           ),
           ElevatedButton.icon(
             onPressed: () {
+              Get.closeAllSnackbars();
               Get.back();
               _showEditDialog(division);
             },
@@ -236,10 +220,7 @@ class DivisionPage extends GetView<DivisionController> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -263,29 +244,34 @@ class DivisionPage extends GetView<DivisionController> {
         content: _buildFormContent(),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () {
+              Get.closeAllSnackbars();
+              Get.back();
+            },
             child: const Text('Batal'),
           ),
-          Obx(() => ElevatedButton.icon(
-                onPressed: controller.isLoadingActionObs.value
-                    ? null
-                    : controller.createDivision,
-                icon: controller.isLoadingActionObs.value
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.save, size: 18),
-                label: const Text('Simpan'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-              )),
+          Obx(
+            () => ElevatedButton.icon(
+              onPressed: controller.isLoadingActionObs.value
+                  ? null
+                  : controller.createDivision,
+              icon: controller.isLoadingActionObs.value
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.save, size: 18),
+              label: const Text('Simpan'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -305,29 +291,34 @@ class DivisionPage extends GetView<DivisionController> {
         content: _buildFormContent(),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () {
+              Get.closeAllSnackbars();
+              Get.back();
+            },
             child: const Text('Batal'),
           ),
-          Obx(() => ElevatedButton.icon(
-                onPressed: controller.isLoadingActionObs.value
-                    ? null
-                    : controller.updateDivision,
-                icon: controller.isLoadingActionObs.value
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.save, size: 18),
-                label: const Text('Update'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-              )),
+          Obx(
+            () => ElevatedButton.icon(
+              onPressed: controller.isLoadingActionObs.value
+                  ? null
+                  : controller.updateDivision,
+              icon: controller.isLoadingActionObs.value
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.save, size: 18),
+              label: const Text('Update'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -339,70 +330,71 @@ class DivisionPage extends GetView<DivisionController> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Name Field
-          Obx(() => TextField(
-                controller: controller.nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nama Divisi *',
-                  hintText: 'Contoh: IT Department',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.business),
-                  errorText: controller.getFieldError('name'),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: controller.getFieldError('name') != null
-                          ? Colors.red
-                          : Colors.blue,
-                      width: 2,
-                    ),
+          Obx(
+            () => TextField(
+              controller: controller.nameController,
+              decoration: InputDecoration(
+                labelText: 'Nama Divisi *',
+                hintText: 'Contoh: IT Department',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.business),
+                errorText: controller.getFieldError('name'),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: controller.getFieldError('name') != null
+                        ? Colors.red
+                        : Colors.blue,
+                    width: 2,
                   ),
                 ),
-                textCapitalization: TextCapitalization.words,
-                onChanged: (value) {
-                  if (controller.getFieldError('name') != null) {
-                    controller.clearFieldError('name');
-                  }
-                },
-              )),
+              ),
+              textCapitalization: TextCapitalization.words,
+              onChanged: (value) {
+                if (controller.getFieldError('name') != null) {
+                  controller.clearFieldError('name');
+                }
+              },
+            ),
+          ),
           const SizedBox(height: 16),
-          
+
           // Description Field
-          Obx(() => TextField(
-                controller: controller.descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Deskripsi (Opsional)',
-                  hintText: 'Tambahkan deskripsi divisi...',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.description),
-                  errorText: controller.getFieldError('description'),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: controller.getFieldError('description') != null
-                          ? Colors.red
-                          : Colors.blue,
-                      width: 2,
-                    ),
+          Obx(
+            () => TextField(
+              controller: controller.descriptionController,
+              decoration: InputDecoration(
+                labelText: 'Deskripsi (Opsional)',
+                hintText: 'Tambahkan deskripsi divisi...',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.description),
+                errorText: controller.getFieldError('description'),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: controller.getFieldError('description') != null
+                        ? Colors.red
+                        : Colors.blue,
+                    width: 2,
                   ),
                 ),
-                maxLines: 3,
-                textCapitalization: TextCapitalization.sentences,
-                onChanged: (value) {
-                  if (controller.getFieldError('description') != null) {
-                    controller.clearFieldError('description');
-                  }
-                },
-              )),
-          
+              ),
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
+              onChanged: (value) {
+                if (controller.getFieldError('description') != null) {
+                  controller.clearFieldError('description');
+                }
+              },
+            ),
+          ),
+
           const SizedBox(height: 8),
-          
+
           // Helper text
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
               '* Wajib diisi',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ),
         ],

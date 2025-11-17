@@ -9,6 +9,7 @@ import 'package:sirapat_app/presentation/pages/register_page.dart';
 import 'package:sirapat_app/presentation/pages/forgot_password_page.dart';
 import 'package:sirapat_app/presentation/pages/home_page.dart';
 import 'package:sirapat_app/presentation/pages/division_page.dart';
+import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -31,6 +32,14 @@ class App extends StatelessWidget {
           backgroundColor: AppColors.primary,
         ),
       ),
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child ?? const SizedBox.shrink(),
+            const CustomNotification(),
+          ],
+        );
+      },
       initialRoute: '/',
       initialBinding: AuthBinding(),
       getPages: [

@@ -7,6 +7,7 @@ import 'package:sirapat_app/domain/usecases/division/create_division_usecase.dar
 import 'package:sirapat_app/domain/usecases/division/update_division_usecase.dart';
 import 'package:sirapat_app/domain/usecases/division/delete_division_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
+import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
 
 class DivisionController extends GetxController {
   final GetDivisionsUseCase _getDivisionsUseCase;
@@ -42,6 +43,9 @@ class DivisionController extends GetxController {
   String get errorMessage => _errorMessage.value;
   bool get isEditMode => selectedDivision.value != null;
 
+  // Notification helper
+  NotificationController get _notif => Get.find<NotificationController>();
+
   @override
   void onInit() {
     super.onInit();
@@ -69,33 +73,11 @@ class DivisionController extends GetxController {
     } on ApiException catch (e) {
       print('Controller - ApiException caught: ${e.message}');
       _errorMessage.value = e.message;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Error',
-          e.message,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError(e.message);
     } catch (e) {
       print('Controller - Generic exception: $e');
       _errorMessage.value = e.toString();
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Error',
-          'Gagal memuat data divisi',
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError('Gagal memuat data divisi');
     } finally {
       isLoadingObs.value = false;
     }
@@ -116,18 +98,7 @@ class DivisionController extends GetxController {
     } on ApiException catch (e) {
       print('Controller - ApiException caught: ${e.message}');
       _errorMessage.value = e.message;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Error',
-          e.message,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError(e.message);
     } catch (e) {
       print('Controller - Generic exception: $e');
       _errorMessage.value = e.toString();
@@ -157,17 +128,7 @@ class DivisionController extends GetxController {
       print('Division created successfully: ${division.name}');
 
       // Show success toast
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Berhasil',
-          'Divisi "${division.name}" berhasil ditambahkan',
-          backgroundColor: Colors.green.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 2),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showSuccess('Divisi "${division.name}" berhasil ditambahkan');
 
       clearForm();
       fetchDivisions();
@@ -178,19 +139,7 @@ class DivisionController extends GetxController {
       print('Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
-
-      // Show error toast
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Gagal Menambah Divisi',
-          e.message,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError('Gagal menambah divisi: ${e.message}');
 
       // Set field-specific errors
       if (e.errors != null && e.errors!.isNotEmpty) {
@@ -210,18 +159,7 @@ class DivisionController extends GetxController {
       String errorMsg =
           'Gagal menambah divisi: ${e.toString().replaceAll('Exception: ', '')}';
       fieldErrors['name'] = errorMsg;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Error',
-          errorMsg,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError(errorMsg);
     } finally {
       isLoadingActionObs.value = false;
     }
@@ -248,19 +186,7 @@ class DivisionController extends GetxController {
       );
 
       print('Division updated successfully: ${division.name}');
-
-      // Show success toast
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Berhasil',
-          'Divisi "${division.name}" berhasil diperbarui',
-          backgroundColor: Colors.green.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 2),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showSuccess('Divisi "${division.name}" berhasil diperbarui');
 
       clearForm();
       fetchDivisions();
@@ -271,19 +197,7 @@ class DivisionController extends GetxController {
       print('Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
-
-      // Show error toast
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Gagal Memperbarui Divisi',
-          e.message,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError('Gagal memperbarui divisi: ${e.message}');
 
       // Set field-specific errors
       if (e.errors != null && e.errors!.isNotEmpty) {
@@ -303,18 +217,7 @@ class DivisionController extends GetxController {
       String errorMsg =
           'Gagal memperbarui divisi: ${e.toString().replaceAll('Exception: ', '')}';
       fieldErrors['name'] = errorMsg;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Error',
-          errorMsg,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError(errorMsg);
     } finally {
       isLoadingActionObs.value = false;
     }
@@ -354,19 +257,7 @@ class DivisionController extends GetxController {
       await _deleteDivisionUseCase.execute(id);
 
       print('Division deleted successfully: ID $id');
-
-      // Show success toast
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Berhasil',
-          'Divisi "$divisionName" berhasil dihapus',
-          backgroundColor: Colors.green.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 2),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showSuccess('Divisi "$divisionName" berhasil dihapus');
 
       fetchDivisions();
     } on ApiException catch (e) {
@@ -374,33 +265,11 @@ class DivisionController extends GetxController {
       print('Message: ${e.message}');
 
       _errorMessage.value = e.message;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Gagal Menghapus Divisi',
-          e.message,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError('Gagal menghapus divisi: ${e.message}');
     } catch (e) {
       print('Controller - Generic exception: $e');
       _errorMessage.value = e.toString();
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Error',
-          'Gagal menghapus divisi',
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError('Gagal menghapus divisi');
     } finally {
       isLoadingActionObs.value = false;
     }
@@ -428,19 +297,7 @@ class DivisionController extends GetxController {
 
     if (nameController.text.trim().isEmpty) {
       fieldErrors['name'] = 'Nama divisi wajib diisi';
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Validasi Error',
-          'Nama divisi wajib diisi',
-          backgroundColor: Colors.orange.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 2),
-          margin: const EdgeInsets.all(10),
-        );
-      });
-
+      _notif.showWarning('Nama divisi wajib diisi');
       return false;
     }
 

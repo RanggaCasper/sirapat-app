@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/services/local_storage.dart';
 import 'package:sirapat_app/app/util/dependency_injection.dart';
 import 'package:sirapat_app/presentation/app.dart';
+import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,9 @@ void main() async {
 
   // Initialize dependencies
   await DependencyInjection.init();
+
+  // Initialize notification controller
+  Get.put(NotificationController());
 
   runApp(const App());
 }
