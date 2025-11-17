@@ -186,14 +186,12 @@ class DivisionPage extends GetView<DivisionController> {
         actions: [
           TextButton(
             onPressed: () {
-              Get.closeAllSnackbars();
               Get.back();
             },
             child: const Text('Tutup'),
           ),
           ElevatedButton.icon(
             onPressed: () {
-              Get.closeAllSnackbars();
               Get.back();
               _showEditDialog(division);
             },
@@ -245,7 +243,6 @@ class DivisionPage extends GetView<DivisionController> {
         actions: [
           TextButton(
             onPressed: () {
-              Get.closeAllSnackbars();
               Get.back();
             },
             child: const Text('Batal'),
@@ -292,7 +289,6 @@ class DivisionPage extends GetView<DivisionController> {
         actions: [
           TextButton(
             onPressed: () {
-              Get.closeAllSnackbars();
               Get.back();
             },
             child: const Text('Batal'),

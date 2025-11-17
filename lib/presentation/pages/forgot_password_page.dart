@@ -15,16 +15,6 @@ class ForgotPasswordPage extends GetView<ForgotPasswordController> {
   final _obscurePasswordConfirmation = true.obs;
 
   void _handleSendOtp() {
-    if (_emailController.text.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Email tidak boleh kosong',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
-    }
     controller.sendOtp(_emailController.text);
   }
 
@@ -244,8 +234,7 @@ class ForgotPasswordPage extends GetView<ForgotPasswordController> {
                                               ? null
                                               : _handleSendOtp,
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                AppColors.primary,
+                                            backgroundColor: AppColors.primary,
                                             foregroundColor: Colors.white,
                                             disabledBackgroundColor:
                                                 AppColors.borderLight,
