@@ -245,7 +245,7 @@ class ForgotPasswordPage extends GetView<ForgotPasswordController> {
                                               : _handleSendOtp,
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
-                                                AppColors.iconPrimary,
+                                                AppColors.primary,
                                             foregroundColor: Colors.white,
                                             disabledBackgroundColor:
                                                 AppColors.borderLight,
@@ -270,7 +270,7 @@ class ForgotPasswordPage extends GetView<ForgotPasswordController> {
                                               : Text(
                                                   controller.retryAfter.value >
                                                           0
-                                                      ? 'Coba lagi dalam ${controller.retryAfter.value}s'
+                                                      ? 'Coba lagi dalam ${controller.retryAfter.value} detik'
                                                       : 'Kirim OTP',
                                                   style: const TextStyle(
                                                     fontSize: 14,

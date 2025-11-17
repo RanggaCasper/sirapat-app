@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/usecases/login_usecase.dart';
@@ -6,6 +5,7 @@ import 'package:sirapat_app/domain/usecases/register_usecase.dart';
 import 'package:sirapat_app/domain/usecases/get_current_user_usecase.dart';
 import 'package:sirapat_app/domain/repositories/auth_repository.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
+import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
 
 class AuthController extends GetxController {
   final LoginUseCase _loginUseCase;
@@ -30,6 +30,8 @@ class AuthController extends GetxController {
   bool get isLoading => isLoadingObs.value;
   String get errorMessage => _errorMessage.value;
   bool get isLoggedIn => _currentUser.value != null;
+
+  NotificationController get _notif => Get.find<NotificationController>();
 
   void togglePasswordVisibility() {
     obscurePassword.value = !obscurePassword.value;
@@ -63,40 +65,13 @@ class AuthController extends GetxController {
 
       _currentUser.value = user;
 
-      // Show success toast after frame is built
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Login Berhasil',
-          'Selamat datang, ${user.fullName}!',
-          backgroundColor: Colors.green.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 2),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showSuccess('Selamat datang, ${user.fullName}!');
 
-      // Navigate to home page
       Get.offAllNamed('/home');
     } on ApiException catch (e) {
-      print('Controller - ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
-
       _errorMessage.value = e.message;
 
-      // Show error toast after frame is built
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Login Gagal',
-          e.message,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError(e.message);
 
       // Set field-specific errors
       if (e.errors != null && e.errors!.isNotEmpty) {
@@ -106,51 +81,10 @@ class AuthController extends GetxController {
             print('Setting error for field $field: ${messages.first}');
           }
         });
-      } else {
-        // If no field-specific errors, set general error to NIP field
-        fieldErrors['nip'] = e.message;
-        print('No field errors, setting general error: ${e.message}');
       }
     } catch (e) {
-      print('Controller - Generic exception: $e');
-      _errorMessage.value = e.toString();
-
-      // Parse error message for better user experience
       String errorMsg = e.toString();
-      String toastMsg = '';
-
-      if (errorMsg.contains('No Internet connection') ||
-          errorMsg.contains('fetch-data')) {
-        toastMsg =
-            'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
-        fieldErrors['nip'] = toastMsg;
-      } else if (errorMsg.contains('Connection refused')) {
-        toastMsg =
-            'Server tidak merespons. Pastikan backend API sudah berjalan.';
-        fieldErrors['nip'] = toastMsg;
-      } else if (errorMsg.contains('422')) {
-        toastMsg = 'Data tidak valid. Periksa NIP dan password Anda.';
-        fieldErrors['nip'] = toastMsg;
-      } else if (errorMsg.contains('timeout')) {
-        toastMsg = 'Koneksi timeout. Periksa koneksi internet Anda.';
-        fieldErrors['nip'] = toastMsg;
-      } else {
-        toastMsg = 'Login gagal: ${errorMsg.replaceAll('Exception: ', '')}';
-        fieldErrors['nip'] = toastMsg;
-      }
-
-      // Show error toast after frame is built
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Error',
-          toastMsg,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError(errorMsg);
     } finally {
       isLoadingObs.value = false;
     }
@@ -192,40 +126,16 @@ class AuthController extends GetxController {
 
       _currentUser.value = user;
 
-      // Show success toast after frame is built
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Registrasi Berhasil',
-          'Selamat datang, ${user.fullName}!',
-          backgroundColor: Colors.green.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 2),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showSuccess(
+        'Registrasi berhasil! Selamat datang, ${user.fullName}!',
+      );
 
       // Navigate to home page
       Get.offAllNamed('/home');
     } on ApiException catch (e) {
-      print('Controller - Register ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
-
       _errorMessage.value = e.message;
 
-      // Show error toast after frame is built
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Registrasi Gagal',
-          e.message,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError(e.message);
 
       // Set field-specific errors
       if (e.errors != null && e.errors!.isNotEmpty) {
@@ -237,27 +147,8 @@ class AuthController extends GetxController {
         });
       }
     } catch (e) {
-      print('Controller - Register Generic exception: $e');
-      _errorMessage.value = e.toString();
-
       String errorMsg = e.toString();
-      String toastMsg =
-          'Registrasi gagal: ${errorMsg.replaceAll('Exception: ', '')}';
-
-      fieldErrors['nip'] = toastMsg;
-
-      // Show error toast after frame is built
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.snackbar(
-          'Error',
-          toastMsg,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-          margin: const EdgeInsets.all(10),
-        );
-      });
+      _notif.showError(errorMsg);
     } finally {
       isLoadingObs.value = false;
     }
@@ -270,11 +161,7 @@ class AuthController extends GetxController {
       _currentUser.value = null;
       Get.offAllNamed('/login');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Logout failed: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _notif.showError(e.toString());
     } finally {
       isLoadingObs.value = false;
     }

@@ -77,7 +77,7 @@ class DivisionController extends GetxController {
     } catch (e) {
       print('Controller - Generic exception: $e');
       _errorMessage.value = e.toString();
-      _notif.showError('Gagal memuat data divisi');
+      _notif.showError(e.toString());
     } finally {
       isLoadingObs.value = false;
     }
@@ -155,11 +155,8 @@ class DivisionController extends GetxController {
     } catch (e) {
       print('Controller - Generic exception: $e');
       _errorMessage.value = e.toString();
-
-      String errorMsg =
-          'Gagal menambah divisi: ${e.toString().replaceAll('Exception: ', '')}';
-      fieldErrors['name'] = errorMsg;
-      _notif.showError(errorMsg);
+      fieldErrors['name'] = e.toString();
+      _notif.showError(e.toString());
     } finally {
       isLoadingActionObs.value = false;
     }
@@ -213,11 +210,8 @@ class DivisionController extends GetxController {
     } catch (e) {
       print('Controller - Generic exception: $e');
       _errorMessage.value = e.toString();
-
-      String errorMsg =
-          'Gagal memperbarui divisi: ${e.toString().replaceAll('Exception: ', '')}';
-      fieldErrors['name'] = errorMsg;
-      _notif.showError(errorMsg);
+      fieldErrors['name'] = e.toString();
+      _notif.showError(e.toString());
     } finally {
       isLoadingActionObs.value = false;
     }
@@ -269,7 +263,7 @@ class DivisionController extends GetxController {
     } catch (e) {
       print('Controller - Generic exception: $e');
       _errorMessage.value = e.toString();
-      _notif.showError('Gagal menghapus divisi');
+      _notif.showError(e.toString());
     } finally {
       isLoadingActionObs.value = false;
     }

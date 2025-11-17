@@ -57,6 +57,8 @@ class APIProvider {
       case 422:
         // Validation error - return data untuk di-parse sebagai ApiException
         return response.data;
+      case 429:
+        return response.data;
       case 500:
       case 502:
       case 503:
@@ -79,7 +81,7 @@ class AppException implements Exception {
 
   @override
   String toString() {
-    return "[$code]: $message ${details != null ? '\n$details' : ''}";
+    return details ?? message ?? '';
   }
 }
 

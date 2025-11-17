@@ -693,7 +693,7 @@ class RegisterPage extends GetView<AuthController> {
                                     ? null
                                     : _handleRegister,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.iconPrimary,
+                                  backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
                                   disabledBackgroundColor:
                                       AppColors.borderLight,
