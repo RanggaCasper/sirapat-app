@@ -45,4 +45,63 @@ class UserModel extends User {
     'updated_at': updatedAt,
     'division_id': divisionId,
   };
+
+  // From Entity to Model
+  factory UserModel.fromEntity(User user) {
+    return UserModel(
+      id: user.id,
+      nip: user.nip,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      fullName: user.fullName,
+      profilePhoto: user.profilePhoto,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    );
+  }
+
+  // To Entity
+  User toEntity() {
+    return User(
+      id: id,
+      nip: nip,
+      username: username,
+      email: email,
+      phone: phone,
+      fullName: fullName,
+      profilePhoto: profilePhoto,
+      role: role,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
+  // CopyWith
+  UserModel copyWith({
+    int? id,
+    String? nip,
+    String? username,
+    String? email,
+    String? phone,
+    String? fullName,
+    String? profilePhoto,
+    String? role,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      nip: nip ?? this.nip,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      fullName: fullName ?? this.fullName,
+      profilePhoto: profilePhoto ?? this.profilePhoto,
+      role: role ?? this.role,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

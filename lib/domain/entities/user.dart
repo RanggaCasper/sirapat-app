@@ -56,4 +56,69 @@ class User {
     'updated_at': updatedAt,
     'division_id': divisionId,
   };
+
+  User copyWith({
+    int? id,
+    String? nip,
+    String? username,
+    String? email,
+    String? phone,
+    String? fullName,
+    String? profilePhoto,
+    String? role,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      nip: nip ?? this.nip,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      fullName: fullName ?? this.fullName,
+      profilePhoto: profilePhoto ?? this.profilePhoto,
+      role: role ?? this.role,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  // Helper getters
+  bool get isMaster => role == 'master';
+  bool get isAdmin => role == 'admin';
+  bool get isEmployee => role == 'employee';
+  bool get canManageUsers => isMaster || isAdmin;
+
+  String? get roleDisplay {
+    switch (role) {
+      case 'master':
+        return 'Master';
+      case 'admin':
+        return 'Admin';
+      case 'employee':
+        return 'Karyawan';
+      default:
+        return role;
+    }
+  }
+
+  @override
+  String toString() {
+    return 'User(id: $id, nip: $nip, fullName: $fullName, role: $role)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is User &&
+        other.id == id &&
+        other.nip == nip &&
+        other.email == email;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^ nip.hashCode ^ email.hashCode;
+  }
 }

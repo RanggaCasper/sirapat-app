@@ -12,4 +12,5 @@ class APIEndpoint {
   static String get register => "$baseUrl/auth/register";
   static String get logout => "$baseUrl/auth/logout";
   static String get divisions => "$baseUrl/master/division";
+  static String get users => "$baseUrl/master/user";
 }

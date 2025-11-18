@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/presentation/controllers/auth_binding.dart';
+import 'package:sirapat_app/presentation/controllers/user_binding.dart';
 import 'package:sirapat_app/presentation/controllers/division_binding.dart';
 import 'package:sirapat_app/presentation/pages/splash_page.dart';
 import 'package:sirapat_app/presentation/pages/login_page.dart';
@@ -9,6 +10,7 @@ import 'package:sirapat_app/presentation/pages/register_page.dart';
 import 'package:sirapat_app/presentation/pages/forgot_password_page.dart';
 import 'package:sirapat_app/presentation/pages/home_page.dart';
 import 'package:sirapat_app/presentation/pages/division_page.dart';
+import 'package:sirapat_app/presentation/pages/user_page.dart';
 import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
 
 class App extends StatelessWidget {
@@ -72,6 +74,11 @@ class App extends StatelessWidget {
           name: '/divisions',
           page: () => const DivisionPage(),
           binding: DivisionBinding(),
+        ),
+        GetPage(
+          name: '/users',
+          page: () => const UserPage(),
+          binding: UserBinding(),
         ),
       ],
     );
