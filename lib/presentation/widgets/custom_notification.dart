@@ -13,7 +13,6 @@ class NotificationController extends GetxController {
     type.value = notifType;
     isVisible.value = true;
 
-    // Auto hide after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
       hide();
     });

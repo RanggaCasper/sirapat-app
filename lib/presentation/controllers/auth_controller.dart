@@ -67,7 +67,16 @@ class AuthController extends GetxController {
 
       _notif.showSuccess('Selamat datang, ${user.fullName}!');
 
-      Get.offAllNamed('/home');
+      if (user.role == 'master') {
+        Get.offAllNamed('/master-dashboard');
+      } else if (user.role == 'admin') {
+        Get.offAllNamed('/admin-dashboard');
+      } else if (user.role == 'employee') {
+        Get.offAllNamed('/employee-dashboard');
+      } else {
+        _notif.showError('Belum login atau role tidak valid');
+        Get.offAllNamed('/login');
+      }
     } on ApiException catch (e) {
       _errorMessage.value = e.message;
 
