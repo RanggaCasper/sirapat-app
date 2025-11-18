@@ -131,7 +131,7 @@ class HomePage extends GetView<AuthController> {
       ),
       // ✅ Floating Action Button untuk ke halaman Divisions
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Get.toNamed('/users'),
+        onPressed: () => Get.toNamed('/master-dashboard'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.business),

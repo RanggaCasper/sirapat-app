@@ -11,6 +11,7 @@ import 'package:sirapat_app/presentation/pages/forgot_password_page.dart';
 import 'package:sirapat_app/presentation/pages/home_page.dart';
 import 'package:sirapat_app/presentation/pages/division_page.dart';
 import 'package:sirapat_app/presentation/pages/user_page.dart';
+import 'package:sirapat_app/presentation/pages/dashboard_master_page.dart';
 import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
 
 class App extends StatelessWidget {
@@ -79,6 +80,10 @@ class App extends StatelessWidget {
           name: '/users',
           page: () => const UserPage(),
           binding: UserBinding(),
+        ),
+        GetPage(
+          name: '/master-dashboard',
+          page: () => const DashboardMasterPage(),
         ),
       ],
     );
