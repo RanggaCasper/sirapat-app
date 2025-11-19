@@ -211,25 +211,25 @@ class ProfilePage extends GetView<AuthController> {
         ),
       ),
 
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 3,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Get.offAllNamed('/home');
-              break;
-            case 1:
-              Get.toNamed('/home');
-              break;
-            case 2:
-              Get.toNamed('/home');
-              break;
-            case 3:
-              Get.toNamed('/profile');
-              break;
-          }
-        },
-      ),
+      // bottomNavigationBar: CustomBottomNavBar(
+      //   currentIndex: 3,
+      //   onTap: (index) {
+      //     switch (index) {
+      //       case 0:
+      //         Get.offAllNamed('/home');
+      //         break;
+      //       case 1:
+      //         Get.toNamed('/home');
+      //         break;
+      //       case 2:
+      //         Get.toNamed('/home');
+      //         break;
+      //       case 3:
+      //         Get.toNamed('/profile');
+      //         break;
+      //     }
+      //   },
+      // ),
     );
   }
 }

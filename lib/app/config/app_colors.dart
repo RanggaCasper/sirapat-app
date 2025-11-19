@@ -14,4 +14,11 @@ class AppColors {
   static Color iconSecondary = HexColor("9CA3AF");
   static Color titleDark = HexColor("1E3C72");
   static Color borderLight = HexColor("E5E7EB");
+
+  static Color kLightBlueBg = HexColor("EAF2FF");
+  static Color kPageBg = HexColor("F7F9FC");
+  static Color kBorderColor = HexColor("DDE6F0");
+  static Color kSubtitleColor = HexColor("607D8B");
+  static Color kLiveBadgeColor = HexColor("FF4444");
+  static Color kScheduleBadgeColor = HexColor("29B6F6");
 }
