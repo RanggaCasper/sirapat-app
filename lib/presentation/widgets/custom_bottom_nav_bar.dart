@@ -1,13 +1,29 @@
 import 'package:flutter/material.dart';
 
+class BottomNavItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final String route; // atau bisa callback
+
+  BottomNavItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.route,
+  });
+}
+
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final List<BottomNavItem> items;
 
   const CustomBottomNavBar({
     Key? key,
     required this.currentIndex,
     required this.onTap,
+    required this.items,
   }) : super(key: key);
 
   @override
@@ -37,28 +53,15 @@ class CustomBottomNavBar extends StatelessWidget {
           selectedFontSize: 12,
           unselectedFontSize: 12,
           elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.qr_code_scanner_outlined),
-              activeIcon: Icon(Icons.qr_code_scanner),
-              label: 'Scan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history_outlined),
-              activeIcon: Icon(Icons.history),
-              label: 'Riwayat',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+          items: items
+              .map(
+                (item) => BottomNavigationBarItem(
+                  icon: Icon(item.icon),
+                  activeIcon: Icon(item.activeIcon),
+                  label: item.label,
+                ),
+              )
+              .toList(),
         ),
       ),
     );

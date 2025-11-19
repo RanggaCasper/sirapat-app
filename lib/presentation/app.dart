@@ -12,9 +12,11 @@ import 'package:sirapat_app/presentation/pages/home_page.dart';
 import 'package:sirapat_app/presentation/pages/division_page.dart';
 import 'package:sirapat_app/presentation/pages/user_page.dart';
 import 'package:sirapat_app/presentation/pages/dashboard_master_page.dart';
-import 'package:sirapat_app/presentation/pages/dashboard_admin_page.dart';
 import 'package:sirapat_app/presentation/pages/dashboard_employee_page.dart';
 import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/pages/admin/dashboard_admin_page.dart';
+import 'package:sirapat_app/presentation/pages/admin/meeting/meeting_list_page.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -88,12 +90,17 @@ class App extends StatelessWidget {
           page: () => const DashboardMasterPage(),
         ),
         GetPage(
+          name: '/employee-dashboard',
+          page: () => const DashboardEmployeePage(),
+        ),
+        GetPage(
           name: '/admin-dashboard',
           page: () => const DashboardAdminPage(),
         ),
         GetPage(
-          name: '/employee-dashboard',
-          page: () => const DashboardEmployeePage(),
+          name: '/admin-list-rapat',
+          page: () => MeetingListPage(),
+          binding: MeetingBinding(),
         ),
       ],
     );
