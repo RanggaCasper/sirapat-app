@@ -3,14 +3,12 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/domain/usecases/meeting/get_meetings_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
-import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class MeetingController extends GetxController {
   final GetMeetingsUseCase _getMeetingsUseCase;
 
-  MeetingController(
-    this._getMeetingsUseCase,
-  );
+  MeetingController(this._getMeetingsUseCase);
 
   // Observables
   final RxList<Meeting> meetings = <Meeting>[].obs;
@@ -67,14 +65,14 @@ class MeetingController extends GetxController {
 
       final meetingList = await _getMeetingsUseCase.execute();
       meetings.value = meetingList;
-
-      print('Meetings fetched successfully: ${meetingList.length}');
     } on ApiException catch (e) {
-      print("MeetingController - ApiException: ${e.message}");
+      debugPrint(
+        '[MeetingController] ApiException in fetchMeetings: ${e.message}',
+      );
       _errorMessage.value = e.message;
       _notif.showError(e.message);
     } catch (e) {
-      print("MeetingController - Generic error: $e");
+      debugPrint('[MeetingController] Exception in fetchMeetings: $e');
       _errorMessage.value = e.toString();
       _notif.showError(e.toString());
     } finally {
@@ -98,10 +96,14 @@ class MeetingController extends GetxController {
   List<Meeting> get filteredMeetings {
     return meetings.where((m) {
       switch (selectedFilter.value) {
-        case 0: return m.status == 'ongoing';
-        case 1: return m.status == 'scheduled';
-        case 2: return m.status == 'completed';
-        default: return true;
+        case 0:
+          return m.status == 'ongoing';
+        case 1:
+          return m.status == 'scheduled';
+        case 2:
+          return m.status == 'completed';
+        default:
+          return true;
       }
     }).toList();
   }
@@ -117,8 +119,6 @@ class MeetingController extends GetxController {
       isLoadingActionObs.value = true;
       fieldErrors.clear();
 
-      print("Creating meeting...");
-
       // TODO: implement call to CreateMeetingUseCase()
 
       _notif.showSuccess("Rapat berhasil dibuat");
@@ -126,12 +126,14 @@ class MeetingController extends GetxController {
       fetchMeetings();
       Get.back();
     } on ApiException catch (e) {
-      print("Create Meeting - ApiException: ${e.message}");
+      debugPrint(
+        '[MeetingController] ApiException in createMeeting: ${e.message}',
+      );
       _errorMessage.value = e.message;
       _setFieldErrors(e);
       _notif.showError(e.message);
     } catch (e) {
-      print("Create Meeting - Generic error: $e");
+      debugPrint('[MeetingController] Exception in createMeeting: $e');
       _notif.showError(e.toString());
     } finally {
       isLoadingActionObs.value = false;
@@ -149,8 +151,6 @@ class MeetingController extends GetxController {
       isLoadingActionObs.value = true;
       fieldErrors.clear();
 
-      print("Updating meeting...");
-
       // TODO: implement UpdateMeetingUseCase()
 
       _notif.showSuccess("Rapat berhasil diperbarui");
@@ -158,7 +158,9 @@ class MeetingController extends GetxController {
       fetchMeetings();
       Get.back();
     } on ApiException catch (e) {
-      print("Update Meeting - ApiException: ${e.message}");
+      debugPrint(
+        '[MeetingController] ApiException in updateMeeting: ${e.message}',
+      );
       _errorMessage.value = e.message;
       _setFieldErrors(e);
       _notif.showError(e.message);
@@ -180,11 +182,11 @@ class MeetingController extends GetxController {
         content: Text('Hapus "$name"?'),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
+            onPressed: () => Navigator.of(Get.context!).pop(false),
             child: const Text("Batal"),
           ),
           TextButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () => Navigator.of(Get.context!).pop(true),
             child: const Text("Hapus", style: TextStyle(color: Colors.red)),
           ),
         ],
@@ -195,8 +197,6 @@ class MeetingController extends GetxController {
 
     try {
       isLoadingActionObs.value = true;
-
-      print("Deleting meeting...");
 
       // TODO: implement DeleteMeetingUseCase()
 

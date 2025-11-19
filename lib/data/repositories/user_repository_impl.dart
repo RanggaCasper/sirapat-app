@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/repositories/user_repository.dart';
 import 'package:sirapat_app/data/providers/network/requests/user/user_get_request.dart';
@@ -18,20 +19,49 @@ class UserRepositoryImpl extends UserRepository {
       final request = GetUsersRequest();
       final response = await request.request();
 
-      print('Get Users API Response: $response');
+      debugPrint('[UserRepository] Get Users API Response: $response');
 
-      final data = response['data'];
-      final List usersJson = data['data'] ?? [];
+      // Parse response using ApiResponse
+      final apiResponse = ApiResponse.fromJson(response as Map<String, dynamic>, (
+        data,
+      ) {
+        // Check if data is a Map with 'data' key (nested structure)
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          final innerData = data['data'];
+          if (innerData is List) {
+            final users = innerData.map((item) {
+              return UserModel.fromJson(item as Map<String, dynamic>);
+            }).toList();
+            return users;
+          }
+        }
+        // Handle if data is directly a list
+        if (data is List) {
+          debugPrint(
+            '[UserRepository] Data is directly a List with ${data.length} items',
+          );
+          return data
+              .map((item) => UserModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        return <User>[];
+      });
 
-      print("Parsed users count: ${usersJson.length}");
+      if (!apiResponse.status) {
+        throw ApiException.fromJson(response);
+      }
 
-      final users = usersJson
-          .map((item) => UserModel.fromJson(item as Map<String, dynamic>))
-          .toList();
+      final users = apiResponse.data;
+      if (users is List<User>) {
+        return users;
+      }
 
-      return users;
+      return [];
+    } on ApiException catch (e) {
+      debugPrint('[UserRepository] ApiException in getUsers: ${e.message}');
+      rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('[UserRepository] Exception in getUsers: $e');
       throw ApiException(
         status: false,
         message: 'Failed to fetch users: ${e.toString()}',
@@ -45,24 +75,21 @@ class UserRepositoryImpl extends UserRepository {
       final request = GetUserByIdRequest(id: id);
       final response = await request.request();
 
-      print('Get User By ID API Response: $response');
-
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
         (data) => UserModel.fromJson(data as Map<String, dynamic>),
       );
 
       if (!apiResponse.status || apiResponse.data == null) {
-        print('Get user by id failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return apiResponse.data as User;
     } on ApiException catch (e) {
-      print('ApiException caught: ${e.message}');
+      debugPrint('[UserRepository] ApiException in getUserById: ${e.message}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('[UserRepository] Exception in getUserById: $e');
       throw ApiException(
         status: false,
         message: 'Failed to fetch user: ${e.toString()}',
@@ -96,10 +123,7 @@ class UserRepositoryImpl extends UserRepository {
       );
       final response = await request.request();
 
-      print('Create User API Response: $response');
-
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
-        print('Create user validation errors detected');
         throw ApiException.fromJson(response);
       }
 
@@ -109,18 +133,16 @@ class UserRepositoryImpl extends UserRepository {
       );
 
       if (!apiResponse.status || apiResponse.data == null) {
-        print('Create user failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return apiResponse.data as User;
     } on ApiException catch (e) {
-      print('Create User ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint('[UserRepository] ApiException in createUser: ${e.message}');
+      debugPrint('[UserRepository] Errors: ${e.errors}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('[UserRepository] Exception in createUser: $e');
       throw ApiException(
         status: false,
         message: 'Failed to create user: ${e.toString()}',
@@ -152,10 +174,7 @@ class UserRepositoryImpl extends UserRepository {
       );
       final response = await request.request();
 
-      print('Update User API Response: $response');
-
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
-        print('Update user validation errors detected');
         throw ApiException.fromJson(response);
       }
 
@@ -165,18 +184,16 @@ class UserRepositoryImpl extends UserRepository {
       );
 
       if (!apiResponse.status || apiResponse.data == null) {
-        print('Update user failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return apiResponse.data as User;
     } on ApiException catch (e) {
-      print('Update User ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint('[UserRepository] ApiException in updateUser: ${e.message}');
+      debugPrint('[UserRepository] Errors: ${e.errors}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('[UserRepository] Exception in updateUser: $e');
       throw ApiException(
         status: false,
         message: 'Failed to update user: ${e.toString()}',
@@ -190,10 +207,7 @@ class UserRepositoryImpl extends UserRepository {
       final request = UpdateUserRoleRequest(id: id, role: role);
       final response = await request.request();
 
-      print('Update User Role API Response: $response');
-
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
-        print('Update role validation errors detected');
         throw ApiException.fromJson(response);
       }
 
@@ -203,17 +217,17 @@ class UserRepositoryImpl extends UserRepository {
       );
 
       if (!apiResponse.status || apiResponse.data == null) {
-        print('Update role failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return apiResponse.data as User;
     } on ApiException catch (e) {
-      print('Update Role ApiException caught');
-      print('Message: ${e.message}');
+      debugPrint(
+        '[UserRepository] ApiException in updateUserRole: ${e.message}',
+      );
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('[UserRepository] Exception in updateUserRole: $e');
       throw ApiException(
         status: false,
         message: 'Failed to update user role: ${e.toString()}',
@@ -227,25 +241,21 @@ class UserRepositoryImpl extends UserRepository {
       final request = DeleteUserRequest(id: id);
       final response = await request.request();
 
-      print('Delete User API Response: $response');
-
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
         (data) => data,
       );
 
       if (!apiResponse.status) {
-        print('Delete user failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return true;
     } on ApiException catch (e) {
-      print('Delete User ApiException caught');
-      print('Message: ${e.message}');
+      debugPrint('[UserRepository] ApiException in deleteUser: ${e.message}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('[UserRepository] Exception in deleteUser: $e');
       throw ApiException(
         status: false,
         message: 'Failed to delete user: ${e.toString()}',
@@ -269,10 +279,7 @@ class UserRepositoryImpl extends UserRepository {
       );
       final response = await request.request();
 
-      print('Change Password API Response: $response');
-
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
-        print('Change password validation errors detected');
         throw ApiException.fromJson(response);
       }
 
@@ -282,18 +289,18 @@ class UserRepositoryImpl extends UserRepository {
       );
 
       if (!apiResponse.status) {
-        print('Change password failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return true;
     } on ApiException catch (e) {
-      print('Change Password ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint(
+        '[UserRepository] ApiException in changePassword: ${e.message}',
+      );
+      debugPrint('[UserRepository] Errors: ${e.errors}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('[UserRepository] Exception in changePassword: $e');
       throw ApiException(
         status: false,
         message: 'Failed to change password: ${e.toString()}',

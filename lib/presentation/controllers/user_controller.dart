@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
+import 'package:sirapat_app/domain/entities/pagination.dart';
 import 'package:sirapat_app/domain/usecases/user/get_users_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/get_user_by_id_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/create_user_usecase.dart';
@@ -9,7 +10,7 @@ import 'package:sirapat_app/domain/usecases/user/update_user_role_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/delete_user_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/change_password_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
-import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class UserController extends GetxController {
   final GetUsersUseCase _getUsersUseCase;
@@ -32,6 +33,8 @@ class UserController extends GetxController {
 
   // Observable lists
   final RxList<User> users = <User>[].obs;
+  final RxList<User> _allUsers = <User>[].obs;
+  final Rx<PaginationMeta?> paginationMeta = Rx<PaginationMeta?>(null);
   final RxBool isLoadingObs = false.obs;
   final RxBool isLoadingActionObs = false.obs;
   final RxString _errorMessage = ''.obs;
@@ -47,6 +50,8 @@ class UserController extends GetxController {
   final TextEditingController passwordConfirmationController =
       TextEditingController();
   final TextEditingController profilePhotoController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+  final RxString searchQuery = ''.obs;
 
   // Password change controllers
   final TextEditingController currentPasswordController =
@@ -92,6 +97,7 @@ class UserController extends GetxController {
     passwordController.dispose();
     passwordConfirmationController.dispose();
     profilePhotoController.dispose();
+    searchController.dispose();
     currentPasswordController.dispose();
     newPasswordController.dispose();
     newPasswordConfirmationController.dispose();
@@ -106,27 +112,96 @@ class UserController extends GetxController {
     obscurePasswordConfirmation.value = !obscurePasswordConfirmation.value;
   }
 
-  // Fetch all users
-  Future<void> fetchUsers() async {
+  // Fetch all users from API (only once)
+  Future<void> fetchUsers({int page = 1, int perPage = 10}) async {
     try {
       isLoadingObs.value = true;
       _errorMessage.value = '';
       fieldErrors.clear();
 
-      final userList = await _getUsersUseCase.execute();
-      users.value = userList ?? [];
+      // Fetch all data from API
+      final result = await _getUsersUseCase.execute();
+      _allUsers.value = result;
 
-      print('Users fetched successfully: ${users.length} items');
+      // After fetching, apply pagination on client side
+      _applyPagination(page: page, perPage: perPage);
     } on ApiException catch (e) {
-      print('Controller - ApiException caught: ${e.message}');
+      debugPrint('[UserController] ApiException in fetchUsers: ${e.message}');
       _errorMessage.value = e.message;
       _notif.showError(e.message);
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[UserController] Exception in fetchUsers: $e');
       _errorMessage.value = e.toString();
       _notif.showError(e.toString());
     } finally {
       isLoadingObs.value = false;
+    }
+  }
+
+  // Apply client-side pagination and search filter
+  void _applyPagination({int page = 1, int perPage = 10}) {
+    // Apply search filter
+    final filteredData = searchQuery.value.isEmpty
+        ? _allUsers
+        : _allUsers.where((user) {
+            final query = searchQuery.value.toLowerCase();
+            final fullName = (user.fullName ?? '').toLowerCase();
+            final nip = (user.nip ?? '').toLowerCase();
+            final email = (user.email ?? '').toLowerCase();
+            final username = (user.username ?? '').toLowerCase();
+            return fullName.contains(query) ||
+                nip.contains(query) ||
+                email.contains(query) ||
+                username.contains(query);
+          }).toList();
+
+    // Calculate pagination
+    final totalItems = filteredData.length;
+    final lastPage = totalItems > 0 ? (totalItems / perPage).ceil() : 1;
+    final startIndex = (page - 1) * perPage;
+    final endIndex = (startIndex + perPage).clamp(0, totalItems);
+
+    // Get items for current page
+    users.value = totalItems > 0
+        ? filteredData.sublist(startIndex.clamp(0, totalItems), endIndex)
+        : [];
+
+    // Set pagination meta (always show even if 1 page)
+    paginationMeta.value = PaginationMeta(
+      currentPage: page,
+      perPage: perPage,
+      total: totalItems,
+      lastPage: lastPage,
+    );
+  }
+
+  // Search users (client-side filter)
+  void searchUsers(String query) {
+    searchQuery.value = query;
+    _applyPagination(
+      page: 1,
+      perPage: 10,
+    ); // Reset to first page when searching
+  }
+
+  // Navigate to specific page (client-side)
+  void goToPage(int page) {
+    if (paginationMeta.value != null) {
+      _applyPagination(page: page, perPage: paginationMeta.value!.perPage);
+    }
+  }
+
+  // Go to next page
+  void nextPage() {
+    if (paginationMeta.value?.hasNextPage ?? false) {
+      goToPage(paginationMeta.value!.nextPage);
+    }
+  }
+
+  // Go to previous page
+  void previousPage() {
+    if (paginationMeta.value?.hasPreviousPage ?? false) {
+      goToPage(paginationMeta.value!.previousPage);
     }
   }
 
@@ -139,15 +214,14 @@ class UserController extends GetxController {
       final user = await _getUserByIdUseCase.execute(id);
       selectedUser.value = user;
       _populateForm(user);
-
-      print('User fetched by ID: ${user.fullName}');
     } on ApiException catch (e) {
-      print('Controller - ApiException caught: ${e.message}');
+      debugPrint(
+        '[UserController] ApiException in fetchUserById: ${e.message}',
+      );
       _errorMessage.value = e.message;
-
       _notif.showError(e.message);
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[UserController] Exception in fetchUserById: $e');
       _errorMessage.value = e.toString();
       _notif.showError(e.toString());
     } finally {
@@ -180,15 +254,17 @@ class UserController extends GetxController {
         ),
       );
 
-      print('User created successfully: ${user.fullName}');
+      // Show success toast
+      _notif.showSuccess('Pengguna "${user.fullName}" berhasil ditambahkan');
 
       clearForm();
-      fetchUsers();
+
+      // Navigate back and refresh
       Get.back();
+      await fetchUsers();
     } on ApiException catch (e) {
-      print('Controller - Create ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint('[UserController] ApiException in createUser: ${e.message}');
+      debugPrint('[UserController] Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
       _notif.showError(e.message);
@@ -197,18 +273,17 @@ class UserController extends GetxController {
         e.errors!.forEach((field, messages) {
           if (messages.isNotEmpty) {
             fieldErrors[field] = messages.first;
-            print('Setting error for field $field: ${messages.first}');
           }
         });
       } else {
         fieldErrors['nip'] = e.message;
       }
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[UserController] Exception in createUser: $e');
       _errorMessage.value = e.toString();
 
       String errorMsg =
-          'Gagal menambah user: ${e.toString().replaceAll('Exception: ', '')}';
+          'Gagal menambah pengguna: ${e.toString().replaceAll('Exception: ', '')}';
       fieldErrors['nip'] = errorMsg;
 
       _notif.showError(errorMsg);
@@ -242,36 +317,35 @@ class UserController extends GetxController {
         ),
       );
 
-      print('User updated successfully: ${user.fullName}');
-      _notif.showSuccess('User "${user.fullName}" berhasil diperbarui');
+      _notif.showSuccess('Pengguna "${user.fullName}" berhasil diperbarui');
 
       clearForm();
-      fetchUsers();
+
+      // Navigate back and refresh
       Get.back();
+      await fetchUsers();
     } on ApiException catch (e) {
-      print('Controller - Update ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint('[UserController] ApiException in updateUser: ${e.message}');
+      debugPrint('[UserController] Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
-      _notif.showError('Gagal memperbarui user: ${e.message}');
+      _notif.showError('Gagal memperbarui pengguna: ${e.message}');
 
       if (e.errors != null && e.errors!.isNotEmpty) {
         e.errors!.forEach((field, messages) {
           if (messages.isNotEmpty) {
             fieldErrors[field] = messages.first;
-            print('Setting error for field $field: ${messages.first}');
           }
         });
       } else {
         fieldErrors['nip'] = e.message;
       }
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[UserController] Exception in updateUser: $e');
       _errorMessage.value = e.toString();
 
       String errorMsg =
-          'Gagal memperbarui user: ${e.toString().replaceAll('Exception: ', '')}';
+          'Gagal memperbarui pengguna: ${e.toString().replaceAll('Exception: ', '')}';
       fieldErrors['nip'] = errorMsg;
 
       _notif.showError(errorMsg);
@@ -290,21 +364,22 @@ class UserController extends GetxController {
         UpdateUserRoleParams(id: userId, role: newRole),
       );
 
-      print('User role updated successfully: ${user.fullName} -> $newRole');
-
-      _notif.showSuccess('Role user "${user.fullName}" berhasil diperbarui');
+      _notif.showSuccess(
+        'Role pengguna "${user.fullName}" berhasil diperbarui',
+      );
 
       fetchUsers();
       Get.back();
     } on ApiException catch (e) {
-      print('Controller - Update Role ApiException caught');
-      print('Message: ${e.message}');
+      debugPrint(
+        '[UserController] ApiException in updateUserRole: ${e.message}',
+      );
 
       _errorMessage.value = e.message;
 
-      _notif.showError('Gagal mengubah role user: ${e.message}');
+      _notif.showError('Gagal mengubah role pengguna: ${e.message}');
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[UserController] Exception in updateUserRole: $e');
       _errorMessage.value = e.toString();
 
       _notif.showError('Gagal mengubah role user: ${e.toString()}');
@@ -316,7 +391,7 @@ class UserController extends GetxController {
   // Delete user
   Future<void> deleteUser(int id) async {
     final user = users.firstWhereOrNull((u) => u.id == id);
-    final userName = user?.fullName ?? 'user ini';
+    final userName = user?.fullName ?? 'pengguna ini';
 
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
@@ -324,16 +399,17 @@ class UserController extends GetxController {
         content: Text('Apakah Anda yakin ingin menghapus "$userName"?'),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
+            onPressed: () => Navigator.of(Get.context!).pop(false),
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () => Navigator.of(Get.context!).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Hapus'),
           ),
         ],
       ),
+      barrierDismissible: false,
     );
 
     if (confirmed != true) return;
@@ -344,23 +420,20 @@ class UserController extends GetxController {
 
       await _deleteUserUseCase.execute(id);
 
-      print('User deleted successfully: ID $id');
-
-      _notif.showSuccess('User "$userName" berhasil dihapus');
+      _notif.showSuccess('Pengguna "$userName" berhasil dihapus');
 
       fetchUsers();
     } on ApiException catch (e) {
-      print('Controller - Delete ApiException caught');
-      print('Message: ${e.message}');
+      debugPrint('[UserController] ApiException in deleteUser: ${e.message}');
 
       _errorMessage.value = e.message;
 
-      _notif.showError('Gagal menghapus user: ${e.message}');
+      _notif.showError('Gagal menghapus pengguna: ${e.message}');
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[UserController] Exception in deleteUser: $e');
       _errorMessage.value = e.toString();
 
-      _notif.showError('Gagal menghapus user: ${e.toString()}');
+      _notif.showError('Gagal menghapus pengguna: ${e.toString()}');
     } finally {
       isLoadingActionObs.value = false;
     }
@@ -385,16 +458,15 @@ class UserController extends GetxController {
         ),
       );
 
-      print('Password changed successfully for user ID: $userId');
-
       _notif.showSuccess('Password berhasil diubah');
 
       _clearPasswordForm();
       Get.back();
     } on ApiException catch (e) {
-      print('Controller - Change Password ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint(
+        '[UserController] ApiException in changePassword: ${e.message}',
+      );
+      debugPrint('[UserController] Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
       _notif.showError('Gagal mengubah password: ${e.message}');
@@ -407,7 +479,7 @@ class UserController extends GetxController {
         });
       }
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[UserController] Exception in changePassword: $e');
       _errorMessage.value = e.toString();
 
       _notif.showError('Gagal mengubah password: ${e.toString()}');

@@ -28,6 +28,17 @@ class Division {
     );
   }
 
+  // To JSON
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) 'id': id,
+      'name': name,
+      if (description != null) 'description': description,
+      if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+      if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+    };
+  }
+
   // CopyWith for immutability
   Division copyWith({
     int? id,

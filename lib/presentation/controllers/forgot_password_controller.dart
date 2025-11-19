@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/data/providers/network/requests/forgot_password_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/reset_password_request.dart';
-import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class ForgotPasswordController extends GetxController {
   final isLoading = false.obs;

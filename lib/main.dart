@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/services/local_storage.dart';
 import 'package:sirapat_app/app/util/dependency_injection.dart';
 import 'package:sirapat_app/presentation/app.dart';
-import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

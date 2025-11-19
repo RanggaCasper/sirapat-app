@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/domain/entities/division.dart';
+import 'package:sirapat_app/domain/entities/pagination.dart';
 import 'package:sirapat_app/domain/usecases/division/get_divisions_usecase.dart';
 import 'package:sirapat_app/domain/usecases/division/get_division_by_id_usecase.dart';
 import 'package:sirapat_app/domain/usecases/division/create_division_usecase.dart';
 import 'package:sirapat_app/domain/usecases/division/update_division_usecase.dart';
 import 'package:sirapat_app/domain/usecases/division/delete_division_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
-import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class DivisionController extends GetxController {
   final GetDivisionsUseCase _getDivisionsUseCase;
@@ -26,6 +27,8 @@ class DivisionController extends GetxController {
 
   // Observable lists
   final RxList<Division> divisions = <Division>[].obs;
+  final RxList<Division> _allDivisions = <Division>[].obs;
+  final Rx<PaginationMeta?> paginationMeta = Rx<PaginationMeta?>(null);
   final RxBool isLoadingObs = false.obs;
   final RxBool isLoadingActionObs = false.obs;
   final RxString _errorMessage = ''.obs;
@@ -34,6 +37,8 @@ class DivisionController extends GetxController {
   // Form controllers
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+  final RxString searchQuery = ''.obs;
 
   // Selected division for edit
   final Rx<Division?> selectedDivision = Rx<Division?>(null);
@@ -56,30 +61,97 @@ class DivisionController extends GetxController {
   void onClose() {
     nameController.dispose();
     descriptionController.dispose();
+    searchController.dispose();
     super.onClose();
   }
 
-  // Fetch all divisions
-  Future<void> fetchDivisions() async {
+  // Fetch all divisions from API (only once)
+  Future<void> fetchDivisions({int page = 1, int perPage = 10}) async {
     try {
       isLoadingObs.value = true;
       _errorMessage.value = '';
       fieldErrors.clear();
 
-      final divisionList = await _getDivisionsUseCase.execute();
-      divisions.value = divisionList;
+      // Fetch all data from API
+      final result = await _getDivisionsUseCase.execute();
+      _allDivisions.value = result;
 
-      print('Divisions fetched successfully: ${divisionList.length} items');
+      // After fetching, apply pagination on client side
+      _applyPagination(page: page, perPage: perPage);
     } on ApiException catch (e) {
-      print('Controller - ApiException caught: ${e.message}');
+      debugPrint(
+        '[DivisionController] ApiException in fetchDivisions: ${e.message}',
+      );
       _errorMessage.value = e.message;
       _notif.showError(e.message);
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[DivisionController] Exception in fetchDivisions: $e');
       _errorMessage.value = e.toString();
       _notif.showError(e.toString());
     } finally {
       isLoadingObs.value = false;
+    }
+  }
+
+  // Apply client-side pagination and search filter
+  void _applyPagination({int page = 1, int perPage = 10}) {
+    // Apply search filter
+    final filteredData = searchQuery.value.isEmpty
+        ? _allDivisions
+        : _allDivisions.where((division) {
+            final query = searchQuery.value.toLowerCase();
+            final name = division.name.toLowerCase();
+            final description = (division.description ?? '').toLowerCase();
+            return name.contains(query) || description.contains(query);
+          }).toList();
+
+    // Calculate pagination
+    final totalItems = filteredData.length;
+    final lastPage = totalItems > 0 ? (totalItems / perPage).ceil() : 1;
+    final startIndex = (page - 1) * perPage;
+    final endIndex = (startIndex + perPage).clamp(0, totalItems);
+
+    // Get items for current page
+    divisions.value = totalItems > 0
+        ? filteredData.sublist(startIndex.clamp(0, totalItems), endIndex)
+        : [];
+
+    // Set pagination meta (always show even if 1 page)
+    paginationMeta.value = PaginationMeta(
+      currentPage: page,
+      perPage: perPage,
+      total: totalItems,
+      lastPage: lastPage,
+    );
+  }
+
+  // Search divisions (client-side filter)
+  void searchDivisions(String query) {
+    searchQuery.value = query;
+    _applyPagination(
+      page: 1,
+      perPage: 10,
+    ); // Reset to first page when searching
+  }
+
+  // Navigate to specific page (client-side)
+  void goToPage(int page) {
+    if (paginationMeta.value != null) {
+      _applyPagination(page: page, perPage: paginationMeta.value!.perPage);
+    }
+  }
+
+  // Go to next page
+  void nextPage() {
+    if (paginationMeta.value?.hasNextPage ?? false) {
+      goToPage(paginationMeta.value!.nextPage);
+    }
+  }
+
+  // Go to previous page
+  void previousPage() {
+    if (paginationMeta.value?.hasPreviousPage ?? false) {
+      goToPage(paginationMeta.value!.previousPage);
     }
   }
 
@@ -93,14 +165,14 @@ class DivisionController extends GetxController {
       selectedDivision.value = division;
       nameController.text = division.name;
       descriptionController.text = division.description ?? '';
-
-      print('Division fetched by ID: ${division.name}');
     } on ApiException catch (e) {
-      print('Controller - ApiException caught: ${e.message}');
+      debugPrint(
+        '[DivisionController] ApiException in fetchDivisionById: ${e.message}',
+      );
       _errorMessage.value = e.message;
       _notif.showError(e.message);
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[DivisionController] Exception in fetchDivisionById: $e');
       _errorMessage.value = e.toString();
     } finally {
       isLoadingActionObs.value = false;
@@ -125,18 +197,19 @@ class DivisionController extends GetxController {
         ),
       );
 
-      print('Division created successfully: ${division.name}');
-
       // Show success toast
       _notif.showSuccess('Divisi "${division.name}" berhasil ditambahkan');
 
       clearForm();
-      fetchDivisions();
-      Get.back(); // Close dialog/form
+
+      // Navigate back and refresh
+      Get.back();
+      await fetchDivisions();
     } on ApiException catch (e) {
-      print('Controller - Create ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint(
+        '[DivisionController] ApiException in createDivision: ${e.message}',
+      );
+      debugPrint('[DivisionController] Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
       _notif.showError('Gagal menambah divisi: ${e.message}');
@@ -146,14 +219,13 @@ class DivisionController extends GetxController {
         e.errors!.forEach((field, messages) {
           if (messages.isNotEmpty) {
             fieldErrors[field] = messages.first;
-            print('Setting error for field $field: ${messages.first}');
           }
         });
       } else {
         fieldErrors['name'] = e.message;
       }
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[DivisionController] Exception in createDivision: $e');
       _errorMessage.value = e.toString();
       fieldErrors['name'] = e.toString();
       _notif.showError(e.toString());
@@ -182,16 +254,18 @@ class DivisionController extends GetxController {
         ),
       );
 
-      print('Division updated successfully: ${division.name}');
       _notif.showSuccess('Divisi "${division.name}" berhasil diperbarui');
 
       clearForm();
-      fetchDivisions();
-      Get.back(); // Close dialog/form
+
+      // Navigate back and refresh
+      Get.back();
+      await fetchDivisions();
     } on ApiException catch (e) {
-      print('Controller - Update ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint(
+        '[DivisionController] ApiException in updateDivision: ${e.message}',
+      );
+      debugPrint('[DivisionController] Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
       _notif.showError('Gagal memperbarui divisi: ${e.message}');
@@ -201,14 +275,13 @@ class DivisionController extends GetxController {
         e.errors!.forEach((field, messages) {
           if (messages.isNotEmpty) {
             fieldErrors[field] = messages.first;
-            print('Setting error for field $field: ${messages.first}');
           }
         });
       } else {
         fieldErrors['name'] = e.message;
       }
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[DivisionController] Exception in updateDivision: $e');
       _errorMessage.value = e.toString();
       fieldErrors['name'] = e.toString();
       _notif.showError(e.toString());
@@ -230,16 +303,17 @@ class DivisionController extends GetxController {
         content: Text('Apakah Anda yakin ingin menghapus "$divisionName"?'),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
+            onPressed: () => Navigator.of(Get.context!).pop(false),
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () => Navigator.of(Get.context!).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Hapus'),
           ),
         ],
       ),
+      barrierDismissible: false,
     );
 
     if (confirmed != true) return;
@@ -250,18 +324,18 @@ class DivisionController extends GetxController {
 
       await _deleteDivisionUseCase.execute(id);
 
-      print('Division deleted successfully: ID $id');
       _notif.showSuccess('Divisi "$divisionName" berhasil dihapus');
 
       fetchDivisions();
     } on ApiException catch (e) {
-      print('Controller - Delete ApiException caught');
-      print('Message: ${e.message}');
+      debugPrint(
+        '[DivisionController] ApiException in deleteDivision: ${e.message}',
+      );
 
       _errorMessage.value = e.message;
       _notif.showError('Gagal menghapus divisi: ${e.message}');
     } catch (e) {
-      print('Controller - Generic exception: $e');
+      debugPrint('[DivisionController] Exception in deleteDivision: $e');
       _errorMessage.value = e.toString();
       _notif.showError(e.toString());
     } finally {

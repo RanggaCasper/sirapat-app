@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/usecases/login_usecase.dart';
@@ -5,7 +6,7 @@ import 'package:sirapat_app/domain/usecases/register_usecase.dart';
 import 'package:sirapat_app/domain/usecases/get_current_user_usecase.dart';
 import 'package:sirapat_app/domain/repositories/auth_repository.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
-import 'package:sirapat_app/presentation/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class AuthController extends GetxController {
   final LoginUseCase _loginUseCase;
@@ -48,8 +49,7 @@ class AuthController extends GetxController {
       final user = await _getCurrentUserUseCase.execute();
       _currentUser.value = user;
     } catch (e) {
-      // ignore: avoid_print
-      print('Error checking current user: $e');
+      debugPrint('[AuthController] Error checking current user: $e');
     }
   }
 
@@ -68,11 +68,11 @@ class AuthController extends GetxController {
       _notif.showSuccess('Selamat datang, ${user.fullName}!');
 
       if (user.role == 'master') {
-        Get.offAllNamed('/master-dashboard');
+        Get.offAllNamed('/home');
       } else if (user.role == 'admin') {
-        Get.offAllNamed('/admin-dashboard');
+        Get.offAllNamed('/home');
       } else if (user.role == 'employee') {
-        Get.offAllNamed('/employee-dashboard');
+        Get.offAllNamed('/home');
       } else {
         _notif.showError('Belum login atau role tidak valid');
         Get.offAllNamed('/login');
@@ -87,7 +87,6 @@ class AuthController extends GetxController {
         e.errors!.forEach((field, messages) {
           if (messages.isNotEmpty) {
             fieldErrors[field] = messages.first;
-            print('Setting error for field $field: ${messages.first}');
           }
         });
       }
@@ -151,7 +150,6 @@ class AuthController extends GetxController {
         e.errors!.forEach((field, messages) {
           if (messages.isNotEmpty) {
             fieldErrors[field] = messages.first;
-            print('Setting error for field $field: ${messages.first}');
           }
         });
       }
