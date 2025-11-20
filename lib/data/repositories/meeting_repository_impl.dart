@@ -1,78 +1,362 @@
+import 'package:flutter/foundation.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
-
+import 'package:sirapat_app/domain/repositories/meeting_repository.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_get_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_get_by_id_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_create_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_update_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_update_status_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_delete_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_join_by_code_request.dart';
+import 'package:sirapat_app/data/models/api_response_model.dart';
 import 'package:sirapat_app/data/models/meeting_model.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
-import 'package:sirapat_app/data/models/api_response_model.dart';
-import 'package:sirapat_app/domain/repositories/meeting_repository.dart';
-import 'package:sirapat_app/data/providers/network/requests/meet/meet_get_request.dart';
 
-class MeetingRepositoryImpl implements MeetingRepository {
+class MeetingRepositoryImpl extends MeetingRepository {
   @override
-  Future<List<Meeting>> getAll() async {
+  Future<List<Meeting>> getMeetings() async {
     try {
-      // Make API call
-      final request = MeetGetRequest();
+      final request = GetMeetingsRequest();
       final response = await request.request();
 
-      // Debug: print response
-      print('Get Meetings API Response: $response');
+      debugPrint('[MeetingRepository] Get Meetings API Response: $response');
 
-      // Parse response
-      final apiResponse = ApiResponse.fromJson(
-        response as Map<String, dynamic>,
-        (data) {
-          // Check if data is a Map with 'data' key (nested structure)
-          if (data is Map<String, dynamic> && data.containsKey('data')) {
-            final innerData = data['data'];
-            if (innerData is List) {
-              final Meetings = innerData.map((item) {
-                return MeetingModel.fromJson(item as Map<String, dynamic>);
-              }).toList();
-              return Meetings;
-            }
+      // Parse response using ApiResponse
+      final apiResponse = ApiResponse.fromJson(response as Map<String, dynamic>, (
+        data,
+      ) {
+        // Check if data is a Map with 'data' key (nested structure)
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          final innerData = data['data'];
+          if (innerData is List) {
+            final meetings = innerData.map((item) {
+              return MeetingModel.fromJson(item as Map<String, dynamic>);
+            }).toList();
+            return meetings;
           }
-          // Handle if data is directly a list
-          if (data is List) {
-            print('Data is directly a List with ${data.length} items');
-            return data
-                .map(
-                  (item) => MeetingModel.fromJson(item as Map<String, dynamic>),
-                )
-                .toList();
-          }
-          // Return empty list if structure doesn't match
-          print('Data structure does not match expected format');
-          return [];
-        },
-      );
+        }
+        // Handle if data is directly a list
+        if (data is List) {
+          debugPrint(
+            '[MeetingRepository] Data is directly a List with ${data.length} items',
+          );
+          return data
+              .map((item) => MeetingModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        return <Meeting>[];
+      });
 
-      print('API Response status: ${apiResponse.status}');
-      print('API Response data: ${apiResponse.data}');
-      print('API Response data type: ${apiResponse.data.runtimeType}');
-
-      // Check if request failed (status = false)
       if (!apiResponse.status) {
-        print('Get Meetings failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
-      // Return list of Meetings
-      if (apiResponse.data is List) {
-        final MeetingList = (apiResponse.data as List).cast<Meeting>();
-        print('Returning ${MeetingList.length} Meetings');
-        return MeetingList;
+      final meetings = apiResponse.data;
+      if (meetings is List<Meeting>) {
+        return meetings;
       }
 
-      print('API Response data is not a List, returning empty list');
       return [];
     } on ApiException catch (e) {
-      print('ApiException caught: ${e.message}');
+      debugPrint('[MeetingRepository] ApiException in getMeetings: ${e.message}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('[MeetingRepository] Exception in getMeetings: $e');
       throw ApiException(
         status: false,
-        message: 'Failed to fetch Meetings: ${e.toString()}',
+        message: 'Failed to fetch meetings: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<Meeting> getMeetingById(int id) async {
+    try {
+      final request = GetMeetingByIdRequest(id: id);
+      final response = await request.request();
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => MeetingModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (!apiResponse.status || apiResponse.data == null) {
+        throw ApiException.fromJson(response);
+      }
+
+      return apiResponse.data as Meeting;
+    } on ApiException catch (e) {
+      debugPrint('[MeetingRepository] ApiException in getMeetingById: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in getMeetingById: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to fetch meeting: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<Meeting> createMeeting({
+    required String title,
+    String? description,
+    String? location,
+    String? agenda,
+    required String date,
+    required String startTime,
+    required String endTime,
+    String status = 'scheduled',
+  }) async {
+    try {
+      final request = CreateMeetingRequest(
+        title: title,
+        description: description,
+        location: location,
+        agenda: agenda,
+        date: date,
+        startTime: startTime,
+        endTime: endTime,
+        status: status,
+      );
+      final response = await request.request();
+
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        throw ApiException.fromJson(response);
+      }
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => MeetingModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (!apiResponse.status || apiResponse.data == null) {
+        throw ApiException.fromJson(response);
+      }
+
+      return apiResponse.data as Meeting;
+    } on ApiException catch (e) {
+      debugPrint('[MeetingRepository] ApiException in createMeeting: ${e.message}');
+      debugPrint('[MeetingRepository] Errors: ${e.errors}');
+      rethrow;
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in createMeeting: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to create meeting: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<Meeting> updateMeeting({
+    required int id,
+    required String title,
+    String? description,
+    String? location,
+    String? agenda,
+    required String date,
+    required String startTime,
+    required String endTime,
+    String? status,
+  }) async {
+    try {
+      final request = UpdateMeetingRequest(
+        id: id,
+        title: title,
+        description: description,
+        location: location,
+        agenda: agenda,
+        date: date,
+        startTime: startTime,
+        endTime: endTime,
+        status: status,
+      );
+      final response = await request.request();
+
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        throw ApiException.fromJson(response);
+      }
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => MeetingModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (!apiResponse.status || apiResponse.data == null) {
+        throw ApiException.fromJson(response);
+      }
+
+      return apiResponse.data as Meeting;
+    } on ApiException catch (e) {
+      debugPrint('[MeetingRepository] ApiException in updateMeeting: ${e.message}');
+      debugPrint('[MeetingRepository] Errors: ${e.errors}');
+      rethrow;
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in updateMeeting: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to update meeting: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<Meeting> updateMeetingStatus({
+    required int id,
+    required String status,
+  }) async {
+    try {
+      final request = UpdateMeetingStatusRequest(id: id, status: status);
+      final response = await request.request();
+
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        throw ApiException.fromJson(response);
+      }
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => MeetingModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (!apiResponse.status || apiResponse.data == null) {
+        throw ApiException.fromJson(response);
+      }
+
+      return apiResponse.data as Meeting;
+    } on ApiException catch (e) {
+      debugPrint(
+        '[MeetingRepository] ApiException in updateMeetingStatus: ${e.message}',
+      );
+      rethrow;
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in updateMeetingStatus: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to update meeting status: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<bool> deleteMeeting(int id) async {
+    try {
+      final request = DeleteMeetingRequest(id: id);
+      final response = await request.request();
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => data,
+      );
+
+      if (!apiResponse.status) {
+        throw ApiException.fromJson(response);
+      }
+
+      return true;
+    } on ApiException catch (e) {
+      debugPrint('[MeetingRepository] ApiException in deleteMeeting: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in deleteMeeting: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to delete meeting: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<Meeting?> joinMeetingByCode(String meetingCode) async {
+    try {
+      final request = JoinMeetingByCodeRequest(meetingCode: meetingCode);
+      final response = await request.request();
+
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        throw ApiException.fromJson(response);
+      }
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => MeetingModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (!apiResponse.status || apiResponse.data == null) {
+        throw ApiException.fromJson(response);
+      }
+
+      return apiResponse.data as Meeting;
+    } on ApiException catch (e) {
+      debugPrint(
+        '[MeetingRepository] ApiException in joinMeetingByCode: ${e.message}',
+      );
+      rethrow;
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in joinMeetingByCode: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to join meeting: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<List<Meeting>> getMeetingsByStatus(String status) async {
+    try {
+      final allMeetings = await getMeetings();
+      return allMeetings.where((meeting) => meeting.status == status).toList();
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in getMeetingsByStatus: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to fetch meetings by status: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<List<Meeting>> getUpcomingMeetings() async {
+    try {
+      final allMeetings = await getMeetings();
+      final now = DateTime.now();
+      
+      return allMeetings.where((meeting) {
+        try {
+          final meetingDate = DateTime.parse(meeting.date);
+          return meetingDate.isAfter(now) && 
+                 (meeting.status == 'scheduled' || meeting.status == 'ongoing');
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in getUpcomingMeetings: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to fetch upcoming meetings: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<List<Meeting>> getPastMeetings() async {
+    try {
+      final allMeetings = await getMeetings();
+      final now = DateTime.now();
+      
+      return allMeetings.where((meeting) {
+        try {
+          final meetingDate = DateTime.parse(meeting.date);
+          return meetingDate.isBefore(now) || meeting.status == 'completed';
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in getPastMeetings: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to fetch past meetings: ${e.toString()}',
       );
     }
   }

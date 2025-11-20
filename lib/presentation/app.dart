@@ -11,6 +11,7 @@ import 'package:sirapat_app/presentation/features/auth/pages/forgot_password_pag
 import 'package:sirapat_app/presentation/features/master/pages/master_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/features/employee/pages/employee_page.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -54,7 +55,7 @@ class App extends StatelessWidget {
         ),
         GetPage(
           name: '/home',
-          page: () => const MasterPage(),
+          page: () => const AdminPage(),
           binding: AuthBinding(),
         ),
         GetPage(
@@ -77,10 +78,7 @@ class App extends StatelessWidget {
         //   name: '/employee-dashboard',
         //   page: () => const DashboardEmployeePage(),
         // ),
-        // GetPage(
-        //   name: '/admin-dashboard',
-        //   page: () => const DashboardAdminPage(),
-        // ),
+        GetPage(name: '/admin-dashboard', page: () => const AdminPage()),
         // GetPage(
         //   name: '/admin-list-rapat',
         //   page: () => MeetingListPage(),

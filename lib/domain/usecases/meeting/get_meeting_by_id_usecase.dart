@@ -1,12 +1,12 @@
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/domain/repositories/meeting_repository.dart';
 
-class GetMeetingsUseCase {
+class GetMeetingByIdUseCase {
   final MeetingRepository repository;
 
-  GetMeetingsUseCase(this.repository);
+  GetMeetingByIdUseCase(this.repository);
 
-  Future<List<Meeting>> execute() {
-    return repository.getMeetings();
+  Future<Meeting> execute(int id) {
+    return repository.getMeetingById(id);
   }
 }
