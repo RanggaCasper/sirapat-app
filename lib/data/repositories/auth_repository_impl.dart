@@ -3,6 +3,7 @@ import 'package:sirapat_app/domain/repositories/auth_repository.dart';
 import 'package:sirapat_app/app/services/local_storage.dart';
 import 'package:sirapat_app/data/providers/network/requests/login_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/register_request.dart';
+import 'package:sirapat_app/data/providers/network/api_endpoint.dart';
 import 'package:sirapat_app/data/models/api_response_model.dart';
 import 'package:sirapat_app/data/models/login_response_model.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
@@ -37,8 +38,27 @@ class AuthRepositoryImpl extends AuthRepository {
       final loginData = apiResponse.data as LoginResponseData;
 
       // Save user and token to local storage
-      await _storage.saveData(StorageKey.user, loginData.user.toJson());
-      await _storage.saveData(StorageKey.token, loginData.token);
+      print('[AuthRepository] Saving user and token to storage...');
+      print('[AuthRepository] User: ${loginData.user.fullName}');
+      print('[AuthRepository] Token: ${loginData.token.substring(0, 20)}...');
+
+      final userSaved = await _storage.saveData(
+        StorageKey.user,
+        loginData.user.toJson(),
+      );
+      final tokenSaved = await _storage.saveData(
+        StorageKey.token,
+        loginData.token,
+      );
+
+      print('[AuthRepository] User saved: $userSaved');
+      print('[AuthRepository] Token saved: $tokenSaved');
+
+      // Verify saved data
+      final savedToken = _storage.getString(StorageKey.token);
+      print(
+        '[AuthRepository] Token verification after save: ${savedToken != null ? "Found" : "Not found"}',
+      );
 
       return loginData.user;
     } on ApiException catch (e) {
@@ -119,8 +139,10 @@ class AuthRepositoryImpl extends AuthRepository {
 
   @override
   Future<void> logout() async {
+    print('[AuthRepository] Logging out - clearing storage...');
     await _storage.removeData(StorageKey.user);
     await _storage.removeData(StorageKey.token);
+    print('[AuthRepository] Logout complete');
   }
 
   @override
@@ -129,5 +151,71 @@ class AuthRepositoryImpl extends AuthRepository {
     if (userData == null) return null;
 
     return User.fromJson(userData);
+  }
+
+  /// Verify user from server (check if token is still valid)
+  /// Returns user if valid, null if unauthenticated, throws exception for other errors
+  Future<User?> verifyUserFromServer() async {
+    final token = _storage.getString(StorageKey.token);
+    if (token == null || token.isEmpty) {
+      print('[AuthRepository] No token found in storage');
+      return null;
+    }
+
+    print('[AuthRepository] Verifying token with server...');
+    print('[AuthRepository] Token: ${token.substring(0, 20)}...');
+
+    try {
+      // Create a simple GET request to verify token
+      final GetConnect connect = GetConnect();
+      connect.timeout = const Duration(seconds: 10);
+
+      final response = await connect.get(
+        APIEndpoint.currentUser,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      print(
+        '[AuthRepository] Verification response status: ${response.statusCode}',
+      );
+      print('[AuthRepository] Verification response body: ${response.body}');
+
+      // If 401 Unauthorized - token is invalid, logout
+      if (response.statusCode == 401) {
+        print('[AuthRepository] Token is invalid (401), logging out');
+        await logout();
+        return null;
+      }
+
+      // If successful
+      if (response.statusCode == 200 && response.body != null) {
+        final apiResponse = ApiResponse.fromJson(
+          response.body as Map<String, dynamic>,
+          (data) => User.fromJson(data as Map<String, dynamic>),
+        );
+
+        if (apiResponse.status && apiResponse.data != null) {
+          final user = apiResponse.data as User;
+          print(
+            '[AuthRepository] Verification successful for user: ${user.fullName}',
+          );
+          // Update local storage with fresh data
+          await _storage.saveData(StorageKey.user, user.toJson());
+          return user;
+        }
+      }
+
+      // For other status codes or errors, throw exception to be handled by caller
+      throw Exception(
+        'Server verification failed with status: ${response.statusCode}',
+      );
+    } catch (e) {
+      print('[AuthRepository] Verification error: $e');
+      // Re-throw so caller can decide what to do
+      rethrow;
+    }
   }
 }

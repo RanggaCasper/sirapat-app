@@ -13,14 +13,14 @@ import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 
-class EmployeePage extends StatefulWidget {
-  const EmployeePage({Key? key}) : super(key: key);
+class AdminPage extends StatefulWidget {
+  const AdminPage({Key? key}) : super(key: key);
 
   @override
-  State<EmployeePage> createState() => _EmployeePageState();
+  State<AdminPage> createState() => _AdminPageState();
 }
 
-class _EmployeePageState extends State<EmployeePage> {
+class _AdminPageState extends State<AdminPage> {
   int _currentIndex = 0;
   final TextEditingController _meetingCodeController = TextEditingController();
 
@@ -54,7 +54,7 @@ class _EmployeePageState extends State<EmployeePage> {
         icon: Icons.home_outlined,
         activeIcon: Icons.home,
         label: 'Beranda',
-        route: '/empolyee-dashboard',
+        route: '/admin-dashboard',
       ),
       BottomNavItem(
         icon: Icons.qr_code_scanner_outlined,

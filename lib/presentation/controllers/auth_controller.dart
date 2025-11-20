@@ -53,6 +53,64 @@ class AuthController extends GetxController {
     }
   }
 
+  /// Verify user authentication status from server
+  /// Returns true if user is authenticated and has valid session
+  Future<bool> verifyAuthentication() async {
+    try {
+      isLoadingObs.value = true;
+
+      // First check local storage
+      final localUser = await _getCurrentUserUseCase.execute();
+      if (localUser == null) {
+        _currentUser.value = null;
+        return false;
+      }
+
+      // Then verify with server
+      final verifiedUser = await (_authRepository as dynamic)
+          .verifyUserFromServer();
+
+      if (verifiedUser != null) {
+        _currentUser.value = verifiedUser;
+        return true;
+      }
+
+      _currentUser.value = null;
+      return false;
+    } catch (e) {
+      debugPrint('[AuthController] Verification failed: $e');
+      _currentUser.value = null;
+      return false;
+    } finally {
+      isLoadingObs.value = false;
+    }
+  }
+
+  /// Check if user has required role
+  bool hasRole(String requiredRole) {
+    return _currentUser.value?.role?.toLowerCase() ==
+        requiredRole.toLowerCase();
+  }
+
+  /// Verify user and redirect to login if not authenticated
+  Future<bool> verifyOrRedirect({String? requiredRole}) async {
+    final isAuthenticated = await verifyAuthentication();
+
+    if (!isAuthenticated) {
+      _notif.showError('Sesi Anda telah berakhir. Silakan login kembali.');
+      Get.offAllNamed('/login');
+      return false;
+    }
+
+    if (requiredRole != null && !hasRole(requiredRole)) {
+      _notif.showError('Anda tidak memiliki akses ke halaman ini.');
+      logout();
+      return false;
+    }
+
+    return true;
+  }
+
   Future<void> login(String nip, String password) async {
     try {
       isLoadingObs.value = true;
@@ -68,11 +126,11 @@ class AuthController extends GetxController {
       _notif.showSuccess('Selamat datang, ${user.fullName}!');
 
       if (user.role == 'master') {
-        Get.offAllNamed('/home');
+        Get.offAllNamed('/master-dashboard');
       } else if (user.role == 'admin') {
-        Get.offAllNamed('/home');
+        Get.offAllNamed('/admin-dashboard');
       } else if (user.role == 'employee') {
-        Get.offAllNamed('/home');
+        Get.offAllNamed('/employee-dashboard');
       } else {
         _notif.showError('Belum login atau role tidak valid');
         Get.offAllNamed('/login');

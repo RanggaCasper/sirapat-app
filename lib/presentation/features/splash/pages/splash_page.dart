@@ -2,20 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 
-class SplashPage extends GetView<AuthController> {
+class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Navigate after checking auth status
-    Future.delayed(const Duration(seconds: 2), () {
-      if (controller.isLoggedIn) {
-        Get.offAllNamed('/home');
-      } else {
-        Get.offAllNamed('/login');
-      }
-    });
+  State<SplashPage> createState() => _SplashPageState();
+}
 
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    print('[SplashPage] Starting authentication check...');
+
+    // Wait for splash animation
+    await Future.delayed(const Duration(seconds: 2));
+
+    final authController = Get.find<AuthController>();
+
+    // Verify authentication from server
+    print('[SplashPage] Verifying authentication...');
+    final isAuthenticated = await authController.verifyAuthentication();
+
+    print('[SplashPage] Authentication result: $isAuthenticated');
+    print('[SplashPage] Current user: ${authController.currentUser?.fullName}');
+
+    if (!mounted) return;
+
+    if (isAuthenticated && authController.currentUser != null) {
+      final role = authController.currentUser!.role?.toLowerCase();
+      print('[SplashPage] User role: $role');
+
+      // Navigate based on role
+      switch (role) {
+        case 'master':
+          print('[SplashPage] Navigating to master dashboard');
+          Get.offAllNamed('/master-dashboard');
+          break;
+        case 'admin':
+          print('[SplashPage] Navigating to admin dashboard');
+          Get.offAllNamed('/admin-dashboard');
+          break;
+        case 'employee':
+          print('[SplashPage] Navigating to employee dashboard');
+          Get.offAllNamed('/employee-dashboard');
+          break;
+        default:
+          print('[SplashPage] Invalid role, navigating to login');
+          Get.offAllNamed('/login');
+      }
+    } else {
+      print('[SplashPage] Not authenticated, navigating to login');
+      Get.offAllNamed('/login');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(

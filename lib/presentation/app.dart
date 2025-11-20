@@ -4,6 +4,7 @@ import 'package:sirapat_app/app/config/app_theme.dart';
 import 'package:sirapat_app/presentation/controllers/auth_binding.dart';
 import 'package:sirapat_app/presentation/controllers/user_binding.dart';
 import 'package:sirapat_app/presentation/controllers/division_binding.dart';
+import 'package:sirapat_app/presentation/features/admin/pages/admin_page.dart';
 import 'package:sirapat_app/presentation/features/splash/pages/splash_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/login_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/register_page.dart';
@@ -54,10 +55,13 @@ class App extends StatelessWidget {
           binding: AuthBinding(),
         ),
         GetPage(
-          name: '/home',
-          page: () => const AdminPage(),
+          name: '/profile',
+          page: () => const ProfilePage(),
           binding: AuthBinding(),
         ),
+
+        // Master
+        GetPage(name: '/master-dashboard', page: () => const MasterPage()),
         GetPage(
           name: '/divisions',
           page: () => const MasterPage(), // Divisions integrated in Master Page
@@ -68,22 +72,12 @@ class App extends StatelessWidget {
           page: () => const MasterPage(), // Users integrated in Master Page
           binding: UserBinding(),
         ),
-        GetPage(name: '/master-dashboard', page: () => const MasterPage()),
-        GetPage(
-          name: '/profile',
-          page: () => const ProfilePage(),
-          binding: AuthBinding(),
-        ),
-        // GetPage(
-        //   name: '/employee-dashboard',
-        //   page: () => const DashboardEmployeePage(),
-        // ),
+
+        // Admin
         GetPage(name: '/admin-dashboard', page: () => const AdminPage()),
-        // GetPage(
-        //   name: '/admin-list-rapat',
-        //   page: () => MeetingListPage(),
-        //   binding: MeetingBinding(),
-        // ),
+
+        // Employee
+        GetPage(name: '/employee-dashboard', page: () => const EmployeePage()),
       ],
     );
   }
