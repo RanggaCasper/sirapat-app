@@ -65,58 +65,60 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo dari Assets
-            SizedBox(
-              width: 200,
-              height: 200,
-              child: Image.asset(
-                'assets/logo.png',
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  // Fallback logo jika tidak ditemukan
-                  return Container(
-                    padding: const EdgeInsets.all(20),
-                    child: const Icon(
-                      Icons.account_balance,
-                      size: 120,
-                      color: Color(0xFF1E5BA8),
-                    ),
-                  );
-                },
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo dari Assets
+              SizedBox(
+                width: 200,
+                height: 200,
+                child: Image.asset(
+                  'assets/logo.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Fallback logo jika tidak ditemukan
+                    return Container(
+                      padding: const EdgeInsets.all(20),
+                      child: const Icon(
+                        Icons.account_balance,
+                        size: 120,
+                        color: Color(0xFF1E5BA8),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'SiRapat',
-              style: TextStyle(
-                fontFamily: 'workSans',
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E3C72),
-                letterSpacing: 0.5,
+              const SizedBox(height: 24),
+              const Text(
+                'SiRapat',
+                style: TextStyle(
+                  fontFamily: 'workSans',
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E3C72),
+                  letterSpacing: 0.5,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Sistem Rapat Digital',
-              style: TextStyle(
-                fontFamily: 'workSans',
-                fontSize: 16,
-                color: Color(0xFF1E3C72),
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.3,
+              const SizedBox(height: 8),
+              const Text(
+                'Sistem Rapat Digital',
+                style: TextStyle(
+                  fontFamily: 'workSans',
+                  fontSize: 16,
+                  color: Color(0xFF1E3C72),
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.3,
+                ),
               ),
-            ),
-            const SizedBox(height: 40),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E5BA8)),
-              strokeWidth: 3,
-            ),
-          ],
+              const SizedBox(height: 40),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E5BA8)),
+                strokeWidth: 3,
+              ),
+            ],
+          ),
         ),
       ),
     );

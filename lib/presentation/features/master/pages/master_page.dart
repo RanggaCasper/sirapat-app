@@ -64,7 +64,7 @@ class _MasterPageState extends State<MasterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _getCurrentSection(),
+      body: SafeArea(child: _getCurrentSection()),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -129,6 +129,7 @@ class _MasterPageState extends State<MasterPage> {
                     ),
                   ),
                   SizedBox(height: AppSpacing.md),
+
                   DashboardStatCard(
                     title: 'Total User',
                     value: totalUsers.toString(),
@@ -140,7 +141,9 @@ class _MasterPageState extends State<MasterPage> {
                       });
                     },
                   ),
+
                   SizedBox(height: AppSpacing.md),
+
                   DashboardStatCard(
                     title: 'Total Divisi',
                     value: totalDivisions.toString(),

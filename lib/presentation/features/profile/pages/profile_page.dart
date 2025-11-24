@@ -44,231 +44,227 @@ class ProfilePage extends GetView<AuthController> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Profile Header
-              Obx(
-                () => Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                  ),
-                  child: Column(
-                    children: [
-                      // Avatar
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.white,
-                          child: controller.currentUser?.profilePhoto != null
-                              ? ClipOval(
-                                  child: Image.network(
-                                    controller.currentUser!.profilePhoto!,
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return _buildInitialsAvatar();
-                                    },
-                                  ),
-                                )
-                              : _buildInitialsAvatar(),
-                        ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Profile Header
+            Obx(
+              () => Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(color: AppColors.primary),
+                child: Column(
+                  children: [
+                    // Avatar
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
                       ),
-
-                      const SizedBox(height: 16),
-
-                      // Name
-                      Text(
-                        controller.currentUser?.fullName ?? '-',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Role Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getRoleColor(controller.currentUser?.role),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          _getRoleLabel(controller.currentUser?.role),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Account Section
-              _buildSection(
-                context,
-                title: 'Akun',
-                children: [
-                  Obx(
-                    () => _buildMenuItem(
-                      icon: Icons.person_outline,
-                      title: 'Informasi Pribadi',
-                      subtitle: controller.currentUser?.email ?? '-',
-                      iconColor: Colors.blue,
-                      onTap: () {
-                        Get.to(() => const UserInfoPage());
-                      },
-                    ),
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.lock_outline,
-                    title: 'Ubah Password',
-                    subtitle: 'Keamanan akun',
-                    iconColor: Colors.orange,
-                    onTap: () {
-                      Get.to(() => const ChangePasswordPage());
-                    },
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Settings Section
-              _buildSection(
-                context,
-                title: 'Pengaturan',
-                children: [
-                  _buildMenuItem(
-                    icon: Icons.notifications_none,
-                    title: 'Notifikasi',
-                    subtitle: 'Atur preferensi notifikasi',
-                    iconColor: Colors.purple,
-                    onTap: () {
-                      Get.snackbar(
-                        'Info',
-                        'Fitur notifikasi akan segera hadir',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.language_outlined,
-                    title: 'Bahasa',
-                    subtitle: 'Indonesia',
-                    iconColor: Colors.green,
-                    onTap: () {
-                      Get.snackbar(
-                        'Info',
-                        'Fitur pengaturan bahasa akan segera hadir',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // About Section
-              _buildSection(
-                context,
-                title: 'Tentang',
-                children: [
-                  _buildMenuItem(
-                    icon: Icons.info_outline,
-                    title: 'Tentang Aplikasi',
-                    subtitle: 'Versi 1.0.0',
-                    iconColor: Colors.teal,
-                    onTap: () {
-                      _showAboutDialog(context);
-                    },
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.privacy_tip_outlined,
-                    title: 'Kebijakan Privasi',
-                    subtitle: 'Baca kebijakan privasi',
-                    iconColor: Colors.indigo,
-                    onTap: () {
-                      Get.snackbar(
-                        'Info',
-                        'Fitur kebijakan privasi akan segera hadir',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Logout Button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Obx(
-                  () => ElevatedButton(
-                    onPressed: controller.isLoading
-                        ? null
-                        : () => _showLogoutDialog(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: controller.isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.logout),
-                              SizedBox(width: 8),
-                              Text(
-                                'Keluar',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white,
+                        child: controller.currentUser?.profilePhoto != null
+                            ? ClipOval(
+                                child: Image.network(
+                                  controller.currentUser!.profilePhoto!,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _buildInitialsAvatar();
+                                  },
                                 ),
-                              ),
-                            ],
-                          ),
-                  ),
+                              )
+                            : _buildInitialsAvatar(),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Name
+                    Text(
+                      controller.currentUser?.fullName ?? '-',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Role Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getRoleColor(controller.currentUser?.role),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _getRoleLabel(controller.currentUser?.role),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ),
 
-              const SizedBox(height: 100),
-            ],
-          ),
+            const SizedBox(height: 16),
+
+            // Account Section
+            _buildSection(
+              context,
+              title: 'Akun',
+              children: [
+                Obx(
+                  () => _buildMenuItem(
+                    icon: Icons.person_outline,
+                    title: 'Informasi Pribadi',
+                    subtitle: controller.currentUser?.email ?? '-',
+                    iconColor: Colors.blue,
+                    onTap: () {
+                      Get.to(() => const UserInfoPage());
+                    },
+                  ),
+                ),
+                _buildMenuItem(
+                  icon: Icons.lock_outline,
+                  title: 'Ubah Password',
+                  subtitle: 'Keamanan akun',
+                  iconColor: Colors.orange,
+                  onTap: () {
+                    Get.to(() => const ChangePasswordPage());
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Settings Section
+            _buildSection(
+              context,
+              title: 'Pengaturan',
+              children: [
+                _buildMenuItem(
+                  icon: Icons.notifications_none,
+                  title: 'Notifikasi',
+                  subtitle: 'Atur preferensi notifikasi',
+                  iconColor: Colors.purple,
+                  onTap: () {
+                    Get.snackbar(
+                      'Info',
+                      'Fitur notifikasi akan segera hadir',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.language_outlined,
+                  title: 'Bahasa',
+                  subtitle: 'Indonesia',
+                  iconColor: Colors.green,
+                  onTap: () {
+                    Get.snackbar(
+                      'Info',
+                      'Fitur pengaturan bahasa akan segera hadir',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // About Section
+            _buildSection(
+              context,
+              title: 'Tentang',
+              children: [
+                _buildMenuItem(
+                  icon: Icons.info_outline,
+                  title: 'Tentang Aplikasi',
+                  subtitle: 'Versi 1.0.0',
+                  iconColor: Colors.teal,
+                  onTap: () {
+                    _showAboutDialog(context);
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.privacy_tip_outlined,
+                  title: 'Kebijakan Privasi',
+                  subtitle: 'Baca kebijakan privasi',
+                  iconColor: Colors.indigo,
+                  onTap: () {
+                    Get.snackbar(
+                      'Info',
+                      'Fitur kebijakan privasi akan segera hadir',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Logout Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Obx(
+                () => ElevatedButton(
+                  onPressed: controller.isLoading
+                      ? null
+                      : () => _showLogoutDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  child: controller.isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.logout),
+                            SizedBox(width: 8),
+                            Text(
+                              'Keluar',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 100),
+          ],
         ),
       ),
     );
@@ -400,58 +396,102 @@ class ProfilePage extends GetView<AuthController> {
   }
 
   void _showAboutDialog(BuildContext context) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Tentang Aplikasi'),
-        content: const Column(
+    Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'SIRAPAT',
+            const Text(
+              'Tentang Aplikasi',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
-            Text('Sistem Informasi Rapat', style: TextStyle(fontSize: 16)),
-            SizedBox(height: 16),
-            Text('Versi: 1.0.0'),
-            SizedBox(height: 8),
-            Text('© 2025 SIRAPAT. All rights reserved.'),
+            const SizedBox(height: 16),
+            const Text(
+              'SIRAPAT',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Sistem Informasi Rapat',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            const Text('Versi: 1.0.0'),
+            const SizedBox(height: 8),
+            const Text('© 2025 SIRAPAT. All rights reserved.'),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Tutup'),
+              ),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Tutup'),
-          ),
-        ],
       ),
+      isDismissible: true,
+      enableDrag: true,
     );
   }
 
   void _showLogoutDialog(BuildContext context) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Konfirmasi Keluar'),
-        content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              controller.logout();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+    Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Konfirmasi Keluar',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            child: const Text('Keluar'),
-          ),
-        ],
+            const SizedBox(height: 16),
+            const Text(
+              'Apakah Anda yakin ingin keluar dari aplikasi?',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Batal'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      controller.logout();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Keluar'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
+      isDismissible: true,
+      enableDrag: true,
     );
   }
 }

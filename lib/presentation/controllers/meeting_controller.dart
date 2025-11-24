@@ -119,7 +119,7 @@ class MeetingController extends GetxController {
         ? _allMeetings
         : _allMeetings.where((meeting) {
             final query = searchQuery.value.toLowerCase();
-            final title = (meeting.title ?? '').toLowerCase();
+            final title = meeting.title.toLowerCase();
             final description = (meeting.description ?? '').toLowerCase();
             final location = (meeting.location ?? '').toLowerCase();
             final agenda = (meeting.agenda ?? '').toLowerCase();
@@ -283,7 +283,7 @@ class MeetingController extends GetxController {
 
       final meeting = await _updateMeetingUseCase.execute(
         UpdateMeetingParams(
-          id: selectedMeeting.value!.id!,
+          id: selectedMeeting.value!.id,
           title: titleController.text.trim(),
           description: descriptionController.text.trim().isEmpty
               ? null
@@ -345,23 +345,53 @@ class MeetingController extends GetxController {
     final meeting = meetings.firstWhereOrNull((m) => m.id == id);
     final meetingTitle = meeting?.title ?? 'rapat ini';
 
-    final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content: Text('Apakah Anda yakin ingin menghapus "$meetingTitle"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(Get.context!).pop(false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(Get.context!).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
+    final confirmed = await Get.bottomSheet<bool>(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Konfirmasi Hapus',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Apakah Anda yakin ingin menghapus "$meetingTitle"?',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(Get.context!).pop(false),
+                    child: const Text('Batal'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(Get.context!).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Hapus'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      barrierDismissible: false,
+      isDismissible: true,
+      enableDrag: true,
     );
 
     if (confirmed != true) return;
@@ -400,14 +430,14 @@ class MeetingController extends GetxController {
   }
 
   void _populateForm(Meeting meeting) {
-    titleController.text = meeting.title ?? '';
+    titleController.text = meeting.title;
     descriptionController.text = meeting.description ?? '';
     locationController.text = meeting.location ?? '';
     agendaController.text = meeting.agenda ?? '';
-    dateController.text = meeting.date ?? '';
-    startTimeController.text = meeting.startTime ?? '';
-    endTimeController.text = meeting.endTime ?? '';
-    selectedStatus.value = meeting.status ?? 'scheduled';
+    dateController.text = meeting.date;
+    startTimeController.text = meeting.startTime;
+    endTimeController.text = meeting.endTime;
+    selectedStatus.value = meeting.status;
   }
 
   // Clear form
@@ -455,7 +485,8 @@ class MeetingController extends GetxController {
 
     // Validate time range
     if (!_validateTimeRange()) {
-      fieldErrors['end_time'] = 'Waktu selesai harus lebih besar dari waktu mulai';
+      fieldErrors['end_time'] =
+          'Waktu selesai harus lebih besar dari waktu mulai';
       _showValidationError('Waktu selesai harus lebih besar dari waktu mulai');
       return false;
     }

@@ -29,343 +29,348 @@ class LoginPage extends GetView<AuthController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      body: Stack(
-        children: [
-          // LAPISAN 1: Background Pattern (Fixed di atas)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Image.asset(
-              'assets/pattern.png',
-              height: 330, // Tinggi area pattern
-              width: double.infinity,
-              fit: BoxFit.cover,
-              color: Colors.white.withOpacity(0.92),
-              colorBlendMode: BlendMode.dstATop,
-              errorBuilder: (context, error, stackTrace) {
-                // Fallback jika gambar tidak ditemukan
-                return Container(
-                  height: 400,
-                  width: double.infinity,
-                  color: AppColors.background,
-                );
-              },
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // LAPISAN 1: Background Pattern (Fixed di atas)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Image.asset(
+                'assets/pattern.png',
+                height: 330, // Tinggi area pattern
+                width: double.infinity,
+                fit: BoxFit.cover,
+                color: Colors.white.withOpacity(0.92),
+                colorBlendMode: BlendMode.dstATop,
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback jika gambar tidak ditemukan
+                  return Container(
+                    height: 400,
+                    width: double.infinity,
+                    color: AppColors.background,
+                  );
+                },
+              ),
             ),
-          ),
 
-          // LAPISAN 2: Konten Login (Scrollable)
-          SafeArea(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 40), // Jarak dari atas
-                      // Logo dari Assets (tanpa background)
-                      SizedBox(
-                        width: 140,
-                        height: 140,
-                        child: Image.asset(
-                          'assets/logo.png',
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            // Fallback logo jika tidak ditemukan
-                            return Container(
-                              padding: const EdgeInsets.all(20),
-                              child: Icon(
-                                Icons.account_balance,
-                                size: 80,
-                                color: AppColors.iconPrimary,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Title
-                      Text(
-                        'SiRapat',
-                        style: TextStyle(
-                          fontFamily: 'workSans',
-                          fontSize: 36,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.titleDark,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Subtitle
-                      Text(
-                        'Sistem Rapat Digital',
-                        style: TextStyle(
-                          fontFamily: 'workSans',
-                          fontSize: 16,
-                          color: AppColors.titleDark,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-
-                      const SizedBox(height: 48),
-
-                      // NIP Input
-                      Obx(
-                        () => TextFormField(
-                          controller: _nipController,
-                          keyboardType: TextInputType.number,
-                          onChanged: (_) => controller.clearFieldError('nip'),
-                          style: const TextStyle(fontSize: 14),
-                          decoration: InputDecoration(
-                            labelText: 'NIP',
-                            hintText: 'Nomor Induk Pegawai',
-                            errorText: controller.getFieldError('nip'),
-                            labelStyle: const TextStyle(fontSize: 14),
-                            hintStyle: const TextStyle(fontSize: 14),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.badge_outlined,
-                              color: AppColors.iconPrimary,
-                              size: 20,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: controller.getFieldError('nip') != null
-                                    ? Colors.red
-                                    : AppColors.borderLight,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: controller.getFieldError('nip') != null
-                                    ? Colors.red
-                                    : AppColors.iconPrimary,
-                                width: 2,
-                              ),
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Colors.red),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Colors.red,
-                                width: 2,
-                              ),
-                            ),
+            // LAPISAN 2: Konten Login (Scrollable)
+            SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 40), // Jarak dari atas
+                        // Logo dari Assets (tanpa background)
+                        SizedBox(
+                          width: 140,
+                          height: 140,
+                          child: Image.asset(
+                            'assets/logo.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Fallback logo jika tidak ditemukan
+                              return Container(
+                                padding: const EdgeInsets.all(20),
+                                child: Icon(
+                                  Icons.account_balance,
+                                  size: 80,
+                                  color: AppColors.iconPrimary,
+                                ),
+                              );
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'NIP tidak boleh kosong';
-                            }
-                            return null;
-                          },
                         ),
-                      ),
 
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 24),
 
-                      // Password Input
-                      Obx(
-                        () => TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword.value,
-                          onChanged: (_) =>
-                              controller.clearFieldError('password'),
-                          style: const TextStyle(fontSize: 14),
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            hintText: 'Masukkan password',
-                            errorText: controller.getFieldError('password'),
-                            labelStyle: const TextStyle(fontSize: 14),
-                            hintStyle: const TextStyle(fontSize: 14),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.lock_outline,
-                              color: AppColors.iconPrimary,
-                              size: 20,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword.value
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: AppColors.iconSecondary,
+                        // Title
+                        Text(
+                          'SiRapat',
+                          style: TextStyle(
+                            fontFamily: 'workSans',
+                            fontSize: 36,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.titleDark,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Subtitle
+                        Text(
+                          'Sistem Rapat Digital',
+                          style: TextStyle(
+                            fontFamily: 'workSans',
+                            fontSize: 16,
+                            color: AppColors.titleDark,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+
+                        const SizedBox(height: 48),
+
+                        // NIP Input
+                        Obx(
+                          () => TextFormField(
+                            controller: _nipController,
+                            keyboardType: TextInputType.number,
+                            onChanged: (_) => controller.clearFieldError('nip'),
+                            style: const TextStyle(fontSize: 14),
+                            decoration: InputDecoration(
+                              labelText: 'NIP',
+                              hintText: 'Nomor Induk Pegawai',
+                              errorText: controller.getFieldError('nip'),
+                              labelStyle: const TextStyle(fontSize: 14),
+                              hintStyle: const TextStyle(fontSize: 14),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.badge_outlined,
+                                color: AppColors.iconPrimary,
                                 size: 20,
                               ),
-                              onPressed: () {
-                                _obscurePassword.value =
-                                    !_obscurePassword.value;
-                              },
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color:
-                                    controller.getFieldError('password') != null
-                                    ? Colors.red
-                                    : AppColors.borderLight,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color:
-                                    controller.getFieldError('password') != null
-                                    ? Colors.red
-                                    : AppColors.iconPrimary,
-                                width: 2,
-                              ),
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Colors.red),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Colors.red,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Password tidak boleh kosong';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Forgot Password
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: _handleForgotPassword,
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 0),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            'lupa password?',
-                            style: TextStyle(
-                              color: AppColors.textMedium,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Login Button
-                      Obx(
-                        () => SizedBox(
-                          width: double.infinity,
-                          height: 54,
-                          child: ElevatedButton(
-                            onPressed: controller.isLoadingObs.value
-                                ? null
-                                : _handleLogin,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
+                              border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              elevation: 0,
-                              shadowColor: Colors.transparent,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: controller.getFieldError('nip') != null
+                                      ? Colors.red
+                                      : AppColors.borderLight,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: controller.getFieldError('nip') != null
+                                      ? Colors.red
+                                      : AppColors.iconPrimary,
+                                  width: 2,
+                                ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Colors.red),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
+                              ),
                             ),
-                            child: controller.isLoadingObs.value
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                : const Text(
-                                    'Login',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'NIP tidak boleh kosong';
+                              }
+                              return null;
+                            },
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                      // Register Link
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'belum punya akun? ',
-                            style: TextStyle(
-                              color: AppColors.textMedium,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
+                        // Password Input
+                        Obx(
+                          () => TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword.value,
+                            onChanged: (_) =>
+                                controller.clearFieldError('password'),
+                            style: const TextStyle(fontSize: 14),
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              hintText: 'Masukkan password',
+                              errorText: controller.getFieldError('password'),
+                              labelStyle: const TextStyle(fontSize: 14),
+                              hintStyle: const TextStyle(fontSize: 14),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.lock_outline,
+                                color: AppColors.iconPrimary,
+                                size: 20,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword.value
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: AppColors.iconSecondary,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  _obscurePassword.value =
+                                      !_obscurePassword.value;
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color:
+                                      controller.getFieldError('password') !=
+                                          null
+                                      ? Colors.red
+                                      : AppColors.borderLight,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color:
+                                      controller.getFieldError('password') !=
+                                          null
+                                      ? Colors.red
+                                      : AppColors.iconPrimary,
+                                  width: 2,
+                                ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Colors.red),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
+                              ),
                             ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password tidak boleh kosong';
+                              }
+                              return null;
+                            },
                           ),
-                          TextButton(
-                            onPressed: _handleRegister,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Forgot Password
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _handleForgotPassword,
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
                               minimumSize: const Size(0, 0),
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: Text(
-                              'Daftar',
+                              'lupa password?',
                               style: TextStyle(
-                                color: AppColors.primary,
+                                color: AppColors.textMedium,
                                 fontSize: 14,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
 
-                      const SizedBox(height: 40),
-                    ],
+                        const SizedBox(height: 24),
+
+                        // Login Button
+                        Obx(
+                          () => SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: ElevatedButton(
+                              onPressed: controller.isLoadingObs.value
+                                  ? null
+                                  : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 0,
+                                shadowColor: Colors.transparent,
+                              ),
+                              child: controller.isLoadingObs.value
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Login',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Register Link
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'belum punya akun? ',
+                              style: TextStyle(
+                                color: AppColors.textMedium,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _handleRegister,
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size(0, 0),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                'Daftar',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

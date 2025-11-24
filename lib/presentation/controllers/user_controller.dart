@@ -393,23 +393,53 @@ class UserController extends GetxController {
     final user = users.firstWhereOrNull((u) => u.id == id);
     final userName = user?.fullName ?? 'pengguna ini';
 
-    final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content: Text('Apakah Anda yakin ingin menghapus "$userName"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(Get.context!).pop(false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(Get.context!).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
+    final confirmed = await Get.bottomSheet<bool>(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Konfirmasi Hapus',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Apakah Anda yakin ingin menghapus "$userName"?',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(Get.context!).pop(false),
+                    child: const Text('Batal'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(Get.context!).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Hapus'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      barrierDismissible: false,
+      isDismissible: true,
+      enableDrag: true,
     );
 
     if (confirmed != true) return;
