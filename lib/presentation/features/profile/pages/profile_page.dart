@@ -473,7 +473,7 @@ class ProfilePage extends GetView<AuthController> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                       controller.logout();

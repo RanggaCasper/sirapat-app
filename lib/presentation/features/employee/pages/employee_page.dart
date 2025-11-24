@@ -5,6 +5,7 @@ import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
+import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_button.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
@@ -82,6 +83,8 @@ class _EmployeePageState extends State<EmployeePage> {
     switch (_currentIndex) {
       case 0:
         return _buildHomeSection();
+      case 1:
+        return const QrScannerPage();
       case 3:
         return const ProfilePage();
       default:
