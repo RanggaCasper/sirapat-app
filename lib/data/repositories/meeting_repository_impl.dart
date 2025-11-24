@@ -25,6 +25,17 @@ class MeetingRepositoryImpl extends MeetingRepository {
       final apiResponse = ApiResponse.fromJson(response as Map<String, dynamic>, (
         data,
       ) {
+        // Handle if data is directly a list
+        if (data is List) {
+          debugPrint(
+            '[MeetingRepository] Data is directly a List with ${data.length} items',
+          );
+          final meetings = data
+              .map((item) => MeetingModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+          debugPrint('[MeetingRepository] Parsed ${meetings.length} meetings');
+          return meetings;
+        }
         // Check if data is a Map with 'data' key (nested structure)
         if (data is Map<String, dynamic> && data.containsKey('data')) {
           final innerData = data['data'];
@@ -32,19 +43,11 @@ class MeetingRepositoryImpl extends MeetingRepository {
             final meetings = innerData.map((item) {
               return MeetingModel.fromJson(item as Map<String, dynamic>);
             }).toList();
+            debugPrint('[MeetingRepository] Parsed ${meetings.length} meetings from nested data');
             return meetings;
           }
         }
-        // Handle if data is directly a list
-        if (data is List) {
-          debugPrint(
-            '[MeetingRepository] Data is directly a List with ${data.length} items',
-          );
-          return data
-              .map((item) => MeetingModel.fromJson(item as Map<String, dynamic>))
-              .toList();
-        }
-        return <Meeting>[];
+        return <MeetingModel>[];
       });
 
       if (!apiResponse.status) {
@@ -52,8 +55,13 @@ class MeetingRepositoryImpl extends MeetingRepository {
       }
 
       final meetings = apiResponse.data;
-      if (meetings is List<Meeting>) {
-        return meetings;
+      debugPrint('[MeetingRepository] API Response data type: ${meetings.runtimeType}');
+      debugPrint('[MeetingRepository] API Response data length: ${meetings?.length ?? 0}');
+      
+      if (meetings != null) {
+        final result = List<Meeting>.from(meetings);
+        debugPrint('[MeetingRepository] Returning ${result.length} meetings');
+        return result;
       }
 
       return [];

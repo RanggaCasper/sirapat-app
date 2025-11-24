@@ -1,5 +1,8 @@
 class Meeting {
   final int id;
+  final String? uuid;
+  final String? passcode;
+  final String? qr;
   final String title;
   final String? description;
   final String date;
@@ -8,9 +11,15 @@ class Meeting {
   final String? location;
   final String? agenda;
   final String status;
+  final int? createdBy;
+  final String? createdAt;
+  final String? updatedAt;
 
   Meeting({
     required this.id,
+    this.uuid,
+    this.passcode,
+    this.qr,
     required this.title,
     this.description,
     required this.date,
@@ -19,11 +28,17 @@ class Meeting {
     this.location,
     this.agenda,
     required this.status,
+    this.createdBy,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory Meeting.fromJson(Map<String, dynamic> json) {
     return Meeting(
       id: json['id'],
+      uuid: json['uuid'],
+      passcode: json['passcode'],
+      qr: json['qr'],
       title: json['title'],
       description: json['description'],
       date: json['date'],
@@ -32,6 +47,9 @@ class Meeting {
       location: json['location'],
       agenda: json['agenda'],
       status: json['status'],
+      createdBy: json['created_by'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
     );
   }
 }

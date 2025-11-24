@@ -232,30 +232,34 @@ class _EmployeePageState extends State<EmployeePage> {
   }
 
   Widget _buildMeetingList() {
-    final meetings = Get.find<MeetingController>().meetings;
+    final meetingController = Get.find<MeetingController>();
 
-    if (meetings.isEmpty) {
-      return _buildEmptyMeetingState();
-    }
+    return Obx(() {
+      final meetings = meetingController.meetings;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Column(
-        children: [
-          ...meetings.map(
-            (meeting) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: MeetingCard(
-                title: meeting.title,
-                date: meeting.date as DateTime,
-                onTap: () => _onMeetingCardTapped(meeting),
+      if (meetings.isEmpty) {
+        return _buildEmptyMeetingState();
+      }
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        child: Column(
+          children: [
+            ...meetings.map(
+              (meeting) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: MeetingCard(
+                  title: meeting.title,
+                  date: DateTime.parse(meeting.date),
+                  onTap: () => _onMeetingCardTapped(meeting),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
-      ),
-    );
+            const SizedBox(height: AppSpacing.lg),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildEmptyMeetingState() {

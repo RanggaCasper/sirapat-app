@@ -52,18 +52,11 @@ class _QrScannerPageState extends State<QrScannerPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.check_circle,
-              color: Colors.green,
-              size: 64,
-            ),
+            const Icon(Icons.check_circle, color: Colors.green, size: 64),
             const SizedBox(height: 16),
             const Text(
               'QR Code Terdeteksi',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Container(
@@ -74,10 +67,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
               ),
               child: Text(
                 code,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'monospace',
-                ),
+                style: const TextStyle(fontSize: 16, fontFamily: 'monospace'),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -140,10 +130,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
       ),
       body: Stack(
         children: [
-          MobileScanner(
-            controller: cameraController,
-            onDetect: _onDetect,
-          ),
+          MobileScanner(controller: cameraController, onDetect: _onDetect),
           _buildScannerOverlay(),
         ],
       ),
@@ -153,27 +140,16 @@ class _QrScannerPageState extends State<QrScannerPage> {
   Widget _buildScannerOverlay() {
     return Column(
       children: [
-        Expanded(
-          child: Container(
-            color: Colors.black54,
-          ),
-        ),
+        Expanded(child: Container(color: Colors.black54)),
         SizedBox(
           height: 300,
           child: Row(
             children: [
-              Expanded(
-                child: Container(
-                  color: Colors.black54,
-                ),
-              ),
+              Expanded(child: Container(color: Colors.black54)),
               Container(
                 width: 300,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: AppColors.primary,
-                    width: 3,
-                  ),
+                  border: Border.all(color: AppColors.primary, width: 3),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Stack(
@@ -202,11 +178,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
                   ],
                 ),
               ),
-              Expanded(
-                child: Container(
-                  color: Colors.black54,
-                ),
-              ),
+              Expanded(child: Container(color: Colors.black54)),
             ],
           ),
         ),
@@ -255,4 +227,3 @@ class _QrScannerPageState extends State<QrScannerPage> {
     );
   }
 }
-

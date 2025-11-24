@@ -91,12 +91,21 @@ class MeetingController extends GetxController {
       _errorMessage.value = '';
       fieldErrors.clear();
 
+      debugPrint('[MeetingController] Fetching meetings from API...');
+
       // Fetch all data from API
       final result = await _getMeetingsUseCase.execute();
       _allMeetings.value = result;
 
+      debugPrint('[MeetingController] Fetched ${result.length} meetings');
+      debugPrint('[MeetingController] All meetings: ${_allMeetings.length}');
+
       // After fetching, apply pagination on client side
       _applyPagination(page: page, perPage: perPage);
+
+      debugPrint(
+        '[MeetingController] Meetings after pagination: ${meetings.length}',
+      );
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingController] ApiException in fetchMeetings: ${e.message}',
