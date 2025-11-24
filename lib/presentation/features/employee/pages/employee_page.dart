@@ -234,29 +234,66 @@ class _EmployeePageState extends State<EmployeePage> {
   }
 
   Widget _buildMeetingList() {
-    final meetings = Get.find<MeetingController>().meetings;
+    final controller = Get.find<MeetingController>();
 
-    if (meetings.isEmpty) {
-      return _buildEmptyMeetingState();
-    }
+    return RefreshIndicator(
+      onRefresh: controller.fetchMeetings,
+      child: Obx(() {
+        final meetings = controller.meetings;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Column(
-        children: [
-          ...meetings.map(
-            (meeting) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: MeetingCard(
-                title: meeting.title,
-                date: meeting.date as DateTime,
-                onTap: () => _onMeetingCardTapped(meeting),
-              ),
+        return Column(
+          children: [
+            Expanded(
+              child: meetings.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.meeting_room,
+                            size: 64,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Tidak ada rapat',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Cobalah tarik ke bawah untuk refresh.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      itemCount: meetings.length,
+                      itemBuilder: (context, index) {
+                        final meeting = meetings[index];
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: MeetingCard(
+                            title: meeting.title,
+                            date: meeting.date as DateTime,
+                            onTap: () => _onMeetingCardTapped(meeting),
+                          ),
+                        );
+                      },
+                    ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 

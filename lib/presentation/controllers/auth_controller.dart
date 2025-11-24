@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/usecases/login_usecase.dart';
 import 'package:sirapat_app/domain/usecases/register_usecase.dart';
@@ -20,6 +21,8 @@ class AuthController extends GetxController {
     this._getCurrentUserUseCase,
     this._authRepository,
   );
+
+  final storage = GetStorage();
 
   final Rx<User?> _currentUser = Rx<User?>(null);
   final RxBool isLoadingObs = false.obs;
@@ -122,6 +125,8 @@ class AuthController extends GetxController {
       );
 
       _currentUser.value = user;
+
+      storage.write("role", user.role);
 
       _notif.showSuccess('Selamat datang, ${user.fullName}!');
 
