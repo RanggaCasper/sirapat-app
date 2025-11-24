@@ -4,6 +4,7 @@ import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/usecases/login_usecase.dart';
 import 'package:sirapat_app/domain/usecases/register_usecase.dart';
 import 'package:sirapat_app/domain/usecases/get_current_user_usecase.dart';
+import 'package:sirapat_app/domain/usecases/auth/reset_password_usecase.dart';
 import 'package:sirapat_app/domain/repositories/auth_repository.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
@@ -12,12 +13,14 @@ class AuthController extends GetxController {
   final LoginUseCase _loginUseCase;
   final RegisterUseCase _registerUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final ResetPasswordUseCase _resetPasswordUseCase;
   final AuthRepository _authRepository;
 
   AuthController(
     this._loginUseCase,
     this._registerUseCase,
     this._getCurrentUserUseCase,
+    this._resetPasswordUseCase,
     this._authRepository,
   );
 
@@ -227,6 +230,54 @@ class AuthController extends GetxController {
       Get.offAllNamed('/login');
     } catch (e) {
       _notif.showError(e.toString());
+    } finally {
+      isLoadingObs.value = false;
+    }
+  }
+
+  Future<void> resetPassword({
+    required String oldPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    try {
+      isLoadingObs.value = true;
+      _errorMessage.value = '';
+      fieldErrors.clear();
+
+      debugPrint('[AuthController] Resetting password...');
+      debugPrint('[AuthController] Old password length: ${oldPassword.length}');
+      debugPrint('[AuthController] New password length: ${newPassword.length}');
+
+      await _resetPasswordUseCase.execute(
+        ResetPasswordParams(
+          oldPassword: oldPassword,
+          newPassword: newPassword,
+          newPasswordConfirmation: newPasswordConfirmation,
+        ),
+      );
+
+      debugPrint('[AuthController] Password reset successful');
+      _notif.showSuccess('Password berhasil diubah');
+      Get.back(); // Close the dialog/page
+    } on ApiException catch (e) {
+      debugPrint('[AuthController] ApiException: ${e.message}');
+      debugPrint('[AuthController] Errors: ${e.errors}');
+      _errorMessage.value = e.message;
+      _notif.showError(e.message);
+
+      // Set field-specific errors
+      if (e.errors != null && e.errors!.isNotEmpty) {
+        e.errors!.forEach((field, messages) {
+          if (messages.isNotEmpty) {
+            fieldErrors[field] = messages.first;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('[AuthController] Exception: $e');
+      String errorMsg = e.toString();
+      _notif.showError(errorMsg);
     } finally {
       isLoadingObs.value = false;
     }

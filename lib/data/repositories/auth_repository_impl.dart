@@ -3,6 +3,7 @@ import 'package:sirapat_app/domain/repositories/auth_repository.dart';
 import 'package:sirapat_app/app/services/local_storage.dart';
 import 'package:sirapat_app/data/providers/network/requests/login_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/register_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/auth/reset_password_request.dart';
 import 'package:sirapat_app/data/providers/network/api_endpoint.dart';
 import 'package:sirapat_app/data/models/api_response_model.dart';
 import 'package:sirapat_app/data/models/login_response_model.dart';
@@ -216,6 +217,61 @@ class AuthRepositoryImpl extends AuthRepository {
       print('[AuthRepository] Verification error: $e');
       // Re-throw so caller can decide what to do
       rethrow;
+    }
+  }
+
+  @override
+  Future<void> resetPassword(
+    String oldPassword,
+    String newPassword,
+    String newPasswordConfirmation,
+  ) async {
+    try {
+      print('[AuthRepository] Creating reset password request...');
+      final request = ResetPasswordRequest(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+        newPasswordConfirmation: newPasswordConfirmation,
+      );
+
+      print('[AuthRepository] Sending request to: ${request.url}');
+      final response = await request.request();
+
+      print('[AuthRepository] Reset Password API Response: $response');
+
+      // Check if response has errors (validation failed)
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        print('[AuthRepository] Validation errors detected');
+        throw ApiException.fromJson(response);
+      }
+
+      // Parse response
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => data,
+      );
+
+      print('[AuthRepository] API Response status: ${apiResponse.status}');
+      print('[AuthRepository] API Response message: ${apiResponse.message}');
+
+      // Check if reset password failed
+      if (!apiResponse.status) {
+        print('[AuthRepository] Reset password failed, throwing ApiException');
+        throw ApiException.fromJson(response);
+      }
+
+      print('[AuthRepository] Password reset successful');
+    } on ApiException catch (e) {
+      print('[AuthRepository] Reset Password ApiException caught');
+      print('[AuthRepository] Message: ${e.message}');
+      print('[AuthRepository] Errors: ${e.errors}');
+      rethrow;
+    } catch (e) {
+      print('[AuthRepository] Generic exception: $e');
+      throw ApiException(
+        status: false,
+        message: 'Reset password failed: ${e.toString()}',
+      );
     }
   }
 }

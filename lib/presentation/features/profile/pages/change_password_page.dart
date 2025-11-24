@@ -88,29 +88,54 @@ class ChangePasswordPage extends GetView<AuthController> {
                     ),
                     const SizedBox(height: 8),
                     Obx(
-                      () => TextField(
-                        controller: currentPasswordController,
-                        obscureText: obscureCurrentPassword.value,
-                        decoration: InputDecoration(
-                          hintText: 'Masukkan password saat ini',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              obscureCurrentPassword.value
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
+                      () => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: currentPasswordController,
+                            obscureText: obscureCurrentPassword.value,
+                            decoration: InputDecoration(
+                              hintText: 'Masukkan password saat ini',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  obscureCurrentPassword.value
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                ),
+                                onPressed: () {
+                                  obscureCurrentPassword.value =
+                                      !obscureCurrentPassword.value;
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color:
+                                      controller.getFieldError(
+                                            'current_password',
+                                          ) !=
+                                          null
+                                      ? Colors.red
+                                      : Colors.grey.shade300,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              errorText: controller.getFieldError(
+                                'current_password',
+                              ),
                             ),
-                            onPressed: () {
-                              obscureCurrentPassword.value =
-                                  !obscureCurrentPassword.value;
+                            onChanged: (value) {
+                              if (controller.getFieldError(
+                                    'current_password',
+                                  ) !=
+                                  null) {
+                                controller.clearFieldError('current_password');
+                              }
                             },
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
+                        ],
                       ),
                     ),
 
@@ -127,29 +152,48 @@ class ChangePasswordPage extends GetView<AuthController> {
                     ),
                     const SizedBox(height: 8),
                     Obx(
-                      () => TextField(
-                        controller: newPasswordController,
-                        obscureText: obscureNewPassword.value,
-                        decoration: InputDecoration(
-                          hintText: 'Masukkan password baru',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              obscureNewPassword.value
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
+                      () => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: newPasswordController,
+                            obscureText: obscureNewPassword.value,
+                            decoration: InputDecoration(
+                              hintText: 'Masukkan password baru',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  obscureNewPassword.value
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                ),
+                                onPressed: () {
+                                  obscureNewPassword.value =
+                                      !obscureNewPassword.value;
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color:
+                                      controller.getFieldError('password') !=
+                                          null
+                                      ? Colors.red
+                                      : Colors.grey.shade300,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              errorText: controller.getFieldError('password'),
                             ),
-                            onPressed: () {
-                              obscureNewPassword.value =
-                                  !obscureNewPassword.value;
+                            onChanged: (value) {
+                              if (controller.getFieldError('password') !=
+                                  null) {
+                                controller.clearFieldError('password');
+                              }
                             },
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
+                        ],
                       ),
                     ),
 
@@ -166,36 +210,63 @@ class ChangePasswordPage extends GetView<AuthController> {
                     ),
                     const SizedBox(height: 8),
                     Obx(
-                      () => TextField(
-                        controller: confirmPasswordController,
-                        obscureText: obscureConfirmPassword.value,
-                        decoration: InputDecoration(
-                          hintText: 'Konfirmasi password baru',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              obscureConfirmPassword.value
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
+                      () => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: confirmPasswordController,
+                            obscureText: obscureConfirmPassword.value,
+                            decoration: InputDecoration(
+                              hintText: 'Konfirmasi password baru',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  obscureConfirmPassword.value
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                ),
+                                onPressed: () {
+                                  obscureConfirmPassword.value =
+                                      !obscureConfirmPassword.value;
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color:
+                                      controller.getFieldError(
+                                            'password_confirmation',
+                                          ) !=
+                                          null
+                                      ? Colors.red
+                                      : Colors.grey.shade300,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              errorText: controller.getFieldError(
+                                'password_confirmation',
+                              ),
                             ),
-                            onPressed: () {
-                              obscureConfirmPassword.value =
-                                  !obscureConfirmPassword.value;
+                            onChanged: (value) {
+                              if (controller.getFieldError(
+                                    'password_confirmation',
+                                  ) !=
+                                  null) {
+                                controller.clearFieldError(
+                                  'password_confirmation',
+                                );
+                              }
                             },
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 24), const SizedBox(height: 24),
 
               // Password Requirements
               Container(
@@ -230,75 +301,42 @@ class ChangePasswordPage extends GetView<AuthController> {
               SizedBox(
                 width: double.infinity,
                 height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Validate
-                    if (currentPasswordController.text.isEmpty) {
-                      Get.snackbar(
-                        'Error',
-                        'Password saat ini harus diisi',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,
-                      );
-                      return;
-                    }
-
-                    if (newPasswordController.text.isEmpty) {
-                      Get.snackbar(
-                        'Error',
-                        'Password baru harus diisi',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,
-                      );
-                      return;
-                    }
-
-                    if (newPasswordController.text !=
-                        confirmPasswordController.text) {
-                      Get.snackbar(
-                        'Error',
-                        'Password baru dan konfirmasi tidak cocok',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,
-                      );
-                      return;
-                    }
-
-                    if (newPasswordController.text.length < 8) {
-                      Get.snackbar(
-                        'Error',
-                        'Password minimal 8 karakter',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,
-                      );
-                      return;
-                    }
-
-                    // TODO: Implement change password
-                    Get.back();
-                    Get.snackbar(
-                      'Sukses',
-                      'Password berhasil diubah',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.green,
-                      colorText: Colors.white,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: Obx(
+                  () => ElevatedButton(
+                    onPressed: controller.isLoading
+                        ? null
+                        : () async {
+                            await controller.resetPassword(
+                              oldPassword: currentPasswordController.text,
+                              newPassword: newPasswordController.text,
+                              newPasswordConfirmation:
+                                  confirmPasswordController.text,
+                            );
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
                     ),
-                    elevation: 2,
-                  ),
-                  child: const Text(
-                    'Simpan Perubahan',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    child: controller.isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Simpan Perubahan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ),
               ),

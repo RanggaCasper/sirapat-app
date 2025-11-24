@@ -31,7 +31,9 @@ class MeetingRepositoryImpl extends MeetingRepository {
             '[MeetingRepository] Data is directly a List with ${data.length} items',
           );
           final meetings = data
-              .map((item) => MeetingModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => MeetingModel.fromJson(item as Map<String, dynamic>),
+              )
               .toList();
           debugPrint('[MeetingRepository] Parsed ${meetings.length} meetings');
           return meetings;
@@ -43,7 +45,9 @@ class MeetingRepositoryImpl extends MeetingRepository {
             final meetings = innerData.map((item) {
               return MeetingModel.fromJson(item as Map<String, dynamic>);
             }).toList();
-            debugPrint('[MeetingRepository] Parsed ${meetings.length} meetings from nested data');
+            debugPrint(
+              '[MeetingRepository] Parsed ${meetings.length} meetings from nested data',
+            );
             return meetings;
           }
         }
@@ -55,9 +59,13 @@ class MeetingRepositoryImpl extends MeetingRepository {
       }
 
       final meetings = apiResponse.data;
-      debugPrint('[MeetingRepository] API Response data type: ${meetings.runtimeType}');
-      debugPrint('[MeetingRepository] API Response data length: ${meetings?.length ?? 0}');
-      
+      debugPrint(
+        '[MeetingRepository] API Response data type: ${meetings.runtimeType}',
+      );
+      debugPrint(
+        '[MeetingRepository] API Response data length: ${meetings?.length ?? 0}',
+      );
+
       if (meetings != null) {
         final result = List<Meeting>.from(meetings);
         debugPrint('[MeetingRepository] Returning ${result.length} meetings');
@@ -66,7 +74,9 @@ class MeetingRepositoryImpl extends MeetingRepository {
 
       return [];
     } on ApiException catch (e) {
-      debugPrint('[MeetingRepository] ApiException in getMeetings: ${e.message}');
+      debugPrint(
+        '[MeetingRepository] ApiException in getMeetings: ${e.message}',
+      );
       rethrow;
     } catch (e) {
       debugPrint('[MeetingRepository] Exception in getMeetings: $e');
@@ -94,7 +104,9 @@ class MeetingRepositoryImpl extends MeetingRepository {
 
       return apiResponse.data as Meeting;
     } on ApiException catch (e) {
-      debugPrint('[MeetingRepository] ApiException in getMeetingById: ${e.message}');
+      debugPrint(
+        '[MeetingRepository] ApiException in getMeetingById: ${e.message}',
+      );
       rethrow;
     } catch (e) {
       debugPrint('[MeetingRepository] Exception in getMeetingById: $e');
@@ -144,7 +156,9 @@ class MeetingRepositoryImpl extends MeetingRepository {
 
       return apiResponse.data as Meeting;
     } on ApiException catch (e) {
-      debugPrint('[MeetingRepository] ApiException in createMeeting: ${e.message}');
+      debugPrint(
+        '[MeetingRepository] ApiException in createMeeting: ${e.message}',
+      );
       debugPrint('[MeetingRepository] Errors: ${e.errors}');
       rethrow;
     } catch (e) {
@@ -197,7 +211,9 @@ class MeetingRepositoryImpl extends MeetingRepository {
 
       return apiResponse.data as Meeting;
     } on ApiException catch (e) {
-      debugPrint('[MeetingRepository] ApiException in updateMeeting: ${e.message}');
+      debugPrint(
+        '[MeetingRepository] ApiException in updateMeeting: ${e.message}',
+      );
       debugPrint('[MeetingRepository] Errors: ${e.errors}');
       rethrow;
     } catch (e) {
@@ -263,7 +279,9 @@ class MeetingRepositoryImpl extends MeetingRepository {
 
       return true;
     } on ApiException catch (e) {
-      debugPrint('[MeetingRepository] ApiException in deleteMeeting: ${e.message}');
+      debugPrint(
+        '[MeetingRepository] ApiException in deleteMeeting: ${e.message}',
+      );
       rethrow;
     } catch (e) {
       debugPrint('[MeetingRepository] Exception in deleteMeeting: $e');
@@ -327,12 +345,12 @@ class MeetingRepositoryImpl extends MeetingRepository {
     try {
       final allMeetings = await getMeetings();
       final now = DateTime.now();
-      
+
       return allMeetings.where((meeting) {
         try {
           final meetingDate = DateTime.parse(meeting.date);
-          return meetingDate.isAfter(now) && 
-                 (meeting.status == 'scheduled' || meeting.status == 'ongoing');
+          return meetingDate.isAfter(now) &&
+              (meeting.status == 'scheduled' || meeting.status == 'ongoing');
         } catch (e) {
           return false;
         }
@@ -351,7 +369,7 @@ class MeetingRepositoryImpl extends MeetingRepository {
     try {
       final allMeetings = await getMeetings();
       final now = DateTime.now();
-      
+
       return allMeetings.where((meeting) {
         try {
           final meetingDate = DateTime.parse(meeting.date);
