@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/domain/entities/division.dart';
 import 'package:sirapat_app/domain/entities/pagination.dart';
 import 'package:sirapat_app/domain/usecases/division/get_divisions_usecase.dart';
@@ -296,24 +297,57 @@ class DivisionController extends GetxController {
     final division = divisions.firstWhereOrNull((d) => d.id == id);
     final divisionName = division?.name ?? 'divisi ini';
 
-    // Show confirmation dialog
-    final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content: Text('Apakah Anda yakin ingin menghapus "$divisionName"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(Get.context!).pop(false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(Get.context!).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
+    // Show confirmation bottom sheet
+    final confirmed = await Get.bottomSheet<bool>(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Konfirmasi Hapus',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Apakah Anda yakin ingin menghapus "$divisionName"?',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(Get.context!).pop(false),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                    ),
+                    child: const Text('Batal'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(Get.context!).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Hapus'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      barrierDismissible: false,
+      isDismissible: true,
+      enableDrag: true,
     );
 
     if (confirmed != true) return;

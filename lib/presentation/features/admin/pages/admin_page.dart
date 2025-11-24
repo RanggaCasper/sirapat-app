@@ -39,7 +39,7 @@ class _AdminPageState extends State<AdminPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _getCurrentSection(),
+      body: SafeArea(child: _getCurrentSection()),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavItemTapped,
