@@ -4,6 +4,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
+import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
@@ -62,7 +63,7 @@ class _EmployeePageState extends State<EmployeePage> {
         icon: Icons.history_outlined,
         activeIcon: Icons.history,
         label: 'Riwayat',
-        route: '/divisions',
+        route: '/employee-detail-meeting',
       ),
       BottomNavItem(
         icon: Icons.person_outline,
@@ -85,6 +86,8 @@ class _EmployeePageState extends State<EmployeePage> {
         return _buildHomeSection();
       case 1:
         return const QrScannerPage();
+      case 2:
+        return const DetailMeetPage();
       case 3:
         return const ProfilePage();
       default:
@@ -290,14 +293,22 @@ class _EmployeePageState extends State<EmployeePage> {
   }
 
   void _onMeetingCardTapped(dynamic meeting) {
-    // TODO: Navigate to meeting detail page
-    final title = meeting is Map ? meeting['title'] : meeting.title;
-    print('Meeting tapped: $title');
+    // Navigate to meeting detail page with ID
+    final meetingId = meeting is Map ? meeting['id'] : meeting.id;
 
-    Get.snackbar(
-      'Info',
-      'Membuka detail rapat: $title',
-      snackPosition: SnackPosition.BOTTOM,
+    if (meetingId == null) {
+      Get.snackbar(
+        'Error',
+        'ID rapat tidak ditemukan',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    // Navigate to detail page with meeting ID
+    Get.to(
+      DetailMeetPage(meetingId: meetingId),
+      transition: Transition.rightToLeft,
     );
   }
 }

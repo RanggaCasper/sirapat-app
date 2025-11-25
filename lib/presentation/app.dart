@@ -5,6 +5,7 @@ import 'package:sirapat_app/presentation/controllers/auth_binding.dart';
 import 'package:sirapat_app/presentation/controllers/user_binding.dart';
 import 'package:sirapat_app/presentation/controllers/division_binding.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/admin_page.dart';
+import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/features/splash/pages/splash_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/login_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/register_page.dart';
@@ -78,6 +79,10 @@ class App extends StatelessWidget {
 
         // Employee
         GetPage(name: '/employee-dashboard', page: () => const EmployeePage()),
+        GetPage(
+          name: '/employee-detail-meeting',
+          page: () => const DetailMeetPage(),
+        ),
       ],
     );
   }

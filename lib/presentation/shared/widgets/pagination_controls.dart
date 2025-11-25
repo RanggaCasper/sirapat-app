@@ -99,13 +99,7 @@ class PaginationControls extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: isReversed
-            ? [
-                Icon(icon, size: 16),
-              ]
-            : [
-                Icon(icon, size: 16),
-              ],
+        children: isReversed ? [Icon(icon, size: 16)] : [Icon(icon, size: 16)],
       ),
     );
   }

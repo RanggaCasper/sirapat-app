@@ -1,7 +1,6 @@
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/domain/repositories/meeting_repository.dart';
 
-
 class CreateMeetingParams {
   final String title;
   final String? description;
