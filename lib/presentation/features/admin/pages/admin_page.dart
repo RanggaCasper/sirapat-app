@@ -305,14 +305,17 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   void _onMeetingCardTapped(dynamic meeting) {
-    // TODO: Navigate to meeting detail page
-    final title = meeting is Map ? meeting['title'] : meeting.title;
-    print('Meeting tapped: $title');
+    // Navigate to meeting detail page with meeting ID
+    final id = meeting is Map ? meeting['id'] : meeting.id;
+    if (id == null) {
+      Get.snackbar(
+        'Error',
+        'ID rapat tidak ditemukan',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
 
-    Get.snackbar(
-      'Info',
-      'Membuka detail rapat: $title',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    Get.toNamed('/employee-detail-meeting', arguments: id);
   }
 }

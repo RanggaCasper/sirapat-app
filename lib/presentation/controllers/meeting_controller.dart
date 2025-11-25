@@ -194,7 +194,28 @@ class MeetingController extends GetxController {
       isLoadingActionObs.value = true;
       _errorMessage.value = '';
 
+      debugPrint('[MeetingController] Fetching meeting with ID: $id');
+
+      // First try to get from already loaded meetings
+      final cachedMeeting = _allMeetings.firstWhereOrNull((m) => m.id == id);
+      if (cachedMeeting != null) {
+        debugPrint(
+          '[MeetingController] Found meeting in cache: ${cachedMeeting.title}',
+        );
+        selectedMeeting.value = cachedMeeting;
+        _populateForm(cachedMeeting);
+        isLoadingActionObs.value = false;
+        return;
+      }
+
+      // If not in cache, try API call
+      debugPrint(
+        '[MeetingController] Meeting not in cache, fetching from API...',
+      );
       final meeting = await _getMeetingByIdUseCase.execute(id);
+      debugPrint(
+        '[MeetingController] Meeting fetched from API: ${meeting.title}',
+      );
       selectedMeeting.value = meeting;
       _populateForm(meeting);
     } on ApiException catch (e) {

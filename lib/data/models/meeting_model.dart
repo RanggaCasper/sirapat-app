@@ -40,4 +40,8 @@ class MeetingModel extends Meeting {
     createdAt: json["created_at"],
     updatedAt: json["updated_at"],
   );
+
+  String toString() {
+    return 'MeetingModel(id: $id, title: $title, description: $description)';
+  }
 }

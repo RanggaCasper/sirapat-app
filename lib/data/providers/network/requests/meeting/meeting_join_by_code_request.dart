@@ -37,9 +37,7 @@ class JoinMeetingByCodeRequest implements APIRequestRepresentable {
   Map<String, dynamic>? get query => null;
 
   @override
-  Map<String, dynamic>? get body => {
-    'meeting_code': meetingCode,
-  };
+  Map<String, dynamic>? get body => {'meeting_code': meetingCode};
 
   @override
   Future request() {

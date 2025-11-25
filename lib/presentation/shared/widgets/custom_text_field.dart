@@ -40,9 +40,7 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      style: TextStyle(
-        color: textColor ?? Colors.black,
-      ),
+      style: TextStyle(color: textColor ?? Colors.black),
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
