@@ -316,6 +316,6 @@ class _AdminPageState extends State<AdminPage> {
       return;
     }
 
-    Get.toNamed('/employee-detail-meeting', arguments: id);
+    // Get.toNamed('/employee-detail-meeting', arguments: id);
   }
 }

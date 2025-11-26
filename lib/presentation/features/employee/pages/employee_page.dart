@@ -5,6 +5,7 @@ import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
+import 'package:sirapat_app/presentation/features/employee/pages/history/history_meet_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
@@ -63,7 +64,7 @@ class _EmployeePageState extends State<EmployeePage> {
         icon: Icons.history_outlined,
         activeIcon: Icons.history,
         label: 'Riwayat',
-        route: '/employee-detail-meeting',
+        route: '/employee-history-meeting',
       ),
       BottomNavItem(
         icon: Icons.person_outline,
@@ -87,7 +88,7 @@ class _EmployeePageState extends State<EmployeePage> {
       case 1:
         return const QrScannerPage();
       case 2:
-        return const DetailMeetPage();
+        return const HistoryMeetPage();
       case 3:
         return const ProfilePage();
       default:
@@ -309,6 +310,7 @@ class _EmployeePageState extends State<EmployeePage> {
     Get.to(
       DetailMeetPage(meetingId: meetingId),
       transition: Transition.rightToLeft,
+      arguments: meetingId,
     );
   }
 }

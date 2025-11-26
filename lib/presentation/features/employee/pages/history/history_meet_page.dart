@@ -1,0 +1,303 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/app/config/app_dimensions.dart';
+import 'package:sirapat_app/app/config/app_text_styles.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
+import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
+
+class HistoryMeetPage extends StatefulWidget {
+  const HistoryMeetPage({Key? key}) : super(key: key);
+
+  @override
+  State<HistoryMeetPage> createState() => _HistoryMeetPageState();
+}
+
+class _HistoryMeetPageState extends State<HistoryMeetPage> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize bindings
+    if (!Get.isRegistered<MeetingController>()) {
+      MeetingBinding().dependencies();
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    final meetingController = Get.find<MeetingController>();
+    meetingController.searchMeetings(value);
+  }
+
+  void _onViewNotesPressed(dynamic meeting) {
+    final title = meeting is Map ? meeting['title'] : meeting?.title;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Lihat notulensi: $title'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: SafeArea(child: _buildHomeSection()),
+    );
+  }
+
+  Widget _buildHomeSection() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [_buildSearchBar(), _buildMeetingList()],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF2563EB),
+      elevation: 0,
+      title: const Text(
+        'History Rapat',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      centerTitle: false,
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      color: const Color(0xFF2563EB),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          onChanged: _onSearchChanged,
+          decoration: InputDecoration(
+            hintText: 'Cari rapat...',
+            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+            prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 20),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMeetingList() {
+    final meetingController = Get.find<MeetingController>();
+    return Obx(() {
+      if (meetingController.isLoadingObs.value) {
+        return const Padding(
+          padding: EdgeInsets.all(AppSpacing.xl),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+      final meetings = meetingController.meetings;
+      if (meetings.isEmpty) {
+        return _buildEmptyMeetingState();
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: meetings.length,
+        itemBuilder: (context, index) {
+          final meeting = meetings[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index < meetings.length - 1 ? 12 : 0,
+            ),
+            child: _buildMeetingCard(meeting),
+          );
+        },
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+      );
+    });
+  }
+
+  Widget _buildMeetingCard(dynamic meeting) {
+    final title = meeting is Map
+        ? (meeting['title'] ?? '')
+        : (meeting?.title ?? '');
+    final date = meeting is Map
+        ? (meeting['date'] ?? '')
+        : (meeting?.date ?? '');
+    final startTime = meeting is Map
+        ? (meeting['start_time'] ?? '')
+        : (meeting?.startTime ?? '');
+
+    return GestureDetector(
+      onTap: () => _onMeetingCardTapped(meeting),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildCardTitle(title),
+            const SizedBox(height: 8),
+            _buildCardInfo(date, startTime),
+            const SizedBox(height: 12),
+            _buildCardFooter(meeting),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyMeetingState() {
+    return Padding(
+      padding: AppSpacing.paddingLG,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: AppSpacing.xl),
+            Icon(
+              Icons.event_busy,
+              size: 64,
+              color: AppColors.secondary.withOpacity(0.5),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Belum ada rapat',
+              style: AppTextStyles.subtitle.copyWith(
+                color: AppColors.secondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onMeetingCardTapped(dynamic meeting) {
+    // Navigate to meeting detail page with meeting ID
+    final id = meeting is Map ? meeting['id'] : meeting.id;
+    if (id == null) {
+      Get.snackbar(
+        'Error',
+        'ID rapat tidak ditemukan',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    Get.to(
+      DetailMeetPage(meetingId: id),
+      transition: Transition.rightToLeft,
+      arguments: id,
+    );
+  }
+
+  Widget _buildCardTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF1E293B),
+      ),
+    );
+  }
+
+  Widget _buildCardInfo(String date, String time) {
+    return Row(
+      children: [
+        const Icon(Icons.calendar_today, size: 14, color: Color(0xFF64748B)),
+        const SizedBox(width: 6),
+        Text(
+          date,
+          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+        ),
+        const SizedBox(width: 16),
+        const Icon(Icons.access_time, size: 14, color: Color(0xFF64748B)),
+        const SizedBox(width: 6),
+        Text(
+          time,
+          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCardFooter(dynamic meeting) {
+    final id = meeting is Map ? (meeting['id'] ?? 0) : (meeting?.id ?? 0);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [_buildParticipantInfo(id), _buildViewNotesButton(meeting)],
+    );
+  }
+
+  Widget _buildParticipantInfo(dynamic count) {
+    return Row(
+      children: [
+        const Icon(Icons.people, size: 14, color: Color(0xFF64748B)),
+        const SizedBox(width: 6),
+        Text(
+          'ID: $count',
+          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildViewNotesButton(dynamic meeting) {
+    return ElevatedButton.icon(
+      onPressed: () => _onMeetingCardTapped(meeting),
+      icon: const Icon(Icons.description, size: 16),
+      label: const Text(
+        'Lihat Notulensi',
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF2563EB),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+      ),
+    );
+  }
+}
