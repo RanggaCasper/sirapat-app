@@ -35,107 +35,99 @@ class ForgotPasswordPage extends GetView<ForgotPasswordController> {
 
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+    final double logoSize = (size.width * 0.25).clamp(70.0, 120.0);
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: Stack(
-        children: [
-          // Background Pattern
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Image.asset(
-              'assets/pattern.png',
-              height: 330,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              color: Colors.white.withOpacity(0.92),
-              colorBlendMode: BlendMode.dstATop,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 330,
-                  width: double.infinity,
-                  color: AppColors.background,
-                );
-              },
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage('assets/pattern.png'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.85),
+              BlendMode.dstATop,
             ),
+            onError: (exception, stackTrace) {},
           ),
-
-          // Content
-          SafeArea(
-            child: Column(
-              children: [
-                // Header (Fixed - tidak ikut scroll)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 40),
-
-                      // Logo
-                      SizedBox(
-                        width: 120,
-                        height: 120,
-                        child: Image.asset(
-                          'assets/logo.png',
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              padding: const EdgeInsets.all(20),
-                              child: Icon(
-                                Icons.account_balance,
-                                size: 70,
-                                color: AppColors.iconPrimary,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Title
-                      Text(
-                        'Lupa Password',
-                        style: TextStyle(
-                          fontFamily: 'workSans',
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.titleDark,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Subtitle
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          'Masukkan email Anda dan kami akan mengirimkan OTP untuk reset password',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textLight,
-                            height: 1.5,
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Logo
+                        SizedBox(
+                          width: logoSize,
+                          height: logoSize,
+                          child: Image.asset(
+                            'assets/logo.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                padding: const EdgeInsets.all(12),
+                                child: Icon(
+                                  Icons.account_balance,
+                                  size: (logoSize * 0.6).clamp(35.0, 90.0),
+                                  color: AppColors.iconPrimary,
+                                ),
+                              );
+                            },
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
+                        const SizedBox(height: 16),
 
-                // Form Fields (Scrollable)
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 8),
+                        // Title
+                        Text(
+                          'Lupa Password',
+                          style: TextStyle(
+                            fontFamily: 'workSans',
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.titleDark,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Subtitle
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: Text(
+                            'Masukkan email Anda dan kami akan mengirimkan OTP untuk reset password',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textLight,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
 
                           // Email Input
                           Obx(
@@ -678,16 +670,15 @@ class ForgotPasswordPage extends GetView<ForgotPasswordController> {
                             ],
                           ),
 
-                          const SizedBox(height: 40),
-                        ],
-                      ),
+                          const SizedBox(height: 24),
+                      ],
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
