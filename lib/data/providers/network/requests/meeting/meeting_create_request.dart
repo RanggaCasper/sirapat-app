@@ -13,6 +13,7 @@ class CreateMeetingRequest implements APIRequestRepresentable {
   final String startTime;
   final String endTime;
   final String status;
+  final bool? hasPasscode;
 
   CreateMeetingRequest({
     required this.title,
@@ -23,6 +24,7 @@ class CreateMeetingRequest implements APIRequestRepresentable {
     required this.startTime,
     required this.endTime,
     this.status = 'scheduled',
+    this.hasPasscode,
   });
 
   @override
@@ -63,6 +65,7 @@ class CreateMeetingRequest implements APIRequestRepresentable {
     'start_time': startTime,
     'end_time': endTime,
     'status': status,
+    if (hasPasscode != null) 'has_passcode': hasPasscode,
   };
 
   @override

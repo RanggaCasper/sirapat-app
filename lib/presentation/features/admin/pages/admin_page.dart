@@ -4,6 +4,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
+import 'package:sirapat_app/presentation/features/admin/sections/meeting_management_section.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
@@ -64,10 +65,10 @@ class _AdminPageState extends State<AdminPage> {
         route: '/users',
       ),
       BottomNavItem(
-        icon: Icons.history_outlined,
-        activeIcon: Icons.history,
-        label: 'Riwayat',
-        route: '/divisions',
+        icon: Icons.calendar_month_outlined,
+        activeIcon: Icons.calendar_month,
+        label: 'Rapat',
+        route: '/admin-create-meeting',
       ),
       BottomNavItem(
         icon: Icons.person_outline,
@@ -90,6 +91,8 @@ class _AdminPageState extends State<AdminPage> {
         return _buildHomeSection();
       case 1:
         return const QrScannerPage();
+      case 2:
+        return const MeetingManagementSection();
       case 3:
         return const ProfilePage();
       default:
@@ -181,7 +184,7 @@ class _AdminPageState extends State<AdminPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text('List Rapat', style: AppTextStyles.title),
-          _buildViewAllButton(),
+          Row(children: [_buildViewAllButton()]),
         ],
       ),
     );
@@ -235,8 +238,10 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   void _onViewAllPressed() {
-    // TODO: Navigate to all meetings page
-    print('View all meetings');
+    // Navigate to Rapat section by changing bottom nav index
+    setState(() {
+      _currentIndex = 2; // Index 2 is Rapat
+    });
   }
 
   Widget _buildMeetingList() {
@@ -259,11 +264,14 @@ class _AdminPageState extends State<AdminPage> {
         return _buildEmptyMeetingState();
       }
 
+      // Only show first 5 meetings on home page
+      final displayedMeetings = meetings.take(5).toList();
+
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Column(
           children: [
-            ...meetings.map(
+            ...displayedMeetings.map(
               (meeting) => Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: MeetingCard(
@@ -308,17 +316,7 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   void _onMeetingCardTapped(dynamic meeting) {
-    // Navigate to meeting detail page with meeting ID
-    final id = meeting is Map ? meeting['id'] : meeting.id;
-    if (id == null) {
-      Get.snackbar(
-        'Error',
-        'ID rapat tidak ditemukan',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-
-    // Get.toNamed('/employee-detail-meeting', arguments: id);
+    // Navigate to meeting detail page
+    Get.toNamed('/admin-meeting-detail', arguments: meeting);
   }
 }

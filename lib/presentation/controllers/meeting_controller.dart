@@ -9,6 +9,7 @@ import 'package:sirapat_app/domain/usecases/meeting/update_meeting_usecase.dart'
 import 'package:sirapat_app/domain/usecases/meeting/delete_meeting_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/passcode_qr_bottom_sheet.dart';
 
 class MeetingController extends GetxController {
   final GetMeetingsUseCase _getMeetingsUseCase;
@@ -48,6 +49,7 @@ class MeetingController extends GetxController {
   // Selected meeting for edit
   final Rx<Meeting?> selectedMeeting = Rx<Meeting?>(null);
   final RxString selectedStatus = 'scheduled'.obs;
+  final RxBool hasPasscode = false.obs;
 
   bool get isLoading => isLoadingObs.value;
   bool get isLoadingAction => isLoadingActionObs.value;
@@ -258,6 +260,7 @@ class MeetingController extends GetxController {
           startTime: startTimeController.text.trim(),
           endTime: endTimeController.text.trim(),
           status: selectedStatus.value,
+          hasPasscode: hasPasscode.value,
         ),
       );
 
@@ -266,8 +269,19 @@ class MeetingController extends GetxController {
 
       clearForm();
 
-      // Navigate back and refresh
+      // Navigate back
       Get.back();
+
+      // Show passcode bottom sheet if meeting has passcode
+      if (meeting.passcode != null && meeting.passcode!.isNotEmpty) {
+        showPasscodeQrBottomSheet(
+          passcode: meeting.passcode!,
+          meetingTitle: meeting.title,
+          meetingUuid: meeting.uuid,
+        );
+      }
+
+      // Refresh meeting list
       await fetchMeetings();
     } on ApiException catch (e) {
       debugPrint(
@@ -481,6 +495,7 @@ class MeetingController extends GetxController {
     endTimeController.clear();
     selectedMeeting.value = null;
     selectedStatus.value = 'scheduled';
+    hasPasscode.value = false;
     fieldErrors.clear();
     _errorMessage.value = '';
   }

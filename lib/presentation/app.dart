@@ -5,6 +5,9 @@ import 'package:sirapat_app/presentation/controllers/auth_binding.dart';
 import 'package:sirapat_app/presentation/controllers/user_binding.dart';
 import 'package:sirapat_app/presentation/controllers/division_binding.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/admin_page.dart';
+import 'package:sirapat_app/presentation/features/admin/pages/create_meeting_page.dart';
+import 'package:sirapat_app/presentation/features/admin/pages/meetings_page.dart';
+import 'package:sirapat_app/presentation/features/admin/pages/meeting_detail_page.dart';
 import 'package:sirapat_app/presentation/features/splash/pages/splash_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/login_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/register_page.dart';
@@ -16,6 +19,7 @@ import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart
 import 'package:sirapat_app/presentation/features/employee/pages/employee_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/history/history_meet_page.dart';
+import 'package:sirapat_app/domain/entities/meeting.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -78,6 +82,18 @@ class App extends StatelessWidget {
 
         // Admin
         GetPage(name: '/admin-dashboard', page: () => const AdminPage()),
+        GetPage(
+          name: '/admin-create-meeting',
+          page: () => const CreateMeetingPage(),
+        ),
+        GetPage(
+          name: '/admin-all-meetings',
+          page: () => const AllMeetingsPage(),
+        ),
+        GetPage(
+          name: '/admin-meeting-detail',
+          page: () => MeetingDetailPage(meeting: Get.arguments as Meeting),
+        ),
 
         // Employee
         GetPage(name: '/employee-dashboard', page: () => const EmployeePage()),

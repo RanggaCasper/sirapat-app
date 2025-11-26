@@ -127,6 +127,7 @@ class MeetingRepositoryImpl extends MeetingRepository {
     required String startTime,
     required String endTime,
     String status = 'scheduled',
+    bool? hasPasscode,
   }) async {
     try {
       final request = CreateMeetingRequest(
@@ -138,6 +139,7 @@ class MeetingRepositoryImpl extends MeetingRepository {
         startTime: startTime,
         endTime: endTime,
         status: status,
+        hasPasscode: hasPasscode,
       );
       final response = await request.request();
 

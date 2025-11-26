@@ -14,6 +14,7 @@ abstract class MeetingRepository {
     required String startTime,
     required String endTime,
     String status = 'scheduled',
+    bool? hasPasscode,
   });
 
   Future<Meeting> updateMeeting({

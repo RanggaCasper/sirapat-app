@@ -10,6 +10,7 @@ class CreateMeetingParams {
   final String startTime;
   final String endTime;
   final String status;
+  final bool? hasPasscode;
 
   CreateMeetingParams({
     required this.title,
@@ -20,6 +21,7 @@ class CreateMeetingParams {
     required this.startTime,
     required this.endTime,
     this.status = 'scheduled',
+    this.hasPasscode,
   });
 }
 
@@ -38,6 +40,7 @@ class CreateMeetingUseCase {
       startTime: params.startTime,
       endTime: params.endTime,
       status: params.status,
+      hasPasscode: params.hasPasscode,
     );
   }
 }
