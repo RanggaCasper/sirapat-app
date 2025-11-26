@@ -37,30 +37,38 @@ class RegisterPage extends GetView<AuthController> {
 
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+    // Banner and logo sizing responsive to screen
+    final double bannerHeight = (size.height * (size.width < 500 ? 0.30 : 0.36))
+        .clamp(180.0, size.height * 0.45);
+    final double logoSize = (size.width * 0.28).clamp(80.0, 160.0);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
         child: Stack(
           children: [
-            // LAPISAN 1: Background Pattern (Fixed di atas)
+            // LAPISAN 1: Background Pattern (responsive height)
             Positioned(
               top: 0,
               left: 0,
               right: 0,
-              child: Image.asset(
-                'assets/pattern.png',
-                height: 330,
+              child: SizedBox(
+                height: bannerHeight,
                 width: double.infinity,
-                fit: BoxFit.cover,
-                color: Colors.white.withOpacity(0.92),
-                colorBlendMode: BlendMode.dstATop,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 330,
-                    width: double.infinity,
-                    color: AppColors.background,
-                  );
-                },
+                child: Image.asset(
+                  'assets/pattern.png',
+                  fit: BoxFit.cover,
+                  color: Colors.white.withOpacity(0.92),
+                  colorBlendMode: BlendMode.dstATop,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: bannerHeight,
+                      width: double.infinity,
+                      color: AppColors.background,
+                    );
+                  },
+                ),
               ),
             ),
 
@@ -73,29 +81,36 @@ class RegisterPage extends GetView<AuthController> {
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
                       children: [
-                        const SizedBox(height: 40),
-
-                        // Logo
                         SizedBox(
-                          width: 140,
-                          height: 140,
-                          child: Image.asset(
-                            'assets/logo.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                padding: const EdgeInsets.all(20),
-                                child: Icon(
-                                  Icons.account_balance,
-                                  size: 80,
-                                  color: AppColors.iconPrimary,
-                                ),
-                              );
-                            },
+                          height: (bannerHeight * 0.5).clamp(
+                            24.0,
+                            bannerHeight - (logoSize * 0.4),
                           ),
                         ),
 
-                        const SizedBox(height: 24),
+                        // Logo - responsive
+                        Center(
+                          child: SizedBox(
+                            width: logoSize,
+                            height: logoSize,
+                            child: Image.asset(
+                              'assets/logo.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Icon(
+                                    Icons.account_balance,
+                                    size: (logoSize * 0.6).clamp(40.0, 120.0),
+                                    color: AppColors.iconPrimary,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
 
                         // Title
                         Text(

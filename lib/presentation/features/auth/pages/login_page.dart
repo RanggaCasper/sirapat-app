@@ -27,58 +27,64 @@ class LoginPage extends GetView<AuthController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // LAPISAN 1: Background Pattern (Fixed di atas)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Image.asset(
-                'assets/pattern.png',
-                height: 330, // Tinggi area pattern
-                width: double.infinity,
-                fit: BoxFit.cover,
-                color: Colors.white.withOpacity(0.92),
-                colorBlendMode: BlendMode.dstATop,
-                errorBuilder: (context, error, stackTrace) {
-                  // Fallback jika gambar tidak ditemukan
-                  return Container(
-                    height: 400,
-                    width: double.infinity,
-                    color: AppColors.background,
-                  );
-                },
-              ),
-            ),
+    final Size size = MediaQuery.of(context).size;
+    final double logoSize = (size.width * 0.28).clamp(80.0, 140.0);
 
-            // LAPISAN 2: Konten Login (Scrollable)
-            SafeArea(
-              child: SingleChildScrollView(
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage('assets/pattern.png'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.85),
+              BlendMode.dstATop,
+            ),
+            onError: (exception, stackTrace) {},
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 32.0,
+              ),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: const EdgeInsets.all(32.0),
                   child: Form(
                     key: _formKey,
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(height: 40), // Jarak dari atas
-                        // Logo dari Assets (tanpa background)
+                        // Logo
                         SizedBox(
-                          width: 140,
-                          height: 140,
+                          width: logoSize,
+                          height: logoSize,
                           child: Image.asset(
                             'assets/logo.png',
                             fit: BoxFit.contain,
                             errorBuilder: (context, error, stackTrace) {
-                              // Fallback logo jika tidak ditemukan
                               return Container(
-                                padding: const EdgeInsets.all(20),
+                                padding: const EdgeInsets.all(12),
                                 child: Icon(
                                   Icons.account_balance,
-                                  size: 80,
+                                  size: (logoSize * 0.6).clamp(40.0, 100.0),
                                   color: AppColors.iconPrimary,
                                 ),
                               );
@@ -86,35 +92,35 @@ class LoginPage extends GetView<AuthController> {
                           ),
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
 
                         // Title
                         Text(
                           'SiRapat',
                           style: TextStyle(
                             fontFamily: 'workSans',
-                            fontSize: 36,
+                            fontSize: 28,
                             fontWeight: FontWeight.w900,
                             color: AppColors.titleDark,
                             letterSpacing: 0.5,
                           ),
                         ),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
 
                         // Subtitle
                         Text(
                           'Sistem Rapat Digital',
                           style: TextStyle(
                             fontFamily: 'workSans',
-                            fontSize: 16,
-                            color: AppColors.titleDark,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppColors.textMedium,
+                            fontWeight: FontWeight.w500,
                             letterSpacing: 0.3,
                           ),
                         ),
 
-                        const SizedBox(height: 48),
+                        const SizedBox(height: 32),
 
                         // NIP Input
                         Obx(
@@ -362,14 +368,14 @@ class LoginPage extends GetView<AuthController> {
                           ],
                         ),
 
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
