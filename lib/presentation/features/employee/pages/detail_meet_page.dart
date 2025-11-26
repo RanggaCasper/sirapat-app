@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/presentation/shared/widgets/meet/meeting_title.dart';
 import 'package:sirapat_app/presentation/shared/widgets/meet/more_button.dart';
 import 'package:sirapat_app/presentation/shared/widgets/meet/meeting_info_card.dart';
@@ -48,10 +50,10 @@ class _DetailMeetPageState extends State<DetailMeetPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.cardBackground,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1E3A8A)),
+          icon: Icon(Icons.arrow_back, color: AppColors.primaryDark),
           onPressed: () => Get.back(),
         ),
         title: Obx(
@@ -63,8 +65,8 @@ class _DetailMeetPageState extends State<DetailMeetPage> {
       ),
       body: Obx(() {
         if (controller.isLoadingActionObs.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF1E3A8A)),
+          return Center(
+            child: CircularProgressIndicator(color: AppColors.primaryDark),
           );
         }
 
@@ -73,17 +75,21 @@ class _DetailMeetPageState extends State<DetailMeetPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.grey),
-                const SizedBox(height: 16),
-                const Text(
-                  'Data rapat tidak ditemukan',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                Icon(
+                  Icons.error_outline,
+                  size: AppIconSize.xxl,
+                  color: AppColors.gray,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'Data rapat tidak ditemukan',
+                  style: TextStyle(fontSize: 16, color: AppColors.gray),
+                ),
+                const SizedBox(height: AppSpacing.lg),
                 ElevatedButton(
                   onPressed: () => Get.back(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E3A8A),
+                    backgroundColor: AppColors.primaryDark,
                   ),
                   child: const Text('Kembali'),
                 ),
@@ -103,7 +109,7 @@ class _DetailMeetPageState extends State<DetailMeetPage> {
             child: Column(
               children: [
                 MeetingInfoCard(meeting: controller.selectedMeeting.value!),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Obx(
                   () => MeetingSummaryCard(
                     meeting: controller.selectedMeeting.value!,

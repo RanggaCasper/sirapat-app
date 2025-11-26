@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/app/config/app_dimensions.dart';
 
 class SummaryHeader extends StatelessWidget {
   const SummaryHeader({Key? key}) : super(key: key);
@@ -7,26 +9,26 @@ class SummaryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text(
+        Text(
           'Ringkasan Hasil Rapat',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
+            color: AppColors.textDark,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: const Color(0xFFFEF3C7),
-            borderRadius: BorderRadius.circular(4),
+            color: AppColors.warning.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
-          child: const Text(
+          child: Text(
             'draft',
             style: TextStyle(
               fontSize: 11,
-              color: Color(0xFFD97706),
+              color: AppColors.warning,
               fontWeight: FontWeight.w500,
             ),
           ),

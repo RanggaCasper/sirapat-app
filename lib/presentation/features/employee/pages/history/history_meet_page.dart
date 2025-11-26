@@ -37,16 +37,6 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
     meetingController.searchMeetings(value);
   }
 
-  void _onViewNotesPressed(dynamic meeting) {
-    final title = meeting is Map ? meeting['title'] : meeting?.title;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Lihat notulensi: $title'),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,9 +56,9 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xFF2563EB),
+      backgroundColor: AppColors.primary,
       elevation: 0,
-      title: const Text(
+      title: Text(
         'History Rapat',
         style: TextStyle(
           color: Colors.white,
@@ -82,16 +72,16 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
 
   Widget _buildSearchBar() {
     return Container(
-      color: const Color(0xFF2563EB),
+      color: AppColors.primary,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
+              blurRadius: AppElevation.sm,
               offset: const Offset(0, 2),
             ),
           ],
@@ -101,12 +91,16 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
           onChanged: _onSearchChanged,
           decoration: InputDecoration(
             hintText: 'Cari rapat...',
-            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-            prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 20),
+            hintStyle: TextStyle(color: AppColors.textLight, fontSize: 14),
+            prefixIcon: Icon(
+              Icons.search,
+              color: AppColors.textLight,
+              size: AppIconSize.sm,
+            ),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
             ),
           ),
         ),
@@ -118,9 +112,11 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
     final meetingController = Get.find<MeetingController>();
     return Obx(() {
       if (meetingController.isLoadingObs.value) {
-        return const Padding(
+        return Padding(
           padding: EdgeInsets.all(AppSpacing.xl),
-          child: Center(child: CircularProgressIndicator()),
+          child: Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
         );
       }
       final meetings = meetingController.meetings;
@@ -128,13 +124,13 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
         return _buildEmptyMeetingState();
       }
       return ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpacing.lg),
         itemCount: meetings.length,
         itemBuilder: (context, index) {
           final meeting = meetings[index];
           return Padding(
             padding: EdgeInsets.only(
-              bottom: index < meetings.length - 1 ? 12 : 0,
+              bottom: index < meetings.length - 1 ? AppSpacing.md : 0,
             ),
             child: _buildMeetingCard(meeting),
           );
@@ -160,24 +156,24 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
       onTap: () => _onMeetingCardTapped(meeting),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.cardBackground,
+          borderRadius: AppRadius.radiusMD,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
+              blurRadius: AppElevation.lg,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildCardTitle(title),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             _buildCardInfo(date, startTime),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             _buildCardFooter(meeting),
           ],
         ),
@@ -234,10 +230,10 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
   Widget _buildCardTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF1E293B),
+        color: AppColors.textDark,
       ),
     );
   }
@@ -245,19 +241,21 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
   Widget _buildCardInfo(String date, String time) {
     return Row(
       children: [
-        const Icon(Icons.calendar_today, size: 14, color: Color(0xFF64748B)),
-        const SizedBox(width: 6),
-        Text(
-          date,
-          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+        Icon(
+          Icons.calendar_today,
+          size: AppIconSize.sm,
+          color: AppColors.textLight,
         ),
-        const SizedBox(width: 16),
-        const Icon(Icons.access_time, size: 14, color: Color(0xFF64748B)),
-        const SizedBox(width: 6),
-        Text(
-          time,
-          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+        const SizedBox(width: AppSpacing.sm),
+        Text(date, style: TextStyle(fontSize: 13, color: AppColors.textLight)),
+        const SizedBox(width: AppSpacing.lg),
+        Icon(
+          Icons.access_time,
+          size: AppIconSize.sm,
+          color: AppColors.textLight,
         ),
+        const SizedBox(width: AppSpacing.sm),
+        Text(time, style: TextStyle(fontSize: 13, color: AppColors.textLight)),
       ],
     );
   }
@@ -273,11 +271,11 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
   Widget _buildParticipantInfo(dynamic count) {
     return Row(
       children: [
-        const Icon(Icons.people, size: 14, color: Color(0xFF64748B)),
-        const SizedBox(width: 6),
+        Icon(Icons.people, size: AppIconSize.sm, color: AppColors.textLight),
+        const SizedBox(width: AppSpacing.sm),
         Text(
           'ID: $count',
-          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+          style: TextStyle(fontSize: 13, color: AppColors.textLight),
         ),
       ],
     );
@@ -292,11 +290,13 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        elevation: 0,
+        elevation: AppElevation.none,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
       ),
     );
   }

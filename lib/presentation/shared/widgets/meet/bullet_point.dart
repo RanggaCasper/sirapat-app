@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
 
 class BulletPoint extends StatelessWidget {
   final String text;
@@ -9,11 +10,7 @@ class BulletPoint extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 13,
-        color: Color(0xFF475569),
-        height: 1.6,
-      ),
+      style: TextStyle(fontSize: 13, color: AppColors.textMedium, height: 1.6),
     );
   }
 }
