@@ -38,75 +38,64 @@ class RegisterPage extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-    // Banner and logo sizing responsive to screen
-    final double bannerHeight = (size.height * (size.width < 500 ? 0.30 : 0.36))
-        .clamp(180.0, size.height * 0.45);
-    final double logoSize = (size.width * 0.28).clamp(80.0, 160.0);
+    final double logoSize = (size.width * 0.25).clamp(70.0, 120.0);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // LAPISAN 1: Background Pattern (responsive height)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: SizedBox(
-                height: bannerHeight,
-                width: double.infinity,
-                child: Image.asset(
-                  'assets/pattern.png',
-                  fit: BoxFit.cover,
-                  color: Colors.white.withOpacity(0.92),
-                  colorBlendMode: BlendMode.dstATop,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: bannerHeight,
-                      width: double.infinity,
-                      color: AppColors.background,
-                    );
-                  },
-                ),
-              ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage('assets/pattern.png'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.85),
+              BlendMode.dstATop,
             ),
-
-            // LAPISAN 2: Konten
-            SafeArea(
-              child: Column(
-                children: [
-                  // Header (Fixed - tidak ikut scroll)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            onError: (exception, stackTrace) {},
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Form(
+                    key: _formKey,
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Logo
                         SizedBox(
-                          height: (bannerHeight * 0.5).clamp(
-                            24.0,
-                            bannerHeight - (logoSize * 0.4),
-                          ),
-                        ),
-
-                        // Logo - responsive
-                        Center(
-                          child: SizedBox(
-                            width: logoSize,
-                            height: logoSize,
-                            child: Image.asset(
-                              'assets/logo.png',
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Icon(
-                                    Icons.account_balance,
-                                    size: (logoSize * 0.6).clamp(40.0, 120.0),
-                                    color: AppColors.iconPrimary,
-                                  ),
-                                );
-                              },
-                            ),
+                          width: logoSize,
+                          height: logoSize,
+                          child: Image.asset(
+                            'assets/logo.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                padding: const EdgeInsets.all(12),
+                                child: Icon(
+                                  Icons.account_balance,
+                                  size: (logoSize * 0.6).clamp(35.0, 90.0),
+                                  color: AppColors.iconPrimary,
+                                ),
+                              );
+                            },
                           ),
                         ),
 
@@ -117,41 +106,29 @@ class RegisterPage extends GetView<AuthController> {
                           'SiRapat',
                           style: TextStyle(
                             fontFamily: 'workSans',
-                            fontSize: 36,
+                            fontSize: 24,
                             fontWeight: FontWeight.w900,
                             color: AppColors.titleDark,
                             letterSpacing: 0.5,
                           ),
                         ),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
 
                         // Subtitle
                         Text(
                           'Sistem Rapat Digital',
                           style: TextStyle(
                             fontFamily: 'workSans',
-                            fontSize: 16,
-                            color: AppColors.titleDark,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.textMedium,
+                            fontWeight: FontWeight.w500,
                             letterSpacing: 0.3,
                           ),
                         ),
 
-                        const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
+                        const SizedBox(height: 28),
 
-                  // Form Fields (Scrollable)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 8),
                             // NIP Input
                             Obx(
                               () => TextFormField(
@@ -795,16 +772,14 @@ class RegisterPage extends GetView<AuthController> {
                               ],
                             ),
 
-                            const SizedBox(height: 40),
-                          ],
-                        ),
-                      ),
+                            const SizedBox(height: 24),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
