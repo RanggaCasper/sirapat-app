@@ -81,25 +81,28 @@ class PaginationControls extends StatelessWidget {
   }) {
     final isEnabled = onPressed != null;
 
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isEnabled
-            ? AppColors.primary
-            : AppColors.backgroundLight,
-        foregroundColor: isEnabled ? Colors.white : AppColors.textLight,
-        elevation: 0,
-        padding: const EdgeInsets.all(8),
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.radiusSM,
-          side: BorderSide(
-            color: isEnabled ? AppColors.primary : AppColors.borderLight,
+    return Material(
+      color: isEnabled ? AppColors.primary : AppColors.backgroundLight,
+      borderRadius: AppRadius.radiusSM,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: AppRadius.radiusSM,
+        child: Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.radiusSM,
+            border: Border.all(
+              color: isEnabled ? AppColors.primary : AppColors.borderLight,
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 16,
+            color: isEnabled ? Colors.white : AppColors.textLight,
           ),
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: isReversed ? [Icon(icon, size: 16)] : [Icon(icon, size: 16)],
       ),
     );
   }
