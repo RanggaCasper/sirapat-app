@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/app/config/app_dimensions.dart';
 
 class InfoItem extends StatelessWidget {
   final IconData icon;
@@ -16,12 +18,12 @@ class InfoItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: iconColor, size: 20),
-        const SizedBox(width: 12),
+        Icon(icon, color: iconColor, size: AppIconSize.md),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14),
+            style: TextStyle(color: AppColors.textDark, fontSize: 14),
           ),
         ),
       ],

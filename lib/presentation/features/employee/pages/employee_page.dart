@@ -189,9 +189,12 @@ class _EmployeePageState extends State<EmployeePage> {
   Widget _buildViewAllButton() {
     return InkWell(
       onTap: _onViewAllPressed,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xs,
+        ),
         child: Row(
           children: [
             Text(
@@ -202,7 +205,7 @@ class _EmployeePageState extends State<EmployeePage> {
                 color: AppColors.primary,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: AppSpacing.xs),
             Icon(
               Icons.chevron_right,
               size: AppIconSize.sm,
@@ -232,7 +235,8 @@ class _EmployeePageState extends State<EmployeePage> {
 
   void _onViewAllPressed() {
     // TODO: Navigate to all meetings page
-    print('View all meetings');
+    Get.toNamed('/employee-history-meeting');
+    // print('View all meetings');
   }
 
   Widget _buildMeetingList() {

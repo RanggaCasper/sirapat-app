@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'summary_header.dart';
 import 'summary_description.dart';
@@ -16,35 +18,35 @@ class MeetingSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isLoading) {
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.all(16),
+        margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        padding: EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.cardBackground,
+          borderRadius: AppRadius.radiusMD,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
+              blurRadius: AppElevation.lg,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: const Center(
-          child: CircularProgressIndicator(color: Color(0xFF1E3A8A)),
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.primaryDark),
         ),
       );
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.cardBackground,
+        borderRadius: AppRadius.radiusMD,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            blurRadius: AppElevation.lg,
             offset: const Offset(0, 2),
           ),
         ],
@@ -53,21 +55,21 @@ class MeetingSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SummaryHeader(),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           SummaryDescription(description: meeting?.description),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           const SectionTitle(title: '📌 Agenda'),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           BulletPoint(text: meeting?.agenda ?? 'Tidak ada agenda'),
           if (meeting?.description?.isNotEmpty ?? false) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             const SectionTitle(title: '📝 Detail Tambahan'),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               meeting!.description!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF64748B),
+                color: AppColors.textLight,
                 height: 1.5,
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
 
 class MeetingTitle extends StatelessWidget {
   final String? title;
@@ -9,8 +10,8 @@ class MeetingTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title ?? 'Rapat\nKoordinasi IT',
-      style: const TextStyle(
-        color: Color(0xFF1E3A8A),
+      style: TextStyle(
+        color: AppColors.primaryDark,
         fontSize: 20,
         fontWeight: FontWeight.bold,
         height: 1.2,

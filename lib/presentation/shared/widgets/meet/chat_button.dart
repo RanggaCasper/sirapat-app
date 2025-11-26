@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
 
 class ChatButton extends StatelessWidget {
   const ChatButton({Key? key}) : super(key: key);
@@ -7,7 +8,7 @@ class ChatButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: () {},
-      backgroundColor: const Color(0xFF1E3A8A),
+      backgroundColor: AppColors.primaryDark,
       child: const Icon(Icons.chat_bubble),
     );
   }

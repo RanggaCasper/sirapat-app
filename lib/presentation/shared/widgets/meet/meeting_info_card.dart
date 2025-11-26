@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'info_item.dart';
 
@@ -25,15 +27,15 @@ class MeetingInfoCard extends StatelessWidget {
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'scheduled':
-        return const Color(0xFF3B82F6);
+        return AppColors.info;
       case 'ongoing':
-        return const Color(0xFFEF4444);
+        return AppColors.error;
       case 'completed':
-        return const Color(0xFF10B981);
+        return AppColors.success;
       case 'cancelled':
-        return const Color(0xFF6B7280);
+        return AppColors.gray;
       default:
-        return const Color(0xFF3B82F6);
+        return AppColors.info;
     }
   }
 
@@ -44,27 +46,27 @@ class MeetingInfoCard extends StatelessWidget {
     final statusColor = _getStatusColor(meeting?.status ?? 'scheduled');
 
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF2FF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFDDD6FE)),
+        color: AppColors.kLightBlueBg,
+        borderRadius: AppRadius.radiusMD,
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
         children: [
           InfoItem(
             icon: Icons.calendar_today,
             text: timeRange,
-            iconColor: const Color(0xFF3B82F6),
+            iconColor: AppColors.info,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           InfoItem(
             icon: Icons.location_on,
             text: location,
-            iconColor: const Color(0xFFEF4444),
+            iconColor: AppColors.error,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           InfoItem(
             icon: Icons.circle,
             text: _getStatusLabel(meeting?.status ?? 'scheduled'),
