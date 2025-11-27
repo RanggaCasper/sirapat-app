@@ -88,7 +88,7 @@ class App extends StatelessWidget {
         ),
         GetPage(
           name: '/admin-all-meetings',
-          page: () => const AllMeetingsPage(),
+          page: () => const MeetingsPage(),
         ),
         GetPage(
           name: '/admin-meeting-detail',

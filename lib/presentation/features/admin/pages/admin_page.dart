@@ -4,7 +4,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
-import 'package:sirapat_app/presentation/features/admin/sections/meeting_management_section.dart';
+import 'package:sirapat_app/presentation/features/admin/pages/meetings_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
@@ -92,7 +92,7 @@ class _AdminPageState extends State<AdminPage> {
       case 1:
         return const QrScannerPage();
       case 2:
-        return const MeetingManagementSection();
+        return const MeetingsPage();
       case 3:
         return const ProfilePage();
       default:

@@ -1,42 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sirapat_app/app/config/app_colors.dart';
-import 'package:sirapat_app/app/config/app_dimensions.dart';
-import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
 import 'package:sirapat_app/presentation/shared/widgets/pagination_controls.dart';
+import 'package:sirapat_app/presentation/shared/widgets/empty_state.dart';
+import 'package:sirapat_app/presentation/shared/widgets/loading_indicator.dart';
 
-class AllMeetingsPage extends StatelessWidget {
-  const AllMeetingsPage({Key? key}) : super(key: key);
+/// Meeting management section untuk Admin Dashboard
+class MeetingsPage extends GetView<MeetingController> {
+  const MeetingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<MeetingController>();
-
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Semua Rapat'),
-        elevation: 0,
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => Get.toNamed('/admin-create-meeting'),
-            tooltip: 'Tambah Rapat',
-          ),
-        ],
-      ),
       body: Column(
         children: [
-          // Search Bar
+          // Search bar
           Container(
-            padding: AppSpacing.paddingLG,
+            padding: const EdgeInsets.all(16),
             color: Colors.white,
             child: TextField(
               controller: controller.searchController,
+              onChanged: controller.searchMeetings,
               decoration: InputDecoration(
                 hintText: 'Cari rapat...',
                 prefixIcon: const Icon(Icons.search),
@@ -46,138 +31,145 @@ class AllMeetingsPage extends StatelessWidget {
                           icon: const Icon(Icons.clear),
                           onPressed: () {
                             controller.searchController.clear();
-                            controller.searchQuery.value = '';
+                            controller.searchMeetings('');
                           },
                         )
                       : const SizedBox.shrink();
                 }),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.borderLight),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.blue, width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade50,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
                 ),
               ),
-              onChanged: (value) {
-                controller.searchQuery.value = value;
-              },
             ),
           ),
 
-          // Meeting List
+          // Content
           Expanded(
             child: Obx(() {
-              if (controller.isLoading) {
-                return const Center(child: CircularProgressIndicator());
+              if (controller.isLoadingObs.value) {
+                return const LoadingIndicator(message: 'Memuat data rapat...');
               }
 
-              final meetings = controller.meetings;
-
-              if (meetings.isEmpty) {
-                return _buildEmptyState();
+              if (controller.meetings.isEmpty &&
+                  controller.searchQuery.value.isEmpty) {
+                return EmptyState(
+                  icon: Icons.event_note,
+                  title: 'Belum ada rapat',
+                  message: 'Tap tombol + untuk menambah rapat',
+                  buttonText: 'Tambah Rapat',
+                  onButtonPressed: () => Get.toNamed('/admin-create-meeting'),
+                );
               }
 
               return RefreshIndicator(
-                onRefresh: () => controller.fetchMeetings(),
-                child: ListView.builder(
-                  padding: AppSpacing.paddingLG,
-                  itemCount: meetings.length,
-                  itemBuilder: (context, index) {
-                    final meeting = meetings[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: MeetingCard(
-                        title: meeting.title,
-                        date: DateTime.parse(meeting.date),
-                        onTap: () => _onMeetingCardTapped(meeting),
+                onRefresh: controller.fetchMeetings,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: controller.meetings.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 64,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Rapat tidak ditemukan',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Coba kata kunci lain',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                              itemCount: controller.meetings.length,
+                              itemBuilder: (context, index) {
+                                final meeting = controller.meetings[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: MeetingCard(
+                                    title: meeting.title,
+                                    date: DateTime.parse(meeting.date),
+                                    onTap: () {
+                                      Get.toNamed(
+                                        '/admin-meeting-detail',
+                                        arguments: meeting,
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+
+                    // Pagination controls at the bottom (always show)
+                    if (controller.paginationMeta.value != null)
+                      Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: PaginationControls(
+                          meta: controller.paginationMeta.value!,
+                          onPrevious: controller.previousPage,
+                          onNext: controller.nextPage,
+                          onPageSelect: controller.goToPage,
+                        ),
                       ),
-                    );
-                  },
+                  ],
                 ),
               );
             }),
           ),
-
-          // Pagination
-          Obx(() {
-            final paginationMeta = controller.paginationMeta.value;
-            if (paginationMeta == null) return const SizedBox.shrink();
-
-            return Container(
-              padding: AppSpacing.paddingLG,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    offset: const Offset(0, -2),
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
-              child: PaginationControls(
-                meta: paginationMeta,
-                onPrevious: paginationMeta.currentPage > 1
-                    ? () => controller.fetchMeetings(
-                        page: paginationMeta.currentPage - 1,
-                      )
-                    : null,
-                onNext: paginationMeta.currentPage < paginationMeta.lastPage
-                    ? () => controller.fetchMeetings(
-                        page: paginationMeta.currentPage + 1,
-                      )
-                    : null,
-                onPageSelect: (page) => controller.fetchMeetings(page: page),
-              ),
-            );
-          }),
         ],
       ),
+      floatingActionButton: Obx(() {
+        // Only show FAB when pagination exists
+        if (controller.paginationMeta.value == null) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 90),
+          child: FloatingActionButton(
+            onPressed: () => Get.toNamed('/admin-create-meeting'),
+            tooltip: 'Tambah Rapat',
+            child: const Icon(Icons.add),
+          ),
+        );
+      }),
     );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.event_busy,
-            size: 64,
-            color: AppColors.secondary.withOpacity(0.5),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Belum ada rapat',
-            style: AppTextStyles.subtitle.copyWith(color: AppColors.secondary),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Ketuk tombol + untuk membuat rapat baru',
-            style: AppTextStyles.body.copyWith(
-              color: AppColors.secondary,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _onMeetingCardTapped(dynamic meeting) {
-    final id = meeting is Map ? meeting['id'] : meeting.id;
-    if (id == null) {
-      Get.snackbar(
-        'Error',
-        'ID rapat tidak ditemukan',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-
-    // TODO: Navigate to meeting detail
-    // Get.toNamed('/meeting-detail', arguments: id);
   }
 }
