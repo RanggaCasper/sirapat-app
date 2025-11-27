@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/entities/pagination.dart';
 import 'package:sirapat_app/domain/usecases/user/get_users_usecase.dart';
@@ -119,7 +120,7 @@ class UserController extends GetxController {
     try {
       isLoadingObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       // Fetch all data from API
       final result = await _getUsersUseCase.execute();
@@ -239,7 +240,7 @@ class UserController extends GetxController {
     try {
       isLoadingActionObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       final user = await _createUserUseCase.execute(
         CreateUserParams(
@@ -270,15 +271,13 @@ class UserController extends GetxController {
       debugPrint('[UserController] Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
-      _notif.showError(e.message);
 
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      } else {
+      // Use global form error handler
+      final errors = FormErrorHandler.handleApiException(e);
+      fieldErrors.addAll(errors);
+
+      // Fallback error if no field errors
+      if (errors.isEmpty) {
         fieldErrors['nip'] = e.message;
       }
     } catch (e) {
@@ -303,7 +302,7 @@ class UserController extends GetxController {
     try {
       isLoadingActionObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       final user = await _updateUserUseCase.execute(
         UpdateUserParams(
@@ -334,13 +333,12 @@ class UserController extends GetxController {
       _errorMessage.value = e.message;
       _notif.showError('Gagal memperbarui pengguna: ${e.message}');
 
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      } else {
+      // Use global form error handler
+      final errors = FormErrorHandler.handleApiException(e);
+      fieldErrors.addAll(errors);
+
+      // Fallback error if no field errors
+      if (errors.isEmpty) {
         fieldErrors['nip'] = e.message;
       }
     } catch (e) {
@@ -479,7 +477,7 @@ class UserController extends GetxController {
     try {
       isLoadingActionObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       await _changePasswordUseCase.execute(
         ChangePasswordParams(
@@ -504,13 +502,9 @@ class UserController extends GetxController {
       _errorMessage.value = e.message;
       _notif.showError('Gagal mengubah password: ${e.message}');
 
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      }
+      // Use global form error handler
+      final errors = FormErrorHandler.handleApiException(e);
+      fieldErrors.addAll(errors);
     } catch (e) {
       debugPrint('[UserController] Exception in changePassword: $e');
       _errorMessage.value = e.toString();
@@ -549,7 +543,7 @@ class UserController extends GetxController {
     profilePhotoController.clear();
     selectedUser.value = null;
     selectedRole.value = 'employee';
-    fieldErrors.clear();
+    FormErrorHandler.clearAllFieldErrors(fieldErrors);
     _errorMessage.value = '';
     obscurePassword.value = true;
     obscurePasswordConfirmation.value = true;
@@ -559,12 +553,12 @@ class UserController extends GetxController {
     currentPasswordController.clear();
     newPasswordController.clear();
     newPasswordConfirmationController.clear();
-    fieldErrors.clear();
+    FormErrorHandler.clearAllFieldErrors(fieldErrors);
   }
 
   // Validate form
   bool _validateForm({required bool isEdit}) {
-    fieldErrors.clear();
+    FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
     if (nipController.text.trim().isEmpty) {
       fieldErrors['nip'] = 'NIP wajib diisi';
@@ -628,7 +622,7 @@ class UserController extends GetxController {
   }
 
   bool _validatePasswordForm() {
-    fieldErrors.clear();
+    FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
     if (currentPasswordController.text.trim().isEmpty) {
       fieldErrors['current_password'] = 'Password saat ini wajib diisi';
@@ -674,12 +668,12 @@ class UserController extends GetxController {
 
   // Get field error
   String? getFieldError(String fieldName) {
-    return fieldErrors[fieldName];
+    return FormErrorHandler.getFieldError(fieldErrors, fieldName);
   }
 
   // Clear field error
   void clearFieldError(String fieldName) {
-    fieldErrors.remove(fieldName);
+    FormErrorHandler.clearFieldError(fieldErrors, fieldName);
   }
 
   // Get role label

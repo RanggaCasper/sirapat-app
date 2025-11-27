@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/data/providers/network/requests/forgot_password_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/reset_password_request.dart';
@@ -7,7 +8,7 @@ import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart
 class ForgotPasswordController extends GetxController {
   final isLoading = false.obs;
   final isOtpSent = false.obs;
-  final fieldErrors = <String, String?>{}.obs;
+  final fieldErrors = <String, String>{}.obs;
   final retryAfter = 0.obs;
   final lastEmail = ''.obs;
   bool _isCountingDown = false;
@@ -45,11 +46,11 @@ class ForgotPasswordController extends GetxController {
   }
 
   void clearFieldError(String field) {
-    fieldErrors[field] = null;
+    FormErrorHandler.clearFieldError(fieldErrors, field);
   }
 
   String? getFieldError(String field) {
-    return fieldErrors[field];
+    return FormErrorHandler.getFieldError(fieldErrors, field);
   }
 
   Future<void> sendOtp(String email) async {
@@ -65,7 +66,7 @@ class ForgotPasswordController extends GetxController {
 
     try {
       isLoading.value = true;
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
       lastEmail.value = email;
 
       final request = ForgotPasswordRequest(email: email);
@@ -92,15 +93,9 @@ class ForgotPasswordController extends GetxController {
         }
       }
     } on ApiException catch (e) {
-      _notif.showError(e.message);
-
-      if (e.errors != null) {
-        e.errors!.forEach((key, value) {
-          if (value.isNotEmpty) {
-            fieldErrors[key] = value.first;
-          }
-        });
-      }
+      // Use global form error handler
+      final errors = FormErrorHandler.handleApiException(e);
+      fieldErrors.addAll(errors);
     } catch (e) {
       _notif.showError('Terjadi kesalahan: ${e.toString()}');
     } finally {
@@ -118,7 +113,7 @@ class ForgotPasswordController extends GetxController {
 
     try {
       isLoading.value = true;
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       final request = ResetPasswordRequest(
         email: email,
@@ -138,15 +133,9 @@ class ForgotPasswordController extends GetxController {
         throw ApiException.fromJson(response);
       }
     } on ApiException catch (e) {
-      _notif.showError(e.message);
-
-      if (e.errors != null) {
-        e.errors!.forEach((key, value) {
-          if (value.isNotEmpty) {
-            fieldErrors[key] = value.first;
-          }
-        });
-      }
+      // Use global form error handler
+      final errors = FormErrorHandler.handleApiException(e);
+      fieldErrors.addAll(errors);
     } catch (e) {
       _notif.showError('Terjadi kesalahan: ${e.toString()}');
     } finally {

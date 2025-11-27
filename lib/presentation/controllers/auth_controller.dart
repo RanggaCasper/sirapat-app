@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/app/routes/app_routes.dart';
+import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/usecases/login_usecase.dart';
 import 'package:sirapat_app/domain/usecases/register_usecase.dart';
@@ -9,6 +10,7 @@ import 'package:sirapat_app/domain/usecases/auth/reset_password_usecase.dart';
 import 'package:sirapat_app/domain/repositories/auth_repository.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+
 class AuthController extends GetxController {
   // Dependencies
   final LoginUseCase _loginUseCase;
@@ -57,18 +59,18 @@ class AuthController extends GetxController {
 
   // Get field-specific error message
   String? getFieldError(String fieldName) {
-    return _fieldErrors[fieldName];
+    return FormErrorHandler.getFieldError(_fieldErrors, fieldName);
   }
 
   // Clear specific field error
   void clearFieldError(String fieldName) {
-    _fieldErrors.remove(fieldName);
+    FormErrorHandler.clearFieldError(_fieldErrors, fieldName);
   }
 
   // Clear all errors
   void clearAllErrors() {
     _errorMessage.value = '';
-    _fieldErrors.clear();
+    FormErrorHandler.clearAllFieldErrors(_fieldErrors);
   }
 
   // Check current user from local storage
@@ -271,20 +273,13 @@ class AuthController extends GetxController {
     }
   }
 
-  // Handle API exceptions with field errors
+  // Handle API exceptions with field errors using global handler
   void _handleApiException(ApiException e) {
     _errorMessage.value = e.message;
 
-    // Set field-specific errors
-    if (e.errors != null && e.errors!.isNotEmpty) {
-      e.errors!.forEach((field, messages) {
-        if (messages.isNotEmpty) {
-          _fieldErrors[field] = messages.first;
-        }
-      });
-    } else {
-      _notif.showError(e.message);
-    }
+    // Use global form error handler
+    final errors = FormErrorHandler.handleApiException(e);
+    _fieldErrors.addAll(errors);
   }
 
   // Handle generic errors

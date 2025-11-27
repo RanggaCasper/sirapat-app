@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/domain/entities/division.dart';
 import 'package:sirapat_app/domain/entities/pagination.dart';
 import 'package:sirapat_app/domain/usecases/division/get_divisions_usecase.dart';
@@ -73,7 +74,7 @@ class DivisionController extends GetxController {
     try {
       isLoadingObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       // Fetch all data from API
       final result = await _getDivisionsUseCase.execute();
@@ -185,12 +186,10 @@ class DivisionController extends GetxController {
 
   // Create new division
   Future<void> createDivision() async {
-    if (!_validateForm()) return;
-
     try {
       isLoadingActionObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       final division = await _createDivisionUseCase.execute(
         CreateDivisionParams(
@@ -210,28 +209,10 @@ class DivisionController extends GetxController {
       Get.back();
       await fetchDivisions();
     } on ApiException catch (e) {
-      debugPrint(
-        '[DivisionController] ApiException in createDivision: ${e.message}',
-      );
-      debugPrint('[DivisionController] Errors: ${e.errors}');
-
-      _errorMessage.value = e.message;
-      _notif.showError('Gagal menambah divisi: ${e.message}');
-
-      // Set field-specific errors
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      } else {
-        fieldErrors['name'] = e.message;
-      }
+      final errors = FormErrorHandler.handleApiException(e);
+      fieldErrors.addAll(errors);
     } catch (e) {
-      debugPrint('[DivisionController] Exception in createDivision: $e');
       _errorMessage.value = e.toString();
-      fieldErrors['name'] = e.toString();
       _notif.showError(e.toString());
     } finally {
       isLoadingActionObs.value = false;
@@ -241,12 +222,11 @@ class DivisionController extends GetxController {
   // Update existing division
   Future<void> updateDivision() async {
     if (selectedDivision.value == null) return;
-    if (!_validateForm()) return;
 
     try {
       isLoadingActionObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       final division = await _updateDivisionUseCase.execute(
         UpdateDivisionParams(
@@ -266,28 +246,10 @@ class DivisionController extends GetxController {
       Get.back();
       await fetchDivisions();
     } on ApiException catch (e) {
-      debugPrint(
-        '[DivisionController] ApiException in updateDivision: ${e.message}',
-      );
-      debugPrint('[DivisionController] Errors: ${e.errors}');
-
-      _errorMessage.value = e.message;
-      _notif.showError('Gagal memperbarui divisi: ${e.message}');
-
-      // Set field-specific errors
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      } else {
-        fieldErrors['name'] = e.message;
-      }
+      final errors = FormErrorHandler.handleApiException(e);
+      fieldErrors.addAll(errors);
     } catch (e) {
-      debugPrint('[DivisionController] Exception in updateDivision: $e');
       _errorMessage.value = e.toString();
-      fieldErrors['name'] = e.toString();
       _notif.showError(e.toString());
     } finally {
       isLoadingActionObs.value = false;
@@ -365,10 +327,6 @@ class DivisionController extends GetxController {
 
       fetchDivisions();
     } on ApiException catch (e) {
-      debugPrint(
-        '[DivisionController] ApiException in deleteDivision: ${e.message}',
-      );
-
       _errorMessage.value = e.message;
       _notif.showError('Gagal menghapus divisi: ${e.message}');
     } catch (e) {
@@ -392,30 +350,17 @@ class DivisionController extends GetxController {
     nameController.clear();
     descriptionController.clear();
     selectedDivision.value = null;
-    fieldErrors.clear();
+    FormErrorHandler.clearAllFieldErrors(fieldErrors);
     _errorMessage.value = '';
-  }
-
-  // Validate form
-  bool _validateForm() {
-    fieldErrors.clear();
-
-    if (nameController.text.trim().isEmpty) {
-      fieldErrors['name'] = 'Nama divisi wajib diisi';
-      _notif.showWarning('Nama divisi wajib diisi');
-      return false;
-    }
-
-    return true;
   }
 
   // Get field error
   String? getFieldError(String fieldName) {
-    return fieldErrors[fieldName];
+    return FormErrorHandler.getFieldError(fieldErrors, fieldName);
   }
 
   // Clear field error
   void clearFieldError(String fieldName) {
-    fieldErrors.remove(fieldName);
+    FormErrorHandler.clearFieldError(fieldErrors, fieldName);
   }
 }

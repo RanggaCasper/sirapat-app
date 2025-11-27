@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/domain/entities/pagination.dart';
 import 'package:sirapat_app/domain/usecases/meeting/get_meetings_usecase.dart';
@@ -91,7 +92,7 @@ class MeetingController extends GetxController {
     try {
       isLoadingObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       debugPrint('[MeetingController] Fetching meetings from API...');
 
@@ -242,7 +243,7 @@ class MeetingController extends GetxController {
     try {
       isLoadingActionObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       final meeting = await _createMeetingUseCase.execute(
         CreateMeetingParams(
@@ -290,15 +291,13 @@ class MeetingController extends GetxController {
       debugPrint('[MeetingController] Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
-      _notif.showError(e.message);
 
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      } else {
+      // Use global form error handler
+      final errors = FormErrorHandler.handleApiException(e);
+      fieldErrors.addAll(errors);
+
+      // Fallback error if no field errors
+      if (errors.isEmpty) {
         fieldErrors['title'] = e.message;
       }
     } catch (e) {
@@ -323,7 +322,7 @@ class MeetingController extends GetxController {
     try {
       isLoadingActionObs.value = true;
       _errorMessage.value = '';
-      fieldErrors.clear();
+      FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
       final meeting = await _updateMeetingUseCase.execute(
         UpdateMeetingParams(
@@ -361,13 +360,12 @@ class MeetingController extends GetxController {
       _errorMessage.value = e.message;
       _notif.showError('Gagal memperbarui rapat: ${e.message}');
 
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      } else {
+      // Use global form error handler
+      final errors = FormErrorHandler.handleApiException(e);
+      fieldErrors.addAll(errors);
+
+      // Fallback error if no field errors
+      if (errors.isEmpty) {
         fieldErrors['title'] = e.message;
       }
     } catch (e) {
@@ -496,13 +494,13 @@ class MeetingController extends GetxController {
     selectedMeeting.value = null;
     selectedStatus.value = 'scheduled';
     hasPasscode.value = false;
-    fieldErrors.clear();
+    FormErrorHandler.clearAllFieldErrors(fieldErrors);
     _errorMessage.value = '';
   }
 
   // Validate form
   bool _validateForm({required bool isEdit}) {
-    fieldErrors.clear();
+    FormErrorHandler.clearAllFieldErrors(fieldErrors);
 
     if (titleController.text.trim().isEmpty) {
       fieldErrors['title'] = 'Judul rapat wajib diisi';
@@ -572,12 +570,12 @@ class MeetingController extends GetxController {
 
   // Get field error
   String? getFieldError(String fieldName) {
-    return fieldErrors[fieldName];
+    return FormErrorHandler.getFieldError(fieldErrors, fieldName);
   }
 
   // Clear field error
   void clearFieldError(String fieldName) {
-    fieldErrors.remove(fieldName);
+    FormErrorHandler.clearFieldError(fieldErrors, fieldName);
   }
 
   // Get status label
