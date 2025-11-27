@@ -1,24 +1,27 @@
 import 'package:get/get.dart';
 import 'package:sirapat_app/data/repositories/meeting_repository_impl.dart';
+import 'package:sirapat_app/domain/repositories/meeting_repository.dart';
 import 'package:sirapat_app/domain/usecases/meeting/get_meetings_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/get_meeting_by_id_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/create_meeting_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/update_meeting_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/delete_meeting_usecase.dart';
+import 'package:sirapat_app/domain/usecases/meeting/join_meeting_by_code_usecase.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 
 class MeetingBinding extends Bindings {
   @override
   void dependencies() {
     // Repository
-    Get.lazyPut(() => MeetingRepositoryImpl());
+    Get.lazyPut<MeetingRepository>(() => MeetingRepositoryImpl());
 
     // Use Cases
-    Get.lazyPut(() => GetMeetingsUseCase(Get.find<MeetingRepositoryImpl>()));
-    Get.lazyPut(() => GetMeetingByIdUseCase(Get.find<MeetingRepositoryImpl>()));
-    Get.lazyPut(() => CreateMeetingUseCase(Get.find<MeetingRepositoryImpl>()));
-    Get.lazyPut(() => UpdateMeetingUseCase(Get.find<MeetingRepositoryImpl>()));
-    Get.lazyPut(() => DeleteMeetingUseCase(Get.find<MeetingRepositoryImpl>()));
+    Get.lazyPut(() => GetMeetingsUseCase(Get.find<MeetingRepository>()));
+    Get.lazyPut(() => GetMeetingByIdUseCase(Get.find<MeetingRepository>()));
+    Get.lazyPut(() => CreateMeetingUseCase(Get.find<MeetingRepository>()));
+    Get.lazyPut(() => UpdateMeetingUseCase(Get.find<MeetingRepository>()));
+    Get.lazyPut(() => DeleteMeetingUseCase(Get.find<MeetingRepository>()));
+    Get.lazyPut(() => JoinMeetingByCodeUseCase(Get.find<MeetingRepository>()));
 
     // Controller
     Get.lazyPut(
@@ -28,6 +31,7 @@ class MeetingBinding extends Bindings {
         Get.find<CreateMeetingUseCase>(),
         Get.find<UpdateMeetingUseCase>(),
         Get.find<DeleteMeetingUseCase>(),
+        Get.find<JoinMeetingByCodeUseCase>(),
       ),
     );
   }

@@ -218,6 +218,7 @@ class _EmployeePageState extends State<EmployeePage> {
   }
 
   void _onJoinMeetingPressed() {
+    final meetingController = Get.find<MeetingController>();
     final meetingCode = _meetingCodeController.text.trim();
 
     if (meetingCode.isEmpty) {
@@ -229,8 +230,11 @@ class _EmployeePageState extends State<EmployeePage> {
       return;
     }
 
-    // TODO: Implement join meeting logic
-    print('Join meeting with code: $meetingCode');
+    // Call join meeting API
+    meetingController.joinMeetingByCode(meetingCode);
+
+    // Clear input field after successful/failed attempt
+    _meetingCodeController.clear();
   }
 
   void _onViewAllPressed() {

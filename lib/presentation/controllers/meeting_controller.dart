@@ -7,6 +7,7 @@ import 'package:sirapat_app/domain/usecases/meeting/get_meeting_by_id_usecase.da
 import 'package:sirapat_app/domain/usecases/meeting/create_meeting_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/update_meeting_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/delete_meeting_usecase.dart';
+import 'package:sirapat_app/domain/usecases/meeting/join_meeting_by_code_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 import 'package:sirapat_app/presentation/shared/widgets/passcode_qr_bottom_sheet.dart';
@@ -17,6 +18,7 @@ class MeetingController extends GetxController {
   final CreateMeetingUseCase _createMeetingUseCase;
   final UpdateMeetingUseCase _updateMeetingUseCase;
   final DeleteMeetingUseCase _deleteMeetingUseCase;
+  final JoinMeetingByCodeUseCase _joinMeetingByCodeUseCase;
 
   MeetingController(
     this._getMeetingsUseCase,
@@ -24,6 +26,7 @@ class MeetingController extends GetxController {
     this._createMeetingUseCase,
     this._updateMeetingUseCase,
     this._deleteMeetingUseCase,
+    this._joinMeetingByCodeUseCase,
   );
 
   // Observable lists
@@ -596,5 +599,50 @@ class MeetingController extends GetxController {
   // Get meetings count by status
   int getMeetingsCountByStatus(String status) {
     return _allMeetings.where((m) => m.status == status).length;
+  }
+
+  // Join meeting by code
+  Future<void> joinMeetingByCode(String meetingCode) async {
+    try {
+      isLoadingActionObs.value = true;
+      _errorMessage.value = '';
+      fieldErrors.clear();
+
+      if (meetingCode.trim().isEmpty) {
+        _notif.showError('Silakan masukkan kode rapat');
+        isLoadingActionObs.value = false;
+        return;
+      }
+
+      debugPrint('[MeetingController] Joining meeting with code: $meetingCode');
+
+      final meeting = await _joinMeetingByCodeUseCase.execute(
+        meetingCode.trim(),
+      );
+
+      if (meeting != null) {
+        _notif.showSuccess('Berhasil mengikuti rapat "${meeting.title}"');
+        debugPrint(
+          '[MeetingController] Successfully joined meeting: ${meeting.title}',
+        );
+
+        // Refresh meetings list
+        await fetchMeetings();
+      } else {
+        _notif.showError('Gagal mengikuti rapat');
+      }
+    } on ApiException catch (e) {
+      debugPrint(
+        '[MeetingController] ApiException in joinMeetingByCode: ${e.message}',
+      );
+      _errorMessage.value = e.message;
+      _notif.showError(e.message);
+    } catch (e) {
+      debugPrint('[MeetingController] Exception in joinMeetingByCode: $e');
+      _errorMessage.value = 'Gagal mengikuti rapat';
+      _notif.showError('Gagal mengikuti rapat: ${e.toString()}');
+    } finally {
+      isLoadingActionObs.value = false;
+    }
   }
 }

@@ -10,7 +10,7 @@ class JoinMeetingByCodeRequest implements APIRequestRepresentable {
   JoinMeetingByCodeRequest({required this.meetingCode});
 
   @override
-  String get url => "${APIEndpoint.meetings}/join";
+  String get url => "${APIEndpoint.meetings}/join-with-passcode";
 
   @override
   String get endpoint => APIEndpoint.baseUrl;
@@ -37,7 +37,7 @@ class JoinMeetingByCodeRequest implements APIRequestRepresentable {
   Map<String, dynamic>? get query => null;
 
   @override
-  Map<String, dynamic>? get body => {'meeting_code': meetingCode};
+  Map<String, dynamic>? get body => {'passcode': meetingCode};
 
   @override
   Future request() {
