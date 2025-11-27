@@ -229,9 +229,9 @@ class _EmployeePageState extends State<EmployeePage> {
   }
 
   void _onViewAllPressed() {
-    // TODO: Navigate to all meetings page
-    Get.toNamed('/employee-history-meeting');
-    // print('View all meetings');
+    setState(() {
+      _currentIndex = 2; // Index 2 is Rapat
+    });
   }
 
   Widget _buildMeetingList() {
