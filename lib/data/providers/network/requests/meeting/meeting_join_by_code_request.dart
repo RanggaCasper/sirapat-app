@@ -16,7 +16,7 @@ class JoinMeetingByCodeRequest implements APIRequestRepresentable {
   String get endpoint => APIEndpoint.baseUrl;
 
   @override
-  String get path => "/meeting/join";
+  String get path => "/meeting/join-with-passcode";
 
   @override
   HTTPMethod get method => HTTPMethod.post;

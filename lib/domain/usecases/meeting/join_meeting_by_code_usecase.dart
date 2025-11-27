@@ -6,7 +6,7 @@ class JoinMeetingByCodeUseCase {
 
   JoinMeetingByCodeUseCase(this.repository);
 
-  Future<Meeting?> execute(String meetingCode) {
-    return repository.joinMeetingByCode(meetingCode);
+  Future<Meeting?> execute(String passcode) {
+    return repository.joinMeetingByCode(passcode);
   }
 }

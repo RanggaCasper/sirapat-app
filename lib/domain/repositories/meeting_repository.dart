@@ -36,7 +36,7 @@ abstract class MeetingRepository {
 
   Future<bool> deleteMeeting(int id);
 
-  Future<Meeting?> joinMeetingByCode(String meetingCode);
+  Future<Meeting?> joinMeetingByCode(String passcode);
 
   Future<List<Meeting>> getMeetingsByStatus(String status);
 

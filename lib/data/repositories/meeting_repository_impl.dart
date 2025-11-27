@@ -11,6 +11,7 @@ import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_join
 import 'package:sirapat_app/data/models/api_response_model.dart';
 import 'package:sirapat_app/data/models/meeting_model.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
+import 'package:sirapat_app/data/providers/network/api_provider.dart';
 
 class MeetingRepositoryImpl extends MeetingRepository {
   @override
@@ -300,34 +301,47 @@ class MeetingRepositoryImpl extends MeetingRepository {
       final request = JoinMeetingByCodeRequest(passcode: passcode);
       final response = await request.request();
 
-      debugPrint('[MeetingRepository] Join by passcode response: $response');
+      debugPrint('[MeetingRepository] -1 Join by passcode response: $response');
 
-      if (response is Map<String, dynamic> && response.containsKey('errors')) {
-        throw ApiException.fromJson(response);
+      if (response is Map<String, dynamic>) {
+        // Check if response has error status
+        if (response['status'] == false || response.containsKey('errors')) {
+          final message = response['message'] ?? 'Terjadi kesalahan';
+          debugPrint('[MeetingRepository] API Error response: $response');
+          debugPrint('[MeetingRepository] Extracted message: $message');
+          throw ApiException(status: false, message: message);
+        }
       }
 
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
         (data) {
-          debugPrint('[MeetingRepository] Join by passcode data: $data');
+          debugPrint('[MeetingRepository] 0 Join by passcode data: $data');
+          if (data == null) {
+            throw ApiException(
+              status: false,
+              message: 'Data rapat tidak ditemukan',
+            );
+          }
           return MeetingModel.fromJson(data as Map<String, dynamic>);
         },
       );
 
-      
+      if (!apiResponse.status) {
+        throw ApiException(status: false, message: 'Gagal mengikuti rapat');
+      }
 
       return apiResponse.data as Meeting;
     } on ApiException catch (e) {
-      debugPrint(
-        '[MeetingRepository] ApiException in joinMeetingByCode: ${e.message}',
-      );
+      debugPrint('[MeetingRepository] 1 ApiException caught: ${e.message}');
       rethrow;
+    } on AppException catch (e) {
+      // Handle other app exceptions (BadRequestException, UnauthorisedException, etc)
+      debugPrint('[MeetingRepository] 2 AppException caught: ${e.message}');
+      throw ApiException(status: false, message: "Passcode rapat tidak valid");
     } catch (e) {
-      debugPrint('[MeetingRepository] Exception in joinMeetingByCode: $e');
-      throw ApiException(
-        status: false,
-        message: 'Failed to join meeting: ${e..toString()}',
-      );
+      debugPrint('[MeetingRepository] 3 Unexpected exception: $e');
+      throw ApiException(status: false, message: 'Gagal mengikuti rapat');
     }
   }
 
