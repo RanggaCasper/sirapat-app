@@ -34,6 +34,8 @@ class UserController extends GetxController {
   // Observable lists
   final RxList<User> users = <User>[].obs;
   final RxList<User> _allUsers = <User>[].obs;
+  final RxInt totalCount =
+      0.obs; // Total count from API (not affected by pagination)
   final Rx<PaginationMeta?> paginationMeta = Rx<PaginationMeta?>(null);
   final RxBool isLoadingObs = false.obs;
   final RxBool isLoadingActionObs = false.obs;
@@ -122,6 +124,7 @@ class UserController extends GetxController {
       // Fetch all data from API
       final result = await _getUsersUseCase.execute();
       _allUsers.value = result;
+      totalCount.value = result.length; // Set real total count
 
       // After fetching, apply pagination on client side
       _applyPagination(page: page, perPage: perPage);

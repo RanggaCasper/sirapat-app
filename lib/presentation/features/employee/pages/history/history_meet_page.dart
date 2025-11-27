@@ -6,6 +6,7 @@ import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
+import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 
 class HistoryMeetPage extends StatefulWidget {
   const HistoryMeetPage({Key? key}) : super(key: key);
@@ -112,10 +113,12 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
     final meetingController = Get.find<MeetingController>();
     return Obx(() {
       if (meetingController.isLoadingObs.value) {
-        return Padding(
-          padding: EdgeInsets.all(AppSpacing.xl),
-          child: Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+        return ListView.builder(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          itemCount: 5,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: const MeetingCardSkeleton(),
           ),
         );
       }

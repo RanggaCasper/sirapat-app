@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/presentation/controllers/user_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/empty_state.dart';
-import 'package:sirapat_app/presentation/shared/widgets/loading_indicator.dart';
 import 'package:sirapat_app/presentation/shared/widgets/pagination_controls.dart';
+import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 import 'package:sirapat_app/presentation/features/master/widgets/user/user_card.dart';
 import 'package:sirapat_app/presentation/features/master/pages/user/user_form_page.dart';
 import 'package:sirapat_app/presentation/features/master/pages/user/user_detail_page.dart';
@@ -65,8 +65,13 @@ class UserManagementSection extends GetView<UserController> {
           Expanded(
             child: Obx(() {
               if (controller.isLoadingObs.value) {
-                return const LoadingIndicator(
-                  message: 'Memuat data pengguna...',
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  itemCount: 6,
+                  itemBuilder: (context, index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: const ListItemSkeleton(),
+                  ),
                 );
               }
 
