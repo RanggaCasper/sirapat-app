@@ -295,10 +295,12 @@ class MeetingRepositoryImpl extends MeetingRepository {
   }
 
   @override
-  Future<Meeting?> joinMeetingByCode(String meetingCode) async {
+  Future<Meeting?> joinMeetingByCode(String passcode) async {
     try {
-      final request = JoinMeetingByCodeRequest(meetingCode: meetingCode);
+      final request = JoinMeetingByCodeRequest(passcode: passcode);
       final response = await request.request();
+
+      debugPrint('[MeetingRepository] Join by passcode response: $response');
 
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
         throw ApiException.fromJson(response);
@@ -306,12 +308,13 @@ class MeetingRepositoryImpl extends MeetingRepository {
 
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
-        (data) => MeetingModel.fromJson(data as Map<String, dynamic>),
+        (data) {
+          debugPrint('[MeetingRepository] Join by passcode data: $data');
+          return MeetingModel.fromJson(data as Map<String, dynamic>);
+        },
       );
 
-      if (!apiResponse.status || apiResponse.data == null) {
-        throw ApiException.fromJson(response);
-      }
+      
 
       return apiResponse.data as Meeting;
     } on ApiException catch (e) {
@@ -323,7 +326,7 @@ class MeetingRepositoryImpl extends MeetingRepository {
       debugPrint('[MeetingRepository] Exception in joinMeetingByCode: $e');
       throw ApiException(
         status: false,
-        message: 'Failed to join meeting: ${e.toString()}',
+        message: 'Failed to join meeting: ${e..toString()}',
       );
     }
   }

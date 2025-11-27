@@ -5,9 +5,9 @@ import 'package:sirapat_app/data/providers/network/api_request_representable.dar
 import 'package:sirapat_app/data/providers/network/api_provider.dart';
 
 class JoinMeetingByCodeRequest implements APIRequestRepresentable {
-  final String meetingCode;
+  final String passcode;
 
-  JoinMeetingByCodeRequest({required this.meetingCode});
+  JoinMeetingByCodeRequest({required this.passcode});
 
   @override
   String get url => "${APIEndpoint.meetings}/join-with-passcode";
@@ -37,7 +37,7 @@ class JoinMeetingByCodeRequest implements APIRequestRepresentable {
   Map<String, dynamic>? get query => null;
 
   @override
-  Map<String, dynamic>? get body => {'passcode': meetingCode};
+  Map<String, dynamic>? get body => {'passcode': passcode};
 
   @override
   Future request() {

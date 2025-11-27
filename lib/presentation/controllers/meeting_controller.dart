@@ -632,9 +632,6 @@ class MeetingController extends GetxController {
         _notif.showError('Gagal mengikuti rapat');
       }
     } on ApiException catch (e) {
-      debugPrint(
-        '[MeetingController] ApiException in joinMeetingByCode: ${e.message}',
-      );
       _errorMessage.value = e.message;
       _notif.showError(e.message);
     } catch (e) {
