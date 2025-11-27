@@ -4,7 +4,7 @@ import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
 import 'package:sirapat_app/presentation/shared/widgets/pagination_controls.dart';
 import 'package:sirapat_app/presentation/shared/widgets/empty_state.dart';
-import 'package:sirapat_app/presentation/shared/widgets/loading_indicator.dart';
+import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 
 /// Meeting management section untuk Admin Dashboard
 class MeetingsPage extends GetView<MeetingController> {
@@ -62,7 +62,14 @@ class MeetingsPage extends GetView<MeetingController> {
           Expanded(
             child: Obx(() {
               if (controller.isLoadingObs.value) {
-                return const LoadingIndicator(message: 'Memuat data rapat...');
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  itemCount: 6,
+                  itemBuilder: (context, index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: const MeetingCardSkeleton(),
+                  ),
+                );
               }
 
               if (controller.meetings.isEmpty &&

@@ -29,6 +29,8 @@ class DivisionController extends GetxController {
   // Observable lists
   final RxList<Division> divisions = <Division>[].obs;
   final RxList<Division> _allDivisions = <Division>[].obs;
+  final RxInt totalCount =
+      0.obs; // Total count from API (not affected by pagination)
   final Rx<PaginationMeta?> paginationMeta = Rx<PaginationMeta?>(null);
   final RxBool isLoadingObs = false.obs;
   final RxBool isLoadingActionObs = false.obs;
@@ -76,6 +78,7 @@ class DivisionController extends GetxController {
       // Fetch all data from API
       final result = await _getDivisionsUseCase.execute();
       _allDivisions.value = result;
+      totalCount.value = result.length; // Set real total count
 
       // After fetching, apply pagination on client side
       _applyPagination(page: page, perPage: perPage);

@@ -12,6 +12,7 @@ import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dar
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
 import 'package:sirapat_app/presentation/shared/widgets/user_header_card.dart';
 import 'package:sirapat_app/presentation/shared/widgets/dashboard_stat_card.dart';
+import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 
 /// Master Page - Single page layout dengan tab-based navigation
 class MasterPage extends StatefulWidget {
@@ -88,8 +89,10 @@ class _MasterPageState extends State<MasterPage> {
     final authController = Get.find<AuthController>();
 
     return Obx(() {
-      final totalDivisions = divisionController.divisions.length;
-      final totalUsers = userController.users.length;
+      final isLoading =
+          divisionController.isLoading || userController.isLoading;
+      final totalDivisions = divisionController.totalCount.value;
+      final totalUsers = userController.totalCount.value;
       final currentUser = authController.currentUser;
 
       return SingleChildScrollView(
@@ -120,31 +123,38 @@ class _MasterPageState extends State<MasterPage> {
                   ),
                   SizedBox(height: AppSpacing.md),
 
-                  DashboardStatCard(
-                    title: 'Total User',
-                    value: totalUsers.toString(),
-                    icon: Icons.people,
-                    backgroundColor: AppColors.accentTeal,
-                    onTap: () {
-                      setState(() {
-                        _currentIndex = 1;
-                      });
-                    },
-                  ),
+                  // Show skeleton while loading
+                  if (isLoading) ...[
+                    const StatCardSkeleton(),
+                    SizedBox(height: AppSpacing.md),
+                    const StatCardSkeleton(),
+                  ] else ...[
+                    DashboardStatCard(
+                      title: 'Total User',
+                      value: totalUsers.toString(),
+                      icon: Icons.people,
+                      backgroundColor: AppColors.accentTeal,
+                      onTap: () {
+                        setState(() {
+                          _currentIndex = 1;
+                        });
+                      },
+                    ),
 
-                  SizedBox(height: AppSpacing.md),
+                    SizedBox(height: AppSpacing.md),
 
-                  DashboardStatCard(
-                    title: 'Total Divisi',
-                    value: totalDivisions.toString(),
-                    icon: Icons.business,
-                    backgroundColor: AppColors.accentPurple,
-                    onTap: () {
-                      setState(() {
-                        _currentIndex = 2;
-                      });
-                    },
-                  ),
+                    DashboardStatCard(
+                      title: 'Total Divisi',
+                      value: totalDivisions.toString(),
+                      icon: Icons.business,
+                      backgroundColor: AppColors.accentPurple,
+                      onTap: () {
+                        setState(() {
+                          _currentIndex = 2;
+                        });
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),

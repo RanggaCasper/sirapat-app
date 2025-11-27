@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/domain/entities/division.dart';
 import 'package:sirapat_app/presentation/controllers/division_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/empty_state.dart';
-import 'package:sirapat_app/presentation/shared/widgets/loading_indicator.dart';
 import 'package:sirapat_app/presentation/shared/widgets/pagination_controls.dart';
+import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 import 'package:sirapat_app/presentation/features/master/widgets/division/division_card.dart';
 import 'package:sirapat_app/presentation/features/master/pages/division/division_form_page.dart';
 import 'package:sirapat_app/presentation/features/master/pages/division/division_detail_page.dart';
@@ -65,7 +65,14 @@ class DivisionManagementSection extends GetView<DivisionController> {
           Expanded(
             child: Obx(() {
               if (controller.isLoadingObs.value) {
-                return const LoadingIndicator(message: 'Memuat data divisi...');
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  itemCount: 6,
+                  itemBuilder: (context, index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: const ListItemSkeleton(),
+                  ),
+                );
               }
 
               if (controller.divisions.isEmpty &&

@@ -13,6 +13,7 @@ import 'package:sirapat_app/presentation/shared/widgets/user_header_card.dart';
 import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
+import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({Key? key}) : super(key: key);
@@ -235,11 +236,19 @@ class _AdminPageState extends State<AdminPage> {
     final meetingController = Get.find<MeetingController>();
 
     return Obx(() {
-      // Show loading indicator
+      // Show skeleton loading
       if (meetingController.isLoading) {
-        return const Padding(
-          padding: EdgeInsets.all(AppSpacing.xl),
-          child: Center(child: CircularProgressIndicator()),
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Column(
+            children: List.generate(
+              3,
+              (index) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: const MeetingCardSkeleton(),
+              ),
+            ),
+          ),
         );
       }
 
