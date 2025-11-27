@@ -4,7 +4,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
-import 'package:sirapat_app/presentation/features/employee/pages/history/history_meet_page.dart';
+import 'package:sirapat_app/presentation/features/employee/pages/history_meet_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
@@ -15,6 +15,7 @@ import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class EmployeePage extends StatefulWidget {
   const EmployeePage({Key? key}) : super(key: key);
@@ -212,14 +213,11 @@ class _EmployeePageState extends State<EmployeePage> {
 
   void _onJoinMeetingPressed() {
     final meetingController = Get.find<MeetingController>();
+    final notif = Get.find<NotificationController>();
     final meetingCode = _meetingCodeController.text.trim();
 
     if (meetingCode.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Silakan masukkan kode rapat',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      notif.showError('Silakan masukkan kode rapat');
       return;
     }
 
@@ -312,13 +310,10 @@ class _EmployeePageState extends State<EmployeePage> {
   void _onMeetingCardTapped(dynamic meeting) {
     // Navigate to meeting detail page with ID
     final meetingId = meeting is Map ? meeting['id'] : meeting.id;
+    final notif = Get.find<NotificationController>();
 
     if (meetingId == null) {
-      Get.snackbar(
-        'Error',
-        'ID rapat tidak ditemukan',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      notif.showError('ID rapat tidak ditemukan');
       return;
     }
 

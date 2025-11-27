@@ -16,7 +16,7 @@ import 'package:sirapat_app/presentation/features/master/pages/master_page.dart'
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/employee_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
-import 'package:sirapat_app/presentation/features/employee/pages/history/history_meet_page.dart';
+import 'package:sirapat_app/presentation/features/employee/pages/history_meet_page.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 
 /// Application pages configuration

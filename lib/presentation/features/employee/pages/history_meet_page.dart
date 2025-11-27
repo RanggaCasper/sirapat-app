@@ -7,6 +7,7 @@ import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class HistoryMeetPage extends StatefulWidget {
   const HistoryMeetPage({Key? key}) : super(key: key);
@@ -214,12 +215,9 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
   void _onMeetingCardTapped(dynamic meeting) {
     // Navigate to meeting detail page with meeting ID
     final id = meeting is Map ? meeting['id'] : meeting.id;
+    final notif = Get.find<NotificationController>();
     if (id == null) {
-      Get.snackbar(
-        'Error',
-        'ID rapat tidak ditemukan',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      notif.showError('ID rapat tidak ditemukan');
       return;
     }
 
