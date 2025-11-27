@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
+import 'package:sirapat_app/app/util/date_formatter.dart';
 
 class MeetingCard extends StatelessWidget {
   final String title;
@@ -14,13 +15,6 @@ class MeetingCard extends StatelessWidget {
     required this.date,
     this.onTap,
   }) : super(key: key);
-
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final year = date.year;
-    return '$day-$month-$year';
-  }
 
   String _formatTime(DateTime date) {
     final hour = date.hour.toString().padLeft(2, '0');
@@ -80,7 +74,7 @@ class MeetingCard extends StatelessWidget {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        _formatDate(date),
+                        DateFormatter.formatToShortDate(date),
                         style: AppTextStyles.body.copyWith(
                           fontSize: AppTextStyles.caption.fontSize,
                           color: AppColors.secondary,

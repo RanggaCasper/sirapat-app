@@ -13,6 +13,7 @@ abstract class AuthRepository {
   );
   Future<void> logout();
   Future<User?> getCurrentUser();
+  Future<User?> verifyUserFromServer();
   Future<void> resetPassword(
     String oldPassword,
     String newPassword,

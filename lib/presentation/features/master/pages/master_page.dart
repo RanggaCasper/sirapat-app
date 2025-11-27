@@ -4,8 +4,6 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
-import 'package:sirapat_app/presentation/controllers/division_binding.dart';
-import 'package:sirapat_app/presentation/controllers/user_binding.dart';
 import 'package:sirapat_app/presentation/controllers/division_controller.dart';
 import 'package:sirapat_app/presentation/controllers/user_controller.dart';
 import 'package:sirapat_app/presentation/features/master/pages/division/division_page.dart';
@@ -52,14 +50,6 @@ class _MasterPageState extends State<MasterPage> {
       route: '/profile',
     ),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize bindings
-    DivisionBinding().dependencies();
-    UserBinding().dependencies();
-  }
 
   @override
   Widget build(BuildContext context) {

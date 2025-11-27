@@ -299,7 +299,7 @@ class LoginPage extends GetView<AuthController> {
                             width: double.infinity,
                             height: 54,
                             child: ElevatedButton(
-                              onPressed: controller.isLoadingObs.value
+                              onPressed: controller.isLoading
                                   ? null
                                   : _handleLogin,
                               style: ElevatedButton.styleFrom(
@@ -310,7 +310,7 @@ class LoginPage extends GetView<AuthController> {
                                 elevation: 0,
                                 shadowColor: Colors.transparent,
                               ),
-                              child: controller.isLoadingObs.value
+                              child: controller.isLoading
                                   ? const SizedBox(
                                       height: 20,
                                       width: 20,
