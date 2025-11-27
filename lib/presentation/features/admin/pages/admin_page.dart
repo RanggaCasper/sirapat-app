@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
-import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/meetings_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
@@ -25,18 +24,6 @@ class AdminPage extends StatefulWidget {
 class _AdminPageState extends State<AdminPage> {
   int _currentIndex = 0;
   final TextEditingController _meetingCodeController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize bindings
-    MeetingBinding().dependencies();
-  }
-
-  // void dispose() {
-  //   _meetingCodeController.dispose();
-  //   super.dispose();
-  // }
 
   @override
   Widget build(BuildContext context) {

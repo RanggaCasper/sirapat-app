@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
+import 'package:sirapat_app/app/util/date_formatter.dart';
 import 'package:sirapat_app/domain/entities/division.dart';
 
 /// Detail bottom sheet untuk menampilkan informasi division
@@ -96,7 +97,7 @@ class DivisionDetailDialog extends StatelessWidget {
                     const SizedBox(height: 20),
                     _buildDetailRow(
                       'Tanggal Dibuat',
-                      _formatDate(division.createdAt!),
+                      DateFormatter.formatToDateTime(division.createdAt!),
                       Icons.calendar_today_outlined,
                     ),
                   ],
@@ -104,7 +105,7 @@ class DivisionDetailDialog extends StatelessWidget {
                     const SizedBox(height: 20),
                     _buildDetailRow(
                       'Terakhir Diperbarui',
-                      _formatDate(division.updatedAt!),
+                      DateFormatter.formatToDateTime(division.updatedAt!),
                       Icons.update_outlined,
                     ),
                   ],
@@ -186,9 +187,5 @@ class DivisionDetailDialog extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

@@ -7,47 +7,30 @@ import 'package:sirapat_app/presentation/shared/widgets/meet/meeting_info_card.d
 import 'package:sirapat_app/presentation/shared/widgets/meet/meeting_summary_card.dart';
 import 'package:sirapat_app/presentation/shared/widgets/meet/chat_button.dart';
 import 'package:get/get.dart';
-import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 
-class DetailMeetPage extends StatefulWidget {
+class DetailMeetPage extends GetView<MeetingController> {
   final int? meetingId;
 
   const DetailMeetPage({Key? key, this.meetingId}) : super(key: key);
 
   @override
-  State<DetailMeetPage> createState() => _DetailMeetPageState();
-}
-
-class _DetailMeetPageState extends State<DetailMeetPage> {
-  late MeetingController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize controller
-    if (!Get.isRegistered<MeetingController>()) {
-      MeetingBinding().dependencies();
-    }
-    controller = Get.find<MeetingController>();
-
-    // Fetch all meetings first if empty, then get specific meeting
-    if (Get.arguments != null) {
-      if (controller.meetings.isEmpty) {
-        // If no meetings loaded yet, fetch all first
-        controller.fetchMeetings().then((_) {
-          // Then fetch the specific meeting (will use cache)
-          controller.fetchMeetingById(Get.arguments!);
-        });
-      } else {
-        // If meetings already loaded, just fetch specific one
-        controller.fetchMeetingById(Get.arguments!);
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Fetch meeting data when arguments are available
+    if (Get.arguments != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (controller.meetings.isEmpty) {
+          // If no meetings loaded yet, fetch all first
+          controller.fetchMeetings().then((_) {
+            // Then fetch the specific meeting (will use cache)
+            controller.fetchMeetingById(Get.arguments!);
+          });
+        } else {
+          // If meetings already loaded, just fetch specific one
+          controller.fetchMeetingById(Get.arguments!);
+        }
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.cardBackground,

@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
-import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/history/history_meet_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
@@ -26,13 +25,6 @@ class EmployeePage extends StatefulWidget {
 class _EmployeePageState extends State<EmployeePage> {
   int _currentIndex = 0;
   final TextEditingController _meetingCodeController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize bindings
-    MeetingBinding().dependencies();
-  }
 
   @override
   Widget build(BuildContext context) {

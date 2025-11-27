@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/routes/app_routes.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/usecases/login_usecase.dart';
 import 'package:sirapat_app/domain/usecases/register_usecase.dart';
@@ -8,8 +9,8 @@ import 'package:sirapat_app/domain/usecases/auth/reset_password_usecase.dart';
 import 'package:sirapat_app/domain/repositories/auth_repository.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
-
 class AuthController extends GetxController {
+  // Dependencies
   final LoginUseCase _loginUseCase;
   final RegisterUseCase _registerUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
@@ -24,22 +25,24 @@ class AuthController extends GetxController {
     this._authRepository,
   );
 
+  // Reactive state
   final Rx<User?> _currentUser = Rx<User?>(null);
-  final RxBool isLoadingObs = false.obs;
+  final RxBool _isLoading = false.obs;
   final RxString _errorMessage = ''.obs;
-  final RxMap<String, String> fieldErrors = <String, String>{}.obs;
-  final RxBool obscurePassword = true.obs;
+  final RxMap<String, String> _fieldErrors = <String, String>{}.obs;
+  final RxBool _obscurePassword = true.obs;
 
+  // Getters for reactive state
   User? get currentUser => _currentUser.value;
-  bool get isLoading => isLoadingObs.value;
+  bool get isLoading => _isLoading.value;
   String get errorMessage => _errorMessage.value;
+  Map<String, String> get fieldErrors => _fieldErrors;
+  bool get obscurePassword => _obscurePassword.value;
   bool get isLoggedIn => _currentUser.value != null;
+  String? get userRole => _currentUser.value?.role?.toLowerCase();
 
+  // Notification helper
   NotificationController get _notif => Get.find<NotificationController>();
-
-  void togglePasswordVisibility() {
-    obscurePassword.value = !obscurePassword.value;
-  }
 
   @override
   void onInit() {
@@ -47,20 +50,43 @@ class AuthController extends GetxController {
     _checkCurrentUser();
   }
 
+  // Toggle password visibility
+  void togglePasswordVisibility() {
+    _obscurePassword.toggle();
+  }
+
+  // Get field-specific error message
+  String? getFieldError(String fieldName) {
+    return _fieldErrors[fieldName];
+  }
+
+  // Clear specific field error
+  void clearFieldError(String fieldName) {
+    _fieldErrors.remove(fieldName);
+  }
+
+  // Clear all errors
+  void clearAllErrors() {
+    _errorMessage.value = '';
+    _fieldErrors.clear();
+  }
+
+  // Check current user from local storage
   Future<void> _checkCurrentUser() async {
     try {
       final user = await _getCurrentUserUseCase.execute();
       _currentUser.value = user;
     } catch (e) {
       debugPrint('[AuthController] Error checking current user: $e');
+      _currentUser.value = null;
     }
   }
 
-  /// Verify user authentication status from server
-  /// Returns true if user is authenticated and has valid session
+  // Verify user authentication status from server
+  // Returns true if user is authenticated and has valid session
   Future<bool> verifyAuthentication() async {
     try {
-      isLoadingObs.value = true;
+      _setLoading(true);
 
       // First check local storage
       final localUser = await _getCurrentUserUseCase.execute();
@@ -70,8 +96,7 @@ class AuthController extends GetxController {
       }
 
       // Then verify with server
-      final verifiedUser = await (_authRepository as dynamic)
-          .verifyUserFromServer();
+      final verifiedUser = await _authRepository.verifyUserFromServer();
 
       if (verifiedUser != null) {
         _currentUser.value = verifiedUser;
@@ -85,88 +110,59 @@ class AuthController extends GetxController {
       _currentUser.value = null;
       return false;
     } finally {
-      isLoadingObs.value = false;
+      _setLoading(false);
     }
   }
 
-  /// Check if user has required role
+  // Check if user has specific role
   bool hasRole(String requiredRole) {
-    return _currentUser.value?.role?.toLowerCase() ==
-        requiredRole.toLowerCase();
+    return userRole == requiredRole.toLowerCase();
   }
 
-  /// Verify user and redirect to login if not authenticated
+  // Verify user and redirect to login if not authenticated
   Future<bool> verifyOrRedirect({String? requiredRole}) async {
     final isAuthenticated = await verifyAuthentication();
 
     if (!isAuthenticated) {
       _notif.showError('Sesi Anda telah berakhir. Silakan login kembali.');
-      Get.offAllNamed('/login');
+      Get.offAllNamed(AppRoutes.login);
       return false;
     }
 
     if (requiredRole != null && !hasRole(requiredRole)) {
       _notif.showError('Anda tidak memiliki akses ke halaman ini.');
-      logout();
+      await logout();
       return false;
     }
 
     return true;
   }
 
+  // Login with NIP and password
   Future<void> login(String nip, String password) async {
     try {
-      isLoadingObs.value = true;
-      _errorMessage.value = '';
-      fieldErrors.clear(); // Clear previous errors
+      _setLoading(true);
+      clearAllErrors();
 
       final user = await _loginUseCase.execute(
         LoginParams(nip: nip, password: password),
       );
 
       _currentUser.value = user;
-
       _notif.showSuccess('Selamat datang, ${user.fullName}!');
 
-      if (user.role == 'master') {
-        Get.offAllNamed('/master-dashboard');
-      } else if (user.role == 'admin') {
-        Get.offAllNamed('/admin-dashboard');
-      } else if (user.role == 'employee') {
-        Get.offAllNamed('/employee-dashboard');
-      } else {
-        _notif.showError('Belum login atau role tidak valid');
-        Get.offAllNamed('/login');
-      }
+      // Navigate based on role
+      _navigateToRoleDashboard(user.role);
     } on ApiException catch (e) {
-      _errorMessage.value = e.message;
-
-      _notif.showError(e.message);
-
-      // Set field-specific errors
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      }
+      _handleApiException(e);
     } catch (e) {
-      String errorMsg = e.toString();
-      _notif.showError(errorMsg);
+      _handleGenericError(e);
     } finally {
-      isLoadingObs.value = false;
+      _setLoading(false);
     }
   }
 
-  String? getFieldError(String fieldName) {
-    return fieldErrors[fieldName];
-  }
-
-  void clearFieldError(String fieldName) {
-    fieldErrors.remove(fieldName);
-  }
-
+  // Register new user
   Future<void> register({
     required String nip,
     required String username,
@@ -177,9 +173,8 @@ class AuthController extends GetxController {
     required String passwordConfirmation,
   }) async {
     try {
-      isLoadingObs.value = true;
-      _errorMessage.value = '';
-      fieldErrors.clear(); // Clear previous errors
+      _setLoading(true);
+      clearAllErrors();
 
       final user = await _registerUseCase.execute(
         RegisterParams(
@@ -194,60 +189,45 @@ class AuthController extends GetxController {
       );
 
       _currentUser.value = user;
-
       _notif.showSuccess(
         'Registrasi berhasil! Selamat datang, ${user.fullName}!',
       );
 
-      // Navigate to home page
-      Get.offAllNamed('/home');
+      // Navigate based on role
+      _navigateToRoleDashboard(user.role);
     } on ApiException catch (e) {
-      _errorMessage.value = e.message;
-
-      _notif.showError(e.message);
-
-      // Set field-specific errors
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      }
+      _handleApiException(e);
     } catch (e) {
-      String errorMsg = e.toString();
-      _notif.showError(errorMsg);
+      _handleGenericError(e);
     } finally {
-      isLoadingObs.value = false;
+      _setLoading(false);
     }
   }
 
+  // Logout current user
   Future<void> logout() async {
     try {
-      isLoadingObs.value = true;
+      _setLoading(true);
       await _authRepository.logout();
       _currentUser.value = null;
-      Get.offAllNamed('/login');
+      clearAllErrors();
+      Get.offAllNamed(AppRoutes.login);
     } catch (e) {
-      _notif.showError(e.toString());
+      _notif.showError('Gagal logout: ${e.toString()}');
     } finally {
-      isLoadingObs.value = false;
+      _setLoading(false);
     }
   }
 
+  // Reset/change user password
   Future<void> resetPassword({
     required String oldPassword,
     required String newPassword,
     required String newPasswordConfirmation,
   }) async {
     try {
-      isLoadingObs.value = true;
-      _errorMessage.value = '';
-      fieldErrors.clear();
-
-      debugPrint('[AuthController] Resetting password...');
-      debugPrint('[AuthController] Old password length: ${oldPassword.length}');
-      debugPrint('[AuthController] New password length: ${newPassword.length}');
+      _setLoading(true);
+      clearAllErrors();
 
       await _resetPasswordUseCase.execute(
         ResetPasswordParams(
@@ -257,29 +237,60 @@ class AuthController extends GetxController {
         ),
       );
 
-      debugPrint('[AuthController] Password reset successful');
       _notif.showSuccess('Password berhasil diubah');
       Get.back(); // Close the dialog/page
     } on ApiException catch (e) {
-      debugPrint('[AuthController] ApiException: ${e.message}');
-      debugPrint('[AuthController] Errors: ${e.errors}');
-      _errorMessage.value = e.message;
-      _notif.showError(e.message);
-
-      // Set field-specific errors
-      if (e.errors != null && e.errors!.isNotEmpty) {
-        e.errors!.forEach((field, messages) {
-          if (messages.isNotEmpty) {
-            fieldErrors[field] = messages.first;
-          }
-        });
-      }
+      _handleApiException(e);
     } catch (e) {
-      debugPrint('[AuthController] Exception: $e');
-      String errorMsg = e.toString();
-      _notif.showError(errorMsg);
+      _handleGenericError(e);
     } finally {
-      isLoadingObs.value = false;
+      _setLoading(false);
     }
+  }
+
+  // Set loading state
+  void _setLoading(bool value) {
+    _isLoading.value = value;
+  }
+
+  // Navigate to role-specific dashboard
+  void _navigateToRoleDashboard(String? role) {
+    switch (role?.toLowerCase()) {
+      case 'master':
+        Get.offAllNamed(AppRoutes.masterDashboard);
+        break;
+      case 'admin':
+        Get.offAllNamed(AppRoutes.adminDashboard);
+        break;
+      case 'employee':
+        Get.offAllNamed(AppRoutes.employeeDashboard);
+        break;
+      default:
+        _notif.showError('Role tidak valid');
+        Get.offAllNamed(AppRoutes.login);
+    }
+  }
+
+  // Handle API exceptions with field errors
+  void _handleApiException(ApiException e) {
+    _errorMessage.value = e.message;
+
+    // Set field-specific errors
+    if (e.errors != null && e.errors!.isNotEmpty) {
+      e.errors!.forEach((field, messages) {
+        if (messages.isNotEmpty) {
+          _fieldErrors[field] = messages.first;
+        }
+      });
+    } else {
+      _notif.showError(e.message);
+    }
+  }
+
+  // Handle generic errors
+  void _handleGenericError(dynamic e) {
+    final errorMsg = e.toString();
+    _errorMessage.value = errorMsg;
+    _notif.showError(errorMsg);
   }
 }

@@ -1,15 +1,10 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
+import 'package:sirapat_app/app/util/qr_download_helper.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class PasscodeQrBottomSheet extends StatefulWidget {
@@ -197,61 +192,25 @@ class _PasscodeQrBottomSheetState extends State<PasscodeQrBottomSheet> {
     );
   }
 
-  Future<Uint8List?> _captureQrCode() async {
-    try {
-      final RenderRepaintBoundary boundary =
-          _qrKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      final ByteData? byteData = await image.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      return byteData?.buffer.asUint8List();
-    } catch (e) {
-      debugPrint('[PasscodeQrBottomSheet] Error capturing QR code: $e');
-      return null;
-    }
-  }
-
   Future<void> _downloadQrCode() async {
     if (_isProcessing) return;
 
     setState(() => _isProcessing = true);
 
     try {
-      final Uint8List? imageBytes = await _captureQrCode();
-      if (imageBytes == null) {
-        _notif.showError('Gagal membuat QR code');
+      final String? filePath = await QrDownloadHelper.downloadQrCode(
+        repaintBoundaryKey: _qrKey,
+        fileName: 'qr_${widget.meetingTitle}',
+      );
+
+      if (filePath == null) {
+        _notif.showError('Gagal menyimpan QR code');
         return;
       }
 
-      // Get the downloads directory
-      Directory? directory;
-      if (Platform.isAndroid) {
-        directory = Directory('/storage/emulated/0/Download');
-        if (!await directory.exists()) {
-          directory = await getExternalStorageDirectory();
-        }
-      } else if (Platform.isIOS) {
-        directory = await getApplicationDocumentsDirectory();
-      } else {
-        directory = await getDownloadsDirectory();
-      }
-
-      if (directory == null) {
-        _notif.showError('Tidak dapat mengakses folder download');
-        return;
-      }
-
-      // Create filename
-      final String fileName =
-          'sirapat_${DateTime.now().millisecondsSinceEpoch}.png';
-      final String filePath = '${directory.path}/$fileName';
-
-      // Save file
-      final File file = File(filePath);
-      await file.writeAsBytes(imageBytes);
-
-      _notif.showSuccess('QR code berhasil disimpan di folder Download');
+      _notif.showSuccess(
+        'QR code berhasil disimpan di folder Download/Sirapat',
+      );
     } catch (e) {
       debugPrint('[PasscodeQrBottomSheet] Error downloading QR code: $e');
       _notif.showError('Gagal menyimpan QR code: ${e.toString()}');

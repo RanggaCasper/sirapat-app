@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
+import 'package:sirapat_app/app/util/date_formatter.dart';
 import 'package:sirapat_app/domain/entities/division.dart';
 
 /// Halaman detail division
@@ -110,7 +111,7 @@ class DivisionDetailPage extends StatelessWidget {
               _buildInfoCard(
                 icon: Icons.calendar_today_outlined,
                 label: 'Tanggal Dibuat',
-                value: _formatDate(division.createdAt!),
+                value: DateFormatter.formatToDateTime(division.createdAt!),
                 color: AppColors.accentTeal,
               ),
             ],
@@ -170,27 +171,5 @@ class DivisionDetailPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    try {
-      final months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'Mei',
-        'Jun',
-        'Jul',
-        'Agu',
-        'Sep',
-        'Okt',
-        'Nov',
-        'Des',
-      ];
-      return '${date.day} ${months[date.month - 1]} ${date.year}';
-    } catch (e) {
-      return date.toString();
-    }
   }
 }
