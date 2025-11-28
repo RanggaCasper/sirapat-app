@@ -8,6 +8,7 @@ import 'package:sirapat_app/presentation/shared/widgets/meet/meeting_summary_car
 import 'package:sirapat_app/presentation/shared/widgets/meet/chat_button.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
+import 'package:sirapat_app/presentation/features/employee/pages/chat_meet_page.dart';
 
 class DetailMeetPage extends GetView<MeetingController> {
   final int? meetingId;
@@ -105,7 +106,17 @@ class DetailMeetPage extends GetView<MeetingController> {
           ),
         );
       }),
-      floatingActionButton: const ChatButton(),
+      floatingActionButton: ChatButton(onPressed: _onChatButtonPressed),
     );
+  }
+
+  void _onChatButtonPressed() {
+    final meeting = controller.selectedMeeting.value;
+    if (meeting != null) {
+      Get.to(
+        ChatMeetPage(meetingId: meeting.id),
+        transition: Transition.rightToLeft,
+      );
+    }
   }
 }
