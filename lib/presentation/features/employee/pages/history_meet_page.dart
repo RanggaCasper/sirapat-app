@@ -8,6 +8,8 @@ import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/pagination_controls.dart';
+import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
 
 class HistoryMeetPage extends StatefulWidget {
   const HistoryMeetPage({Key? key}) : super(key: key);
@@ -43,15 +45,13 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: SafeArea(child: _buildHomeSection()),
-    );
-  }
-
-  Widget _buildHomeSection() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [_buildSearchBar(), _buildMeetingList()],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildSearchBar(),
+            Expanded(child: _buildMeetingList()),
+          ],
+        ),
       ),
     );
   }
@@ -73,37 +73,44 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
   }
 
   Widget _buildSearchBar() {
+    final meetingController = Get.find<MeetingController>();
     return Container(
-      color: AppColors.primary,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: AppElevation.sm,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: TextField(
-          controller: _searchController,
-          onChanged: _onSearchChanged,
-          decoration: InputDecoration(
-            hintText: 'Cari rapat...',
-            hintStyle: TextStyle(color: AppColors.textLight, fontSize: 14),
-            prefixIcon: Icon(
-              Icons.search,
-              color: AppColors.textLight,
-              size: AppIconSize.sm,
-            ),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.md,
-            ),
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
+      child: TextField(
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+        decoration: InputDecoration(
+          hintText: 'Cari rapat...',
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: Obx(() {
+            return meetingController.searchQuery.value.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _searchController.clear();
+                      _onSearchChanged('');
+                    },
+                  )
+                : const SizedBox.shrink();
+          }),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.blue, width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.grey.shade50,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
           ),
         ),
       ),
@@ -115,7 +122,7 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
     return Obx(() {
       if (meetingController.isLoadingObs.value) {
         return ListView.builder(
-          padding: EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           itemCount: 5,
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -123,181 +130,111 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
           ),
         );
       }
-      final meetings = meetingController.meetings;
-      if (meetings.isEmpty) {
+
+      if (meetingController.meetings.isEmpty &&
+          meetingController.searchQuery.value.isEmpty) {
         return _buildEmptyMeetingState();
       }
-      return ListView.builder(
-        padding: EdgeInsets.all(AppSpacing.lg),
-        itemCount: meetings.length,
-        itemBuilder: (context, index) {
-          final meeting = meetings[index];
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: index < meetings.length - 1 ? AppSpacing.md : 0,
+
+      return RefreshIndicator(
+        onRefresh: meetingController.fetchMeetings,
+        child: Column(
+          children: [
+            Expanded(
+              child: meetingController.meetings.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Rapat tidak ditemukan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Coba kata kunci lain',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      itemCount: meetingController.meetings.length,
+                      itemBuilder: (context, index) {
+                        final meeting = meetingController.meetings[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: MeetingCard(
+                            title: meeting.title,
+                            date: DateTime.parse(meeting.date),
+                            onTap: () {
+                              Get.to(
+                                DetailMeetPage(meetingId: meeting.id),
+                                transition: Transition.rightToLeft,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
             ),
-            child: _buildMeetingCard(meeting),
-          );
-        },
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
+
+            // Pagination controls at the bottom (always show)
+            if (meetingController.paginationMeta.value != null)
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: PaginationControls(
+                  meta: meetingController.paginationMeta.value!,
+                  onPrevious: meetingController.previousPage,
+                  onNext: meetingController.nextPage,
+                  onPageSelect: meetingController.goToPage,
+                ),
+              ),
+          ],
+        ),
       );
     });
   }
 
-  Widget _buildMeetingCard(dynamic meeting) {
-    final title = meeting is Map
-        ? (meeting['title'] ?? '')
-        : (meeting?.title ?? '');
-    final date = meeting is Map
-        ? (meeting['date'] ?? '')
-        : (meeting?.date ?? '');
-    final startTime = meeting is Map
-        ? (meeting['start_time'] ?? '')
-        : (meeting?.startTime ?? '');
-
-    return GestureDetector(
-      onTap: () => _onMeetingCardTapped(meeting),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: AppRadius.radiusMD,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: AppElevation.lg,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        padding: EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCardTitle(title),
-            const SizedBox(height: AppSpacing.sm),
-            _buildCardInfo(date, startTime),
-            const SizedBox(height: AppSpacing.md),
-            _buildCardFooter(meeting),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildEmptyMeetingState() {
-    return Padding(
-      padding: AppSpacing.paddingLG,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: AppSpacing.xl),
-            Icon(
-              Icons.event_busy,
-              size: 64,
-              color: AppColors.secondary.withOpacity(0.5),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.event_busy, size: 64, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            'Belum ada rapat',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Belum ada rapat',
-              style: AppTextStyles.subtitle.copyWith(
-                color: AppColors.secondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _onMeetingCardTapped(dynamic meeting) {
-    // Navigate to meeting detail page with meeting ID
-    final id = meeting is Map ? meeting['id'] : meeting.id;
-    final notif = Get.find<NotificationController>();
-    if (id == null) {
-      notif.showError('ID rapat tidak ditemukan');
-      return;
-    }
-
-    Get.to(
-      DetailMeetPage(meetingId: id),
-      transition: Transition.rightToLeft,
-      arguments: id,
-    );
-  }
-
-  Widget _buildCardTitle(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textDark,
-      ),
-    );
-  }
-
-  Widget _buildCardInfo(String date, String time) {
-    return Row(
-      children: [
-        Icon(
-          Icons.calendar_today,
-          size: AppIconSize.sm,
-          color: AppColors.textLight,
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Text(date, style: TextStyle(fontSize: 13, color: AppColors.textLight)),
-        const SizedBox(width: AppSpacing.lg),
-        Icon(
-          Icons.access_time,
-          size: AppIconSize.sm,
-          color: AppColors.textLight,
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Text(time, style: TextStyle(fontSize: 13, color: AppColors.textLight)),
-      ],
-    );
-  }
-
-  Widget _buildCardFooter(dynamic meeting) {
-    final id = meeting is Map ? (meeting['id'] ?? 0) : (meeting?.id ?? 0);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [_buildParticipantInfo(id), _buildViewNotesButton(meeting)],
-    );
-  }
-
-  Widget _buildParticipantInfo(dynamic count) {
-    return Row(
-      children: [
-        Icon(Icons.people, size: AppIconSize.sm, color: AppColors.textLight),
-        const SizedBox(width: AppSpacing.sm),
-        Text(
-          'ID: $count',
-          style: TextStyle(fontSize: 13, color: AppColors.textLight),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildViewNotesButton(dynamic meeting) {
-    return ElevatedButton.icon(
-      onPressed: () => _onMeetingCardTapped(meeting),
-      icon: const Icon(Icons.description, size: 16),
-      label: const Text(
-        'Lihat Notulensi',
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: AppElevation.none,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-        ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Riwayat rapat Anda akan muncul di sini',
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          ),
+        ],
       ),
     );
   }

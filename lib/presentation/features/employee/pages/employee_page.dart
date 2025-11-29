@@ -243,7 +243,7 @@ class _EmployeePageState extends State<EmployeePage> {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             children: List.generate(
-              3,
+              5,
               (index) => Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: const MeetingCardSkeleton(),
@@ -254,6 +254,8 @@ class _EmployeePageState extends State<EmployeePage> {
       }
 
       final meetings = meetingController.meetings;
+      // Limit to 5 meetings on home page
+      final limitedMeetings = meetings.take(5).toList();
 
       if (meetings.isEmpty) {
         return _buildEmptyMeetingState();
@@ -263,7 +265,7 @@ class _EmployeePageState extends State<EmployeePage> {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Column(
           children: [
-            ...meetings.map(
+            ...limitedMeetings.map(
               (meeting) => Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: MeetingCard(
