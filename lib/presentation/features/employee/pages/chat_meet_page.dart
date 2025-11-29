@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
+import 'package:sirapat_app/presentation/controllers/chat_controller.dart';
 
 class ChatMeetPage extends StatefulWidget {
   final int? meetingId;
@@ -14,94 +15,27 @@ class ChatMeetPage extends StatefulWidget {
 }
 
 class _ChatMeetPageState extends State<ChatMeetPage> {
-  final TextEditingController _messageController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  late TextEditingController _messageController;
+  late ChatController _controller;
 
-  // Dummy data untuk chat messages
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'id': '1',
-      'sender': 'User A',
-      'message':
-          'Lorem ipsum dolor sit amet, consectetur adipiscing do tempor incididunt ulamco quis nostrud exercitation',
-      'isMe': false,
-      'timestamp': '10:30',
-    },
-    {
-      'id': '2',
-      'sender': 'Me',
-      'message':
-          'Lorem ipsum dolor sit amet, consectetur adipiscing do tempor incididunt ulamco quis nostrud exercitation',
-      'isMe': true,
-      'timestamp': '10:32',
-    },
-    {
-      'id': '3',
-      'sender': 'Me',
-      'message':
-          'Lorem ipsum dolor sit amet, consectetur adipiscing do tempor incididunt ulamco quis nostrud exercitation',
-      'isMe': true,
-      'timestamp': '10:33',
-    },
-    {
-      'id': '4',
-      'sender': 'User B',
-      'message':
-          'Lorem ipsum dolor sit amet, consectetur adipiscing do tempor incididunt ulamco quis nostrud exercitation',
-      'isMe': false,
-      'timestamp': '10:35',
-    },
-    {
-      'id': '5',
-      'sender': 'Me',
-      'message':
-          'Lorem ipsum dolor sit amet, consectetur adipiscing do tempor incididunt ulamco quis nostrud exercitation',
-      'isMe': true,
-      'timestamp': '10:36',
-    },
-    {
-      'id': '6',
-      'sender': 'User B',
-      'message':
-          'Lorem ipsum dolor sit amet, consectetur adipiscing do tempor incididunt ulamco quis nostrud exercitation',
-      'isMe': false,
-      'timestamp': '10:38',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _messageController = TextEditingController();
+    _controller = Get.find<ChatController>();
+
+    // Initialize chat when page is opened
+    if (widget.meetingId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _controller.initializeChat(meetingId: widget.meetingId!);
+      });
+    }
+  }
 
   @override
   void dispose() {
     _messageController.dispose();
-    _scrollController.dispose();
     super.dispose();
-  }
-
-  // Handler untuk mengirim pesan
-  void _onSendMessage() {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
-
-    setState(() {
-      _messages.add({
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'sender': 'Me',
-        'message': text,
-        'isMe': true,
-        'timestamp': TimeOfDay.now().format(context),
-      });
-    });
-
-    _messageController.clear();
-
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
   }
 
   @override
@@ -113,7 +47,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
         height: double.infinity,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: const AssetImage('assets/pattern.png'),
+            image: const AssetImage('assets/background.jpg'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
               Colors.white.withOpacity(0.85),
@@ -122,14 +56,53 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
             onError: (exception, stackTrace) {},
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(child: _buildMessageList()),
-              _buildMessageInput(),
-            ],
-          ),
-        ),
+        child: Obx(() {
+          if (_controller.isLoading.value) {
+            return Center(
+              child: CircularProgressIndicator(color: AppColors.primaryDark),
+            );
+          }
+
+          if (!_controller.isConnected.value) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.wifi_off,
+                    size: AppIconSize.xxl,
+                    color: AppColors.gray,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    'Tidak terhubung ke chat',
+                    style: AppTextStyles.subtitle.copyWith(
+                      color: AppColors.gray,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (_controller.errorMessage.value.isNotEmpty)
+                    Text(
+                      _controller.errorMessage.value,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.error,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                ],
+              ),
+            );
+          }
+
+          return SafeArea(
+            child: Column(
+              children: [
+                Expanded(child: _buildMessageList()),
+                _buildMessageInput(),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
@@ -150,9 +123,11 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
         children: [
           Text('Rapat Koordinasi', style: AppTextStyles.title),
           const SizedBox(height: 2),
-          Text(
-            '8 peserta',
-            style: AppTextStyles.caption.copyWith(color: AppColors.textLight),
+          Obx(
+            () => Text(
+              '${_controller.messages.length} pesan',
+              style: AppTextStyles.caption.copyWith(color: AppColors.textLight),
+            ),
           ),
         ],
       ),
@@ -161,20 +136,32 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
 
   // Widget untuk List Pesan
   Widget _buildMessageList() {
-    return ListView.builder(
-      controller: _scrollController,
-      padding: AppSpacing.paddingLG,
-      itemCount: _messages.length,
-      itemBuilder: (context, index) {
-        final message = _messages[index];
-        return _buildMessageBubble(message);
-      },
-    );
+    return Obx(() {
+      final messages = _controller.messages;
+
+      if (messages.isEmpty) {
+        return Center(
+          child: Text(
+            'Belum ada pesan',
+            style: AppTextStyles.subtitle.copyWith(color: AppColors.textLight),
+          ),
+        );
+      }
+
+      return ListView.builder(
+        padding: AppSpacing.paddingLG,
+        itemCount: messages.length,
+        itemBuilder: (context, index) {
+          final message = messages[index];
+          return _buildMessageBubble(message);
+        },
+      );
+    });
   }
 
   // Widget untuk Message Bubble
-  Widget _buildMessageBubble(Map<String, dynamic> message) {
-    final isMe = message['isMe'] as bool;
+  Widget _buildMessageBubble(dynamic message) {
+    final isMe = message.isMe;
 
     return Padding(
       padding: EdgeInsets.only(bottom: AppSpacing.lg),
@@ -183,7 +170,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
             ? CrossAxisAlignment.end
             : CrossAxisAlignment.start,
         children: [
-          if (!isMe) _buildSenderName(message['sender']),
+          if (!isMe) _buildSenderName(message.senderName),
           if (!isMe) const SizedBox(height: AppSpacing.sm),
           Row(
             mainAxisAlignment: isMe
@@ -218,12 +205,27 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
                       ),
                     ],
                   ),
-                  child: Text(
-                    message['message'],
-                    style: AppTextStyles.body.copyWith(
-                      color: isMe ? Colors.white : AppColors.textDark,
-                      height: 1.4,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        message.message,
+                        style: AppTextStyles.body.copyWith(
+                          color: isMe ? Colors.white : AppColors.textDark,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        _formatTime(message.timestamp),
+                        style: AppTextStyles.caption.copyWith(
+                          color: isMe
+                              ? Colors.white.withOpacity(0.7)
+                              : AppColors.textLight,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -247,6 +249,8 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
 
   // Widget untuk Input Pesan
   Widget _buildMessageInput() {
+    final messageController = TextEditingController();
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
@@ -265,9 +269,9 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
       child: SafeArea(
         child: Row(
           children: [
-            Expanded(child: _buildTextField()),
+            Expanded(child: _buildTextField(messageController)),
             SizedBox(width: AppSpacing.md),
-            _buildSendButton(),
+            _buildSendButton(messageController),
           ],
         ),
       ),
@@ -275,7 +279,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
   }
 
   // Widget untuk Text Field
-  Widget _buildTextField() {
+  Widget _buildTextField(TextEditingController controller) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.backgroundLight,
@@ -283,9 +287,9 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
         border: Border.all(color: AppColors.borderLight, width: 1),
       ),
       child: TextField(
-        controller: _messageController,
+        controller: controller,
         decoration: InputDecoration(
-          hintText: 'Ketik notulensi',
+          hintText: 'Ketik pesan...',
           hintStyle: AppTextStyles.body.copyWith(color: AppColors.textLight),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(
@@ -295,15 +299,27 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
         ),
         maxLines: null,
         textInputAction: TextInputAction.send,
-        onSubmitted: (_) => _onSendMessage(),
+        onSubmitted: (text) {
+          if (widget.meetingId != null && text.trim().isNotEmpty) {
+            _controller.sendMessage(text, widget.meetingId!);
+            controller.clear();
+          }
+        },
       ),
     );
   }
 
   // Widget untuk Tombol Kirim
-  Widget _buildSendButton() {
+  Widget _buildSendButton(TextEditingController messageController) {
     return GestureDetector(
-      onTap: _onSendMessage,
+      onTap: () {
+        final message = messageController.text.trim();
+        if (message.isNotEmpty && widget.meetingId != null) {
+          // Send message via controller
+          _controller.sendMessage(message, widget.meetingId!);
+          messageController.clear();
+        }
+      },
       child: Container(
         width: AppIconSize.xl,
         height: AppIconSize.xl,
@@ -318,5 +334,22 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
         ),
       ),
     );
+  }
+
+  // Format timestamp
+  String _formatTime(DateTime timestamp) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate = DateTime(
+      timestamp.year,
+      timestamp.month,
+      timestamp.day,
+    );
+
+    if (messageDate == today) {
+      return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+    } else {
+      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+    }
   }
 }

@@ -8,6 +8,7 @@ import 'package:sirapat_app/presentation/shared/widgets/meet/meeting_summary_car
 import 'package:sirapat_app/presentation/shared/widgets/meet/chat_button.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
+import 'package:sirapat_app/presentation/controllers/chat_binding.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/chat_meet_page.dart';
 
 class DetailMeetPage extends GetView<MeetingController> {
@@ -115,6 +116,7 @@ class DetailMeetPage extends GetView<MeetingController> {
     if (meeting != null) {
       Get.to(
         ChatMeetPage(meetingId: meeting.id),
+        binding: ChatBinding(),
         transition: Transition.rightToLeft,
       );
     }

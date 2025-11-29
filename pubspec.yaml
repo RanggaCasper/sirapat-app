@@ -2,7 +2,7 @@ name: sirapat_app
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -34,30 +34,31 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  
+
   # State Management
   get: ^4.6.6
-  
+
   # Network
   dio: ^5.7.0
-  
+  web_socket_channel: ^3.0.0
+
   # Local Storage
   shared_preferences: ^2.3.3
   get_storage: ^2.1.1
-  
+
   # Utils
   tuple: ^2.0.2
   intl: ^0.19.0
-  
+
   # QR Code
   mobile_scanner: ^5.2.3
   qr_flutter: ^4.1.0
-  
+
   # Screenshot & Share
   screenshot: ^3.0.0
   share_plus: ^10.1.2
   path_provider: ^2.1.5
-  
+
   # JSON Serialization
   json_annotation: ^4.9.0
 
@@ -71,7 +72,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  
+
   # Code Generation
   build_runner: ^2.4.13
   json_serializable: ^6.8.0
@@ -81,7 +82,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -91,6 +91,7 @@ flutter:
   assets:
     - assets/logo.png
     - assets/pattern.png
+    - assets/background.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
