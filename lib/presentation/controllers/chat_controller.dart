@@ -29,7 +29,7 @@ class ChatController extends GetxController {
 
   // Reverb configuration
   final String reverbAppKey = 'zagzqeklkihbbgwhwh8j'; // Ganti dengan key Anda
-  final String reverbHost = AppConstants.host;
+  String get reverbHost => Uri.parse(AppConstants.baseUrl).host;
   final int reverbPort = AppConstants.reverbPort;
   final String reverbScheme = AppConstants.reverbScheme;
 

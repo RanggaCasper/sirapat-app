@@ -3,11 +3,10 @@ import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 
 class APIEndpoint {
-  static const String _host = AppConstants.host;
-  static const String _port = AppConstants.port;
   static const String _apiVersion = AppConstants.apiVersion;
 
-  static String get baseUrl => "http://$_host:$_port/api/$_apiVersion";
+  // Use production URL or fallback to local development
+  static String get baseUrl => "${AppConstants.baseUrl}/api/$_apiVersion";
 
   // Auth endpoints
   static String get login => "$baseUrl/auth/login";

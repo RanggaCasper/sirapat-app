@@ -14,9 +14,11 @@ class ChatService {
 
   WebSocketChannel? _channel;
   bool _isConnected = false;
-  final String _reverbHost = AppConstants.host;
+
+  // Extract host from baseUrl
+  String get _reverbHost => Uri.parse(AppConstants.baseUrl).host;
   final int _reverbPort = AppConstants.reverbPort;
-  final String _reverbScheme = AppConstants.reverbScheme;
+  String get _reverbScheme => Uri.parse(AppConstants.baseUrl).scheme;
 
   // Stream untuk menerima pesan
   Stream<dynamic>? get messageStream => _channel?.stream;
