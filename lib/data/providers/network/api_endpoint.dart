@@ -18,6 +18,7 @@ class APIEndpoint {
   static String get divisions => "$baseUrl/master/division";
   static String get users => "$baseUrl/master/user";
   static String get chatMinutes => "$baseUrl/chat-minute";
+  static String get attendace => "$baseUrl/admin/attendance";
 
   // Meeting endpoints - Dynamic based on role
   static String get meetings {

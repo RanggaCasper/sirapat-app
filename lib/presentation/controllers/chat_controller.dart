@@ -28,7 +28,7 @@ class ChatController extends GetxController {
 
   // Reverb configuration
   final String reverbAppKey = 'zagzqeklkihbbgwhwh8j'; // Ganti dengan key Anda
-  final String reverbHost = '192.168.43.224';
+  final String reverbHost = '192.168.1.100';
   final int reverbPort = 8080; // default 8080
   final String reverbScheme = 'http';
 

@@ -9,7 +9,7 @@ import 'package:sirapat_app/presentation/shared/widgets/meet/chat_button.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/controllers/chat_binding.dart';
-import 'package:sirapat_app/presentation/features/employee/pages/chat_meet_page.dart';
+import 'package:sirapat_app/presentation/features/chat/pages/chat_meet_page.dart';
 
 class DetailMeetPage extends GetView<MeetingController> {
   final int? meetingId;

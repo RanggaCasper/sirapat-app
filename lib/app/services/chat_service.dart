@@ -13,7 +13,7 @@ class ChatService {
 
   WebSocketChannel? _channel;
   bool _isConnected = false;
-  final String _reverbHost = '192.168.43.224';
+  final String _reverbHost = '192.168.1.100';
   final int _reverbPort = 8080;
   final String _reverbScheme = 'http';
 
