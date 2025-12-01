@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sirapat_app/app/config/app_colors.dart';
-import 'package:sirapat_app/app/config/app_dimensions.dart';
-import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
-import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 import 'package:sirapat_app/presentation/shared/widgets/pagination_controls.dart';
 import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
 
@@ -44,7 +40,6 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
       body: SafeArea(
         child: Column(
           children: [
@@ -53,22 +48,6 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
           ],
         ),
       ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.primary,
-      elevation: 0,
-      title: Text(
-        'History Rapat',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      centerTitle: false,
     );
   }
 
