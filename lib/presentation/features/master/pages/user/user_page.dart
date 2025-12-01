@@ -11,7 +11,7 @@ import 'package:sirapat_app/presentation/features/master/pages/user/user_detail_
 
 /// User management section untuk Master Dashboard
 class UserManagementSection extends GetView<UserController> {
-  const UserManagementSection({Key? key}) : super(key: key);
+  const UserManagementSection({super.key});
 
   @override
   Widget build(BuildContext context) {

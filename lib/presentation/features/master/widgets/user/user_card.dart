@@ -9,12 +9,12 @@ class UserCard extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const UserCard({
-    Key? key,
+    super.key,
     required this.user,
     this.onTap,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   String _getRoleLabel(String? role) {
     switch (role?.toLowerCase()) {

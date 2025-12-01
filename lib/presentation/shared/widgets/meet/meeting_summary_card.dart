@@ -11,8 +11,7 @@ class MeetingSummaryCard extends StatelessWidget {
   final Meeting? meeting;
   final bool isLoading;
 
-  const MeetingSummaryCard({Key? key, this.meeting, this.isLoading = false})
-    : super(key: key);
+  const MeetingSummaryCard({super.key, this.meeting, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {

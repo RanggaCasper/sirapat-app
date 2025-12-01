@@ -77,7 +77,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      Get.back();
+                      Navigator.of(context).pop();
                       _resumeScanning();
                     },
                     child: const Text('Scan Lagi'),
@@ -87,8 +87,8 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      Get.back();
-                      Get.back(result: code);
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(code);
                     },
                     child: const Text('Gunakan'),
                   ),

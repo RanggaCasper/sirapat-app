@@ -41,6 +41,7 @@ class MeetingModel extends Meeting {
     updatedAt: json["updated_at"],
   );
 
+  @override
   String toString() {
     return 'MeetingModel(id: $id, title: $title, description: $description)';
   }

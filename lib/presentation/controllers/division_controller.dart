@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/domain/entities/division.dart';
 import 'package:sirapat_app/domain/entities/pagination.dart';
@@ -70,7 +71,10 @@ class DivisionController extends GetxController {
   }
 
   // Fetch all divisions from API (only once)
-  Future<void> fetchDivisions({int page = 1, int perPage = 10}) async {
+  Future<void> fetchDivisions({
+    int page = 1,
+    int perPage = AppConstants.defaultPageSize,
+  }) async {
     try {
       isLoadingObs.value = true;
       _errorMessage.value = '';
@@ -135,7 +139,7 @@ class DivisionController extends GetxController {
     searchQuery.value = query;
     _applyPagination(
       page: 1,
-      perPage: 10,
+      perPage: AppConstants.defaultPageSize,
     ); // Reset to first page when searching
   }
 
@@ -205,8 +209,7 @@ class DivisionController extends GetxController {
 
       clearForm();
 
-      // Navigate back and refresh
-      Get.back();
+      // Refresh divisions list
       await fetchDivisions();
     } on ApiException catch (e) {
       final errors = FormErrorHandler.handleApiException(e);
@@ -242,8 +245,7 @@ class DivisionController extends GetxController {
 
       clearForm();
 
-      // Navigate back and refresh
-      Get.back();
+      // Refresh divisions list
       await fetchDivisions();
     } on ApiException catch (e) {
       final errors = FormErrorHandler.handleApiException(e);

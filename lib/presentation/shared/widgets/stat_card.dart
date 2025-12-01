@@ -11,7 +11,7 @@ class StatCard extends StatelessWidget {
   final String? subtitle;
 
   const StatCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.icon,
@@ -19,7 +19,7 @@ class StatCard extends StatelessWidget {
     this.backgroundColor,
     this.onTap,
     this.subtitle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

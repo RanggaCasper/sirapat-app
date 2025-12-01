@@ -79,6 +79,7 @@ class UserModel extends User {
   }
 
   // CopyWith
+  @override
   UserModel copyWith({
     int? id,
     String? nip,

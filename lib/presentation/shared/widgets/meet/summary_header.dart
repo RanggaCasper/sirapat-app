@@ -3,7 +3,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 
 class SummaryHeader extends StatelessWidget {
-  const SummaryHeader({Key? key}) : super(key: key);
+  const SummaryHeader({super.key});
 
   @override
   Widget build(BuildContext context) {

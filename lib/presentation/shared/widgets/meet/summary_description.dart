@@ -4,7 +4,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 class SummaryDescription extends StatelessWidget {
   final String? description;
 
-  const SummaryDescription({Key? key, this.description}) : super(key: key);
+  const SummaryDescription({super.key, this.description});
 
   @override
   Widget build(BuildContext context) {

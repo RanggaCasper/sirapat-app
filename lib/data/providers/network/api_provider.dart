@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/data/providers/network/api_request_representable.dart';
 
 class APIProvider {
-  static const requestTimeOut = Duration(seconds: 30);
+  static const requestTimeOut = AppConstants.connectionTimeout;
   final Dio _dio = Dio(
     BaseOptions(connectTimeout: requestTimeOut, receiveTimeout: requestTimeOut),
   );

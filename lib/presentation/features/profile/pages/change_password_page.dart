@@ -4,7 +4,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 
 class ChangePasswordPage extends GetView<AuthController> {
-  const ChangePasswordPage({Key? key}) : super(key: key);
+  const ChangePasswordPage({super.key});
 
   @override
   Widget build(BuildContext context) {

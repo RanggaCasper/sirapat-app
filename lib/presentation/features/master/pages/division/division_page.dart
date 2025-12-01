@@ -11,7 +11,7 @@ import 'package:sirapat_app/presentation/features/master/pages/division/division
 
 /// Division management section untuk Master Dashboard
 class DivisionManagementSection extends GetView<DivisionController> {
-  const DivisionManagementSection({Key? key}) : super(key: key);
+  const DivisionManagementSection({super.key});
 
   @override
   Widget build(BuildContext context) {

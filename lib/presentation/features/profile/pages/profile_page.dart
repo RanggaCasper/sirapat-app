@@ -4,9 +4,10 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/user_info_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/change_password_page.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class ProfilePage extends GetView<AuthController> {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   String _getRoleLabel(String? role) {
     switch (role?.toLowerCase()) {
@@ -162,10 +163,8 @@ class ProfilePage extends GetView<AuthController> {
                   subtitle: 'Atur preferensi notifikasi',
                   iconColor: Colors.purple,
                   onTap: () {
-                    Get.snackbar(
-                      'Info',
+                    Get.find<NotificationController>().showInfo(
                       'Fitur notifikasi akan segera hadir',
-                      snackPosition: SnackPosition.BOTTOM,
                     );
                   },
                 ),
@@ -175,10 +174,8 @@ class ProfilePage extends GetView<AuthController> {
                   subtitle: 'Indonesia',
                   iconColor: Colors.green,
                   onTap: () {
-                    Get.snackbar(
-                      'Info',
+                    Get.find<NotificationController>().showInfo(
                       'Fitur pengaturan bahasa akan segera hadir',
-                      snackPosition: SnackPosition.BOTTOM,
                     );
                   },
                 ),
@@ -207,10 +204,8 @@ class ProfilePage extends GetView<AuthController> {
                   subtitle: 'Baca kebijakan privasi',
                   iconColor: Colors.indigo,
                   onTap: () {
-                    Get.snackbar(
-                      'Info',
+                    Get.find<NotificationController>().showInfo(
                       'Fitur kebijakan privasi akan segera hadir',
-                      snackPosition: SnackPosition.BOTTOM,
                     );
                   },
                 ),

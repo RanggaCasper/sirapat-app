@@ -8,11 +8,11 @@ class ActionItemMeet extends StatelessWidget {
   final String assignee;
 
   const ActionItemMeet({
-    Key? key,
+    super.key,
     required this.title,
     required this.dueDate,
     required this.assignee,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

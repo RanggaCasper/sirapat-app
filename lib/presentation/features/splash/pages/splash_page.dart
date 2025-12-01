@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 
 class SplashPage extends StatefulWidget {
@@ -17,46 +18,48 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _checkAuthAndNavigate() async {
-    print('[SplashPage] Starting authentication check...');
+    debugPrint('[SplashPage] Starting authentication check...');
 
     // Wait for splash animation
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(AppConstants.splashDuration);
 
     final authController = Get.find<AuthController>();
 
     // Verify authentication from server
-    print('[SplashPage] Verifying authentication...');
+    debugPrint('[SplashPage] Verifying authentication...');
     final isAuthenticated = await authController.verifyAuthentication();
 
-    print('[SplashPage] Authentication result: $isAuthenticated');
-    print('[SplashPage] Current user: ${authController.currentUser?.fullName}');
+    debugPrint('[SplashPage] Authentication result: $isAuthenticated');
+    debugPrint(
+      '[SplashPage] Current user: ${authController.currentUser?.fullName}',
+    );
 
     if (!mounted) return;
 
     if (isAuthenticated && authController.currentUser != null) {
       final role = authController.currentUser!.role?.toLowerCase();
-      print('[SplashPage] User role: $role');
+      debugPrint('[SplashPage] User role: $role');
 
       // Navigate based on role
       switch (role) {
         case 'master':
-          print('[SplashPage] Navigating to master dashboard');
+          debugPrint('[SplashPage] Navigating to master dashboard');
           Get.offAllNamed('/master-dashboard');
           break;
         case 'admin':
-          print('[SplashPage] Navigating to admin dashboard');
+          debugPrint('[SplashPage] Navigating to admin dashboard');
           Get.offAllNamed('/admin-dashboard');
           break;
         case 'employee':
-          print('[SplashPage] Navigating to employee dashboard');
+          debugPrint('[SplashPage] Navigating to employee dashboard');
           Get.offAllNamed('/employee-dashboard');
           break;
         default:
-          print('[SplashPage] Invalid role, navigating to login');
+          debugPrint('[SplashPage] Invalid role, navigating to login');
           Get.offAllNamed('/login');
       }
     } else {
-      print('[SplashPage] Not authenticated, navigating to login');
+      debugPrint('[SplashPage] Not authenticated, navigating to login');
       Get.offAllNamed('/login');
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/entities/pagination.dart';
@@ -116,7 +117,10 @@ class UserController extends GetxController {
   }
 
   // Fetch all users from API (only once)
-  Future<void> fetchUsers({int page = 1, int perPage = 10}) async {
+  Future<void> fetchUsers({
+    int page = 1,
+    int perPage = AppConstants.defaultPageSize,
+  }) async {
     try {
       isLoadingObs.value = true;
       _errorMessage.value = '';
@@ -184,7 +188,7 @@ class UserController extends GetxController {
     searchQuery.value = query;
     _applyPagination(
       page: 1,
-      perPage: 10,
+      perPage: AppConstants.defaultPageSize,
     ); // Reset to first page when searching
   }
 
@@ -263,8 +267,7 @@ class UserController extends GetxController {
 
       clearForm();
 
-      // Navigate back and refresh
-      Get.back();
+      // Refresh users list
       await fetchUsers();
     } on ApiException catch (e) {
       debugPrint('[UserController] ApiException in createUser: ${e.message}');
@@ -323,8 +326,7 @@ class UserController extends GetxController {
 
       clearForm();
 
-      // Navigate back and refresh
-      Get.back();
+      // Refresh users list
       await fetchUsers();
     } on ApiException catch (e) {
       debugPrint('[UserController] ApiException in updateUser: ${e.message}');
@@ -370,7 +372,7 @@ class UserController extends GetxController {
       );
 
       fetchUsers();
-      Get.back();
+      // Dialog will be closed by UI layer
     } on ApiException catch (e) {
       debugPrint(
         '[UserController] ApiException in updateUserRole: ${e.message}',
@@ -492,7 +494,7 @@ class UserController extends GetxController {
       _notif.showSuccess('Password berhasil diubah');
 
       _clearPasswordForm();
-      Get.back();
+      // Dialog will be closed by UI layer
     } on ApiException catch (e) {
       debugPrint(
         '[UserController] ApiException in changePassword: ${e.message}',
@@ -654,15 +656,7 @@ class UserController extends GetxController {
 
   void _showValidationError(String message) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Get.snackbar(
-        'Validasi Error',
-        message,
-        backgroundColor: Colors.orange.shade400,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-        duration: const Duration(seconds: 2),
-        margin: const EdgeInsets.all(10),
-      );
+      Get.find<NotificationController>().showWarning(message);
     });
   }
 

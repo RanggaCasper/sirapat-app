@@ -7,8 +7,7 @@ class SkeletonLoader extends StatefulWidget {
   final double? height;
   final BorderRadius? borderRadius;
 
-  const SkeletonLoader({Key? key, this.width, this.height, this.borderRadius})
-    : super(key: key);
+  const SkeletonLoader({super.key, this.width, this.height, this.borderRadius});
 
   @override
   State<SkeletonLoader> createState() => _SkeletonLoaderState();
@@ -68,7 +67,7 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
 
 /// Skeleton for stat card
 class StatCardSkeleton extends StatelessWidget {
-  const StatCardSkeleton({Key? key}) : super(key: key);
+  const StatCardSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +118,7 @@ class StatCardSkeleton extends StatelessWidget {
 
 /// Skeleton for list item
 class ListItemSkeleton extends StatelessWidget {
-  const ListItemSkeleton({Key? key}) : super(key: key);
+  const ListItemSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +168,7 @@ class ListItemSkeleton extends StatelessWidget {
 
 /// Skeleton for meeting card
 class MeetingCardSkeleton extends StatelessWidget {
-  const MeetingCardSkeleton({Key? key}) : super(key: key);
+  const MeetingCardSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {

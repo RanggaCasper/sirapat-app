@@ -13,14 +13,14 @@ class UserHeaderCard extends StatelessWidget {
   final Color? textColor;
 
   const UserHeaderCard({
-    Key? key,
+    super.key,
     required this.userName,
     required this.userNip,
     this.userRole,
     this.userImageUrl,
     this.backgroundColor,
     this.textColor,
-  }) : super(key: key);
+  });
 
   Color _getRoleColor(String? role) {
     switch (role?.toLowerCase()) {

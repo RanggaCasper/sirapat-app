@@ -4,7 +4,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 
 class UserInfoPage extends GetView<AuthController> {
-  const UserInfoPage({Key? key}) : super(key: key);
+  const UserInfoPage({super.key});
 
   String _getRoleLabel(String? role) {
     switch (role?.toLowerCase()) {

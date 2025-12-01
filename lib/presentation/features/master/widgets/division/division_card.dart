@@ -9,12 +9,12 @@ class DivisionCard extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const DivisionCard({
-    Key? key,
+    super.key,
     required this.division,
     this.onTap,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

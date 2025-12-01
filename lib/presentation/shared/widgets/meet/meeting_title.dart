@@ -4,7 +4,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 class MeetingTitle extends StatelessWidget {
   final String? title;
 
-  const MeetingTitle({Key? key, this.title}) : super(key: key);
+  const MeetingTitle({super.key, this.title});
 
   @override
   Widget build(BuildContext context) {

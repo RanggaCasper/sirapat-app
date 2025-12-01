@@ -10,14 +10,14 @@ class IconContainer extends StatelessWidget {
   final double borderRadius;
 
   const IconContainer({
-    Key? key,
+    super.key,
     required this.icon,
     required this.color,
     this.backgroundColor,
     this.size = 24,
     this.padding = 12,
     this.borderRadius = 12,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

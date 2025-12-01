@@ -10,8 +10,7 @@ class DivisionDetailDialog extends StatelessWidget {
   final Division division;
   final VoidCallback? onEdit;
 
-  const DivisionDetailDialog({Key? key, required this.division, this.onEdit})
-    : super(key: key);
+  const DivisionDetailDialog({super.key, required this.division, this.onEdit});
 
   @override
   Widget build(BuildContext context) {

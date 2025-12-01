@@ -9,12 +9,12 @@ import 'package:sirapat_app/presentation/shared/widgets/meet/chat_button.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/controllers/chat_binding.dart';
-import 'package:sirapat_app/presentation/features/employee/pages/chat_meet_page.dart';
+import 'package:sirapat_app/presentation/features/chat/pages/chat_meet_page.dart';
 
 class DetailMeetPage extends GetView<MeetingController> {
   final int? meetingId;
 
-  const DetailMeetPage({Key? key, this.meetingId}) : super(key: key);
+  const DetailMeetPage({super.key, this.meetingId});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class DetailMeetPage extends GetView<MeetingController> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppColors.primaryDark),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Obx(
           () => MeetingTitle(
@@ -72,7 +72,7 @@ class DetailMeetPage extends GetView<MeetingController> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 ElevatedButton(
-                  onPressed: () => Get.back(),
+                  onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryDark,
                   ),

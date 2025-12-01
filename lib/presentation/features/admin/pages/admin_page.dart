@@ -14,9 +14,10 @@ import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class AdminPage extends StatefulWidget {
-  const AdminPage({Key? key}) : super(key: key);
+  const AdminPage({super.key});
 
   @override
   State<AdminPage> createState() => _AdminPageState();
@@ -213,16 +214,14 @@ class _AdminPageState extends State<AdminPage> {
     final meetingCode = _meetingCodeController.text.trim();
 
     if (meetingCode.isEmpty) {
-      Get.snackbar(
-        'Error',
+      Get.find<NotificationController>().showError(
         'Silakan masukkan kode rapat',
-        snackPosition: SnackPosition.BOTTOM,
       );
       return;
     }
 
     // TODO: Implement join meeting logic
-    print('Join meeting with code: $meetingCode');
+    debugPrint('Join meeting with code: $meetingCode');
   }
 
   void _onViewAllPressed() {

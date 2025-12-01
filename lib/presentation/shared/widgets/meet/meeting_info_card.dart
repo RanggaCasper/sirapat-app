@@ -7,7 +7,7 @@ import 'info_item.dart';
 class MeetingInfoCard extends StatelessWidget {
   final Meeting? meeting;
 
-  const MeetingInfoCard({Key? key, this.meeting}) : super(key: key);
+  const MeetingInfoCard({super.key, this.meeting});
 
   String _getStatusLabel(String status) {
     switch (status.toLowerCase()) {

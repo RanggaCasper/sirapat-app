@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:sirapat_app/app/config/app_constants.dart';
 
 class ChatService {
   static final ChatService _instance = ChatService._internal();
@@ -13,9 +14,9 @@ class ChatService {
 
   WebSocketChannel? _channel;
   bool _isConnected = false;
-  final String _reverbHost = '127.0.0.1';
-  final int _reverbPort = 8080;
-  final String _reverbScheme = 'http';
+  final String _reverbHost = AppConstants.host;
+  final int _reverbPort = AppConstants.reverbPort;
+  final String _reverbScheme = AppConstants.reverbScheme;
 
   // Stream untuk menerima pesan
   Stream<dynamic>? get messageStream => _channel?.stream;

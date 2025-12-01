@@ -12,13 +12,13 @@ class MenuShortcut extends StatelessWidget {
   final VoidCallback? onTap;
 
   const MenuShortcut({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     this.iconColor,
     this.backgroundColor,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

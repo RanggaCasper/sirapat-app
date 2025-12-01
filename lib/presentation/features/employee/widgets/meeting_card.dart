@@ -10,11 +10,11 @@ class MeetingCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const MeetingCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.date,
     this.onTap,
-  }) : super(key: key);
+  });
 
   String _formatTime(DateTime date) {
     final hour = date.hour.toString().padLeft(2, '0');

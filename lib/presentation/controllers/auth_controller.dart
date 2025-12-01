@@ -240,7 +240,7 @@ class AuthController extends GetxController {
       );
 
       _notif.showSuccess('Password berhasil diubah');
-      Get.back(); // Close the dialog/page
+      // Navigation will be handled by UI layer
     } on ApiException catch (e) {
       _handleApiException(e);
     } catch (e) {

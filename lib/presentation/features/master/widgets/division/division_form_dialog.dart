@@ -15,13 +15,13 @@ class DivisionFormDialog extends StatelessWidget {
   final String submitLabel;
 
   const DivisionFormDialog({
-    Key? key,
+    super.key,
     required this.title,
     required this.icon,
     required this.color,
     required this.onSubmit,
     required this.submitLabel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

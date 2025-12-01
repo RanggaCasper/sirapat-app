@@ -8,7 +8,7 @@ import 'package:sirapat_app/presentation/controllers/chat_controller.dart';
 class ChatMeetPage extends StatefulWidget {
   final int? meetingId;
 
-  const ChatMeetPage({Key? key, this.meetingId}) : super(key: key);
+  const ChatMeetPage({super.key, this.meetingId});
 
   @override
   State<ChatMeetPage> createState() => _ChatMeetPageState();
@@ -50,7 +50,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
             image: const AssetImage('assets/background.jpg'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
-              Colors.white.withOpacity(0.85),
+              Colors.white.withOpacity(0.35),
               BlendMode.dstATop,
             ),
             onError: (exception, stackTrace) {},
@@ -115,7 +115,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
       leading: IconButton(
         icon: Icon(Icons.arrow_back, color: AppColors.primaryDark),
         onPressed: () {
-          Get.back();
+          Navigator.of(context).pop();
         },
       ),
       title: Column(

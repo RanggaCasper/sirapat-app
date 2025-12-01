@@ -10,7 +10,7 @@ import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 class DivisionFormPage extends StatelessWidget {
   final bool isEdit;
 
-  const DivisionFormPage({Key? key, this.isEdit = false}) : super(key: key);
+  const DivisionFormPage({super.key, this.isEdit = false});
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +99,7 @@ class DivisionFormPage extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () {
                         if (Get.isDialogOpen ?? false) {
-                          Get.back();
+                          Navigator.of(context).pop();
                         } else {
                           Navigator.pop(context);
                         }
@@ -126,11 +126,15 @@ class DivisionFormPage extends StatelessWidget {
                       () => ElevatedButton(
                         onPressed: controller.isLoadingActionObs.value
                             ? null
-                            : () {
+                            : () async {
                                 if (isEdit) {
-                                  controller.updateDivision();
+                                  await controller.updateDivision();
                                 } else {
-                                  controller.createDivision();
+                                  await controller.createDivision();
+                                }
+                                if (controller.fieldErrors.isEmpty &&
+                                    context.mounted) {
+                                  Navigator.of(context).pop();
                                 }
                               },
                         style: ElevatedButton.styleFrom(

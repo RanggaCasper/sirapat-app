@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sirapat_app/domain/entities/division.dart';
 import 'package:sirapat_app/domain/repositories/division_repository.dart';
 import 'package:sirapat_app/data/providers/network/requests/division/division_get_request.dart';
@@ -18,7 +19,7 @@ class DivisionRepositoryImpl extends DivisionRepository {
       final response = await request.request();
 
       // Debug: print response
-      print('Get Divisions API Response: $response');
+      debugPrint('Get Divisions API Response: $response');
 
       // Parse response
       final apiResponse = ApiResponse.fromJson(
@@ -36,7 +37,7 @@ class DivisionRepositoryImpl extends DivisionRepository {
           }
           // Handle if data is directly a list
           if (data is List) {
-            print('Data is directly a List with ${data.length} items');
+            debugPrint('Data is directly a List with ${data.length} items');
             return data
                 .map(
                   (item) =>
@@ -45,35 +46,35 @@ class DivisionRepositoryImpl extends DivisionRepository {
                 .toList();
           }
           // Return empty list if structure doesn't match
-          print('Data structure does not match expected format');
+          debugPrint('Data structure does not match expected format');
           return [];
         },
       );
 
-      print('API Response status: ${apiResponse.status}');
-      print('API Response data: ${apiResponse.data}');
-      print('API Response data type: ${apiResponse.data.runtimeType}');
+      debugPrint('API Response status: ${apiResponse.status}');
+      debugPrint('API Response data: ${apiResponse.data}');
+      debugPrint('API Response data type: ${apiResponse.data.runtimeType}');
 
       // Check if request failed (status = false)
       if (!apiResponse.status) {
-        print('Get divisions failed, throwing ApiException');
+        debugPrint('Get divisions failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       // Return list of divisions
       if (apiResponse.data is List) {
         final divisionList = (apiResponse.data as List).cast<Division>();
-        print('Returning ${divisionList.length} divisions');
+        debugPrint('Returning ${divisionList.length} divisions');
         return divisionList;
       }
 
-      print('API Response data is not a List, returning empty list');
+      debugPrint('API Response data is not a List, returning empty list');
       return [];
     } on ApiException catch (e) {
-      print('ApiException caught: ${e.message}');
+      debugPrint('ApiException caught: ${e.message}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('Generic exception: $e');
       throw ApiException(
         status: false,
         message: 'Failed to fetch divisions: ${e.toString()}',
@@ -89,7 +90,7 @@ class DivisionRepositoryImpl extends DivisionRepository {
       final response = await request.request();
 
       // Debug: print response
-      print('Get Division API Response: $response');
+      debugPrint('Get Division API Response: $response');
 
       // Parse response
       final apiResponse = ApiResponse.fromJson(
@@ -99,18 +100,18 @@ class DivisionRepositoryImpl extends DivisionRepository {
 
       // Check if request failed (status = false)
       if (!apiResponse.status || apiResponse.data == null) {
-        print('Get division failed, throwing ApiException');
+        debugPrint('Get division failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return apiResponse.data as Division;
     } on ApiException catch (e) {
-      print('Get Division ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint('Get Division ApiException caught');
+      debugPrint('Message: ${e.message}');
+      debugPrint('Errors: ${e.errors}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('Generic exception: $e');
       throw ApiException(
         status: false,
         message: 'Failed to fetch division: ${e.toString()}',
@@ -128,11 +129,11 @@ class DivisionRepositoryImpl extends DivisionRepository {
       );
       final response = await request.request();
 
-      print('Create Division API Response: $response');
+      debugPrint('Create Division API Response: $response');
 
       // Check if response has errors field (validation error)
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
-        print('Create division validation errors detected');
+        debugPrint('Create division validation errors detected');
         throw ApiException.fromJson(response);
       }
 
@@ -144,18 +145,18 @@ class DivisionRepositoryImpl extends DivisionRepository {
 
       // Check if creation failed
       if (!apiResponse.status || apiResponse.data == null) {
-        print('Create division failed, throwing ApiException');
+        debugPrint('Create division failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return apiResponse.data as Division;
     } on ApiException catch (e) {
-      print('Create Division ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint('Create Division ApiException caught');
+      debugPrint('Message: ${e.message}');
+      debugPrint('Errors: ${e.errors}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('Generic exception: $e');
       throw ApiException(
         status: false,
         message: 'Failed to create division: ${e.toString()}',
@@ -174,11 +175,11 @@ class DivisionRepositoryImpl extends DivisionRepository {
       );
       final response = await request.request();
 
-      print('Update Division API Response: $response');
+      debugPrint('Update Division API Response: $response');
 
       // Check if response has errors field (validation error)
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
-        print('Update division validation errors detected');
+        debugPrint('Update division validation errors detected');
         throw ApiException.fromJson(response);
       }
 
@@ -190,18 +191,18 @@ class DivisionRepositoryImpl extends DivisionRepository {
 
       // Check if update failed
       if (!apiResponse.status || apiResponse.data == null) {
-        print('Update division failed, throwing ApiException');
+        debugPrint('Update division failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return apiResponse.data as Division;
     } on ApiException catch (e) {
-      print('Update Division ApiException caught');
-      print('Message: ${e.message}');
-      print('Errors: ${e.errors}');
+      debugPrint('Update Division ApiException caught');
+      debugPrint('Message: ${e.message}');
+      debugPrint('Errors: ${e.errors}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('Generic exception: $e');
       throw ApiException(
         status: false,
         message: 'Failed to update division: ${e.toString()}',
@@ -216,7 +217,7 @@ class DivisionRepositoryImpl extends DivisionRepository {
       final request = DivisionDeleteRequest(id);
       final response = await request.request();
 
-      print('Delete Division API Response: $response');
+      debugPrint('Delete Division API Response: $response');
 
       // Parse response
       final apiResponse = ApiResponse.fromJson(
@@ -226,17 +227,17 @@ class DivisionRepositoryImpl extends DivisionRepository {
 
       // Check if deletion failed
       if (!apiResponse.status) {
-        print('Delete division failed, throwing ApiException');
+        debugPrint('Delete division failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       return true;
     } on ApiException catch (e) {
-      print('Delete Division ApiException caught');
-      print('Message: ${e.message}');
+      debugPrint('Delete Division ApiException caught');
+      debugPrint('Message: ${e.message}');
       rethrow;
     } catch (e) {
-      print('Generic exception: $e');
+      debugPrint('Generic exception: $e');
       throw ApiException(
         status: false,
         message: 'Failed to delete division: ${e.toString()}',

@@ -18,7 +18,7 @@ import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class EmployeePage extends StatefulWidget {
-  const EmployeePage({Key? key}) : super(key: key);
+  const EmployeePage({super.key});
 
   @override
   State<EmployeePage> createState() => _EmployeePageState();

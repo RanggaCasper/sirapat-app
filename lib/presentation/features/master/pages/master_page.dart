@@ -16,7 +16,7 @@ import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 
 /// Master Page - Single page layout dengan tab-based navigation
 class MasterPage extends StatefulWidget {
-  const MasterPage({Key? key}) : super(key: key);
+  const MasterPage({super.key});
 
   @override
   State<MasterPage> createState() => _MasterPageState();

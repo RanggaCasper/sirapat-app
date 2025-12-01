@@ -9,8 +9,7 @@ import 'package:sirapat_app/domain/entities/division.dart';
 class DivisionDetailPage extends StatelessWidget {
   final Division division;
 
-  const DivisionDetailPage({Key? key, required this.division})
-    : super(key: key);
+  const DivisionDetailPage({super.key, required this.division});
 
   @override
   Widget build(BuildContext context) {

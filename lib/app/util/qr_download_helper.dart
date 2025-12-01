@@ -94,6 +94,12 @@ class QrDownloadHelper {
         return null;
       }
 
+      // Check if context is still mounted after async gap
+      if (!context.mounted) {
+        debugPrint('[QrDownloadHelper] Context no longer mounted');
+        return null;
+      }
+
       final boundary = context.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) {
         debugPrint('[QrDownloadHelper] Boundary is null');

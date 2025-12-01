@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 
 class MoreButton extends StatelessWidget {
-  const MoreButton({Key? key}) : super(key: key);
+  const MoreButton({super.key});
 
   @override
   Widget build(BuildContext context) {

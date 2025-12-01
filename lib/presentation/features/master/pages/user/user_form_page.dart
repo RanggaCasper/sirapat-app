@@ -10,7 +10,7 @@ import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 class UserFormPage extends StatelessWidget {
   final bool isEdit;
 
-  const UserFormPage({Key? key, this.isEdit = false}) : super(key: key);
+  const UserFormPage({super.key, this.isEdit = false});
 
   @override
   Widget build(BuildContext context) {
@@ -260,7 +260,7 @@ class UserFormPage extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () {
                         if (Get.isDialogOpen ?? false) {
-                          Get.back();
+                          Navigator.of(context).pop();
                         } else {
                           Navigator.pop(context);
                         }
@@ -288,11 +288,15 @@ class UserFormPage extends StatelessWidget {
                       () => ElevatedButton(
                         onPressed: controller.isLoadingActionObs.value
                             ? null
-                            : () {
+                            : () async {
                                 if (isEdit) {
-                                  controller.updateUser();
+                                  await controller.updateUser();
                                 } else {
-                                  controller.createUser();
+                                  await controller.createUser();
+                                }
+                                if (controller.fieldErrors.isEmpty &&
+                                    context.mounted) {
+                                  Navigator.of(context).pop();
                                 }
                               },
                         style: ElevatedButton.styleFrom(

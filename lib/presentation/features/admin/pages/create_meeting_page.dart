@@ -7,7 +7,7 @@ import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 
 class CreateMeetingPage extends StatefulWidget {
-  const CreateMeetingPage({Key? key}) : super(key: key);
+  const CreateMeetingPage({super.key});
 
   @override
   State<CreateMeetingPage> createState() => _CreateMeetingPageState();

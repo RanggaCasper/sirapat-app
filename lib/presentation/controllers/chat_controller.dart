@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/app/services/chat_service.dart';
 import 'package:sirapat_app/data/models/chat_message_model.dart';
 import 'package:sirapat_app/domain/usecases/chat/get_chat_minutes_usecase.dart';
@@ -28,9 +29,9 @@ class ChatController extends GetxController {
 
   // Reverb configuration
   final String reverbAppKey = 'zagzqeklkihbbgwhwh8j'; // Ganti dengan key Anda
-  final String reverbHost = '127.0.0.1';
-  final int reverbPort = 8080; // default 8080
-  final String reverbScheme = 'http';
+  final String reverbHost = AppConstants.host;
+  final int reverbPort = AppConstants.reverbPort;
+  final String reverbScheme = AppConstants.reverbScheme;
 
   @override
   void onInit() {

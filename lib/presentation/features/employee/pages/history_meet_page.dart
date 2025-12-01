@@ -8,7 +8,7 @@ import 'package:sirapat_app/presentation/shared/widgets/pagination_controls.dart
 import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
 
 class HistoryMeetPage extends StatefulWidget {
-  const HistoryMeetPage({Key? key}) : super(key: key);
+  const HistoryMeetPage({super.key});
 
   @override
   State<HistoryMeetPage> createState() => _HistoryMeetPageState();

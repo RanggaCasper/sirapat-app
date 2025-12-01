@@ -23,6 +23,7 @@ class DivisionModel extends Division {
     );
   }
 
+  @override
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
@@ -33,6 +34,7 @@ class DivisionModel extends Division {
     };
   }
 
+  @override
   DivisionModel copyWith({
     int? id,
     String? name,

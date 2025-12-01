@@ -13,11 +13,11 @@ class PasscodeQrBottomSheet extends StatefulWidget {
   final String? meetingUuid;
 
   const PasscodeQrBottomSheet({
-    Key? key,
+    super.key,
     required this.passcode,
     required this.meetingTitle,
     this.meetingUuid,
-  }) : super(key: key);
+  });
 
   @override
   State<PasscodeQrBottomSheet> createState() => _PasscodeQrBottomSheetState();

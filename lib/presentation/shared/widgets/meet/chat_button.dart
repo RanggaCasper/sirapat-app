@@ -4,7 +4,7 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 class ChatButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
-  const ChatButton({Key? key, this.onPressed}) : super(key: key);
+  const ChatButton({super.key, this.onPressed});
 
   @override
   Widget build(BuildContext context) {

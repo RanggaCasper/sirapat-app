@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/domain/entities/pagination.dart';
@@ -91,7 +92,10 @@ class MeetingController extends GetxController {
   }
 
   // Fetch all meetings from API (only once)
-  Future<void> fetchMeetings({int page = 1, int perPage = 10}) async {
+  Future<void> fetchMeetings({
+    int page = 1,
+    int perPage = AppConstants.defaultPageSize,
+  }) async {
     try {
       isLoadingObs.value = true;
       _errorMessage.value = '';
@@ -169,7 +173,7 @@ class MeetingController extends GetxController {
     searchQuery.value = query;
     _applyPagination(
       page: 1,
-      perPage: 10,
+      perPage: AppConstants.defaultPageSize,
     ); // Reset to first page when searching
   }
 
@@ -273,9 +277,6 @@ class MeetingController extends GetxController {
 
       clearForm();
 
-      // Navigate back
-      Get.back();
-
       // Show passcode bottom sheet if meeting has passcode
       if (meeting.passcode != null && meeting.passcode!.isNotEmpty) {
         showPasscodeQrBottomSheet(
@@ -351,8 +352,7 @@ class MeetingController extends GetxController {
 
       clearForm();
 
-      // Navigate back and refresh
-      Get.back();
+      // Refresh meetings list
       await fetchMeetings();
     } on ApiException catch (e) {
       debugPrint(
@@ -559,15 +559,7 @@ class MeetingController extends GetxController {
 
   void _showValidationError(String message) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Get.snackbar(
-        'Validasi Error',
-        message,
-        backgroundColor: Colors.orange.shade400,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-        duration: const Duration(seconds: 2),
-        margin: const EdgeInsets.all(10),
-      );
+      Get.find<NotificationController>().showWarning(message);
     });
   }
 

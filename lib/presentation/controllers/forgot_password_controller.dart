@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/data/providers/network/requests/forgot_password_request.dart';
@@ -30,7 +31,7 @@ class ForgotPasswordController extends GetxController {
     if (_isCountingDown) return;
 
     _isCountingDown = true;
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(AppConstants.shortDelay, () {
       if (retryAfter.value > 0) {
         retryAfter.value--;
         if (retryAfter.value > 0) {
@@ -127,7 +128,7 @@ class ForgotPasswordController extends GetxController {
       if (response is Map<String, dynamic> && response['status'] == true) {
         _notif.showSuccess(response['message'] ?? 'Password berhasil direset');
 
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(AppConstants.mediumDelay);
         Get.offAllNamed('/login');
       } else {
         throw ApiException.fromJson(response);

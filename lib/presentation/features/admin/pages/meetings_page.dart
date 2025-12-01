@@ -8,7 +8,7 @@ import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 
 /// Meeting management section untuk Admin Dashboard
 class MeetingsPage extends GetView<MeetingController> {
-  const MeetingsPage({Key? key}) : super(key: key);
+  const MeetingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

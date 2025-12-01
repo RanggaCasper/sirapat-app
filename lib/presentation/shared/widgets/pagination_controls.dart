@@ -12,12 +12,12 @@ class PaginationControls extends StatelessWidget {
   final Function(int)? onPageSelect;
 
   const PaginationControls({
-    Key? key,
+    super.key,
     required this.meta,
     this.onPrevious,
     this.onNext,
     this.onPageSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

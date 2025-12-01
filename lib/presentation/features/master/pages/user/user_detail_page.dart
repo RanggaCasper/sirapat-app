@@ -9,7 +9,7 @@ import 'package:sirapat_app/domain/entities/user.dart';
 class UserDetailPage extends StatelessWidget {
   final User user;
 
-  const UserDetailPage({Key? key, required this.user}) : super(key: key);
+  const UserDetailPage({super.key, required this.user});
 
   String _getRoleLabel(String? role) {
     switch (role?.toLowerCase()) {

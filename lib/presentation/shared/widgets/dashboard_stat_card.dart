@@ -13,14 +13,14 @@ class DashboardStatCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const DashboardStatCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.icon,
     this.backgroundColor,
     this.iconColor,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
