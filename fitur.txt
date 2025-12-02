@@ -1,8 +1,9 @@
 YANG BELUM KAYANYA :
     - Invitation
     - Edit Rapat
-    - Hapus Rapat
-    - Update Status nya saja
+    - Share (done)
+    - Hapus Rapat (done)
+    - Update Status nya saja    
     - Action buat approve atau update status notulensi agar tidak bisa diubah 
     - update notulensi
     - Koneksi ke python
@@ -12,6 +13,7 @@ YANG BELUM KAYANYA :
             -> Notulensi = chat + transkrip voice
         )
     - voice Assistant nya 
+        - ui nya udh tinggal connectin sm ppython
     - output summary notulensi
 
 

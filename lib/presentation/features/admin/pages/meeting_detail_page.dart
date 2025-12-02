@@ -11,6 +11,7 @@ import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/info_
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/participant_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/summary_page.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
+import 'package:sirapat_app/presentation/features/voice_assistant/pages/voice_assistant_page.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final Meeting meeting;
@@ -29,6 +30,9 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+    _tabController.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -50,7 +54,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
           SummaryPage(meetingId: widget.meeting.id),
         ],
       ),
-      floatingActionButton: ChatButton(onPressed: _onChatButtonPressed),
+      floatingActionButton: _buildFloatingButton(),
     );
   }
 
@@ -102,6 +106,20 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ListTile(
+              leading: Icon(Icons.mic, color: AppColors.primary),
+              title: Text(
+                'Meeting Assistant',
+                style: TextStyle(color: AppColors.primary),
+              ),
+              onTap: () {
+                // Navigator.pop(context);
+                Get.to(
+                  () => VoiceRecordPage(meetingId: widget.meeting.id),
+                  transition: Transition.rightToLeft,
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.edit),
               title: const Text('Edit Rapat'),
@@ -159,6 +177,95 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
       "Disalin",
       "Teks undangan telah disalin ke clipboard",
       snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
+  Widget? _buildFloatingButton() {
+    switch (_tabController.index) {
+      case 0:
+        return FloatingActionButton(
+          backgroundColor: AppColors.primary,
+          onPressed: () {
+            ChatButton(onPressed: _onChatButtonPressed);
+          },
+          child: const Icon(Icons.chat_bubble),
+        );
+
+      case 1:
+        return FloatingActionButton(
+          backgroundColor: Colors.orange,
+          onPressed: () {
+            _showInviteBottomSheet(context);
+          },
+          child: const Icon(Icons.person_add),
+        );
+
+      case 2:
+        return FloatingActionButton(
+          backgroundColor: Colors.green,
+          onPressed: () {
+            print("Summary FAB pressed");
+          },
+          child: const Icon(Icons.edit),
+        );
+
+      default:
+        return null;
+    }
+  }
+
+  void _showInviteBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Invite Participant",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+
+              TextField(
+                decoration: InputDecoration(
+                  labelText: "Email / Phone Number / NIP",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // INVITE BUTTON
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: Add your invite logic here
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.send),
+                  label: const Text("Send Invitation"),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
