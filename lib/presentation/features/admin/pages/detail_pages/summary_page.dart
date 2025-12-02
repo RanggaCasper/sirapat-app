@@ -1,13 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:sirapat_app/domain/entities/meeting.dart';
+import 'package:get/get.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 
-class SummaryPage extends StatelessWidget {
-  final Meeting meeting;
+class SummaryPage extends GetView<MeetingController> {
+  final int? meetingId;
 
-  const SummaryPage({super.key, required this.meeting});
+  const SummaryPage({super.key, required this.meetingId});
 
   @override
   Widget build(BuildContext context) {
+    // Fetch meeting data when arguments are available
+    if (Get.arguments != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (controller.meetings.isEmpty) {
+          // If no meetings loaded yet, fetch all first
+          controller.fetchMeetings().then((_) {
+            // Then fetch the specific meeting (will use cache)
+            controller.fetchMeetingById(Get.arguments!);
+          });
+        } else {
+          // If meetings already loaded, just fetch specific one
+          controller.fetchMeetingById(Get.arguments!);
+        }
+      });
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -16,9 +33,8 @@ class SummaryPage extends StatelessWidget {
           _buildSummarySection(
             title: 'Ringkasan Rapat',
             content:
-                meeting.description ??
                 'Rapat koordinasi IT membahas progress proyek dan perencanaan ke depan. '
-                    'Tim sepakat untuk meningkatkan infrastruktur dan melakukan upgrade sistem.',
+                'Tim sepakat untuk meningkatkan infrastruktur dan melakukan upgrade sistem.',
           ),
           const SizedBox(height: 20),
           const Text(
@@ -65,8 +81,7 @@ class SummaryPage extends StatelessWidget {
           const SizedBox(height: 20),
           _buildSummarySection(
             title: 'Rapat Berikutnya',
-            content:
-                'Senin, 29 Januari 2025\n09:00 - 10:30 WIB\n${meeting.location ?? "TBA"}',
+            content: 'Senin, 29 Januari 2025\n09:00 - 10:30 WIB\n TBA ',
           ),
         ],
       ),

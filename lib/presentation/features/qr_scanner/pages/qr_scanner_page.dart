@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
+import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 
 class QrScannerPage extends StatefulWidget {
   const QrScannerPage({super.key});
@@ -13,6 +17,7 @@ class QrScannerPage extends StatefulWidget {
 
 class _QrScannerPageState extends State<QrScannerPage> {
   MobileScannerController cameraController = MobileScannerController();
+  MeetingController meetingController = Get.find<MeetingController>();
   bool isScanning = true;
 
   @override
@@ -38,10 +43,17 @@ class _QrScannerPageState extends State<QrScannerPage> {
   }
 
   void _handleQrCode(String code) {
-    // Pause scanning
     cameraController.stop();
 
-    // Show result bottom sheet
+    Map<String, dynamic>? data;
+
+    // Decode JSON
+    try {
+      data = jsonDecode(code);
+    } catch (e) {
+      data = null;
+    }
+
     Get.bottomSheet(
       Container(
         decoration: const BoxDecoration(
@@ -52,26 +64,44 @@ class _QrScannerPageState extends State<QrScannerPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle, color: Colors.green, size: 64),
+            const Icon(Icons.qr_code_scanner, color: Colors.blue, size: 64),
             const SizedBox(height: 16),
-            const Text(
-              'QR Code Terdeteksi',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+
+            Text(
+              data != null ? "QR Code Terdeteksi" : "QR Tidak Valid",
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 20),
+
+            // CONTENT CARD
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Text(
-                code,
-                style: const TextStyle(fontSize: 16, fontFamily: 'monospace'),
-                textAlign: TextAlign.center,
-              ),
+              child: data == null
+                  ? const Text(
+                      "Format QR tidak sesuai.\nPastikan QR berasal dari aplikasi.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _qrItem("Judul Rapat", data["title"]),
+                        _qrItem("Tanggal", data["date"]),
+                        _qrItem("Mulai", data["startTime"]),
+                        _qrItem("Selesai", data["endTime"]),
+                        // _qrItem("Passcode", data["passcode"]),
+                      ],
+                    ),
             ),
+
             const SizedBox(height: 24),
+
             Row(
               children: [
                 Expanded(
@@ -86,10 +116,18 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop(code);
-                    },
+                    onPressed: data == null
+                        ? null
+                        : () async {
+                            final passcode = data!["passcode"].toString();
+
+                            await meetingController.joinMeetingByCode(passcode);
+                            Get.to(
+                              DetailMeetPage(meetingId: data["id"]),
+                              transition: Transition.rightToLeft,
+                              arguments: data["id"],
+                            );
+                          },
                     child: const Text('Gunakan'),
                   ),
                 ),
@@ -99,6 +137,29 @@ class _QrScannerPageState extends State<QrScannerPage> {
         ),
       ),
       isDismissible: false,
+    );
+  }
+
+  Widget _qrItem(String label, dynamic value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value?.toString() ?? "-",
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          ),
+        ],
+      ),
     );
   }
 

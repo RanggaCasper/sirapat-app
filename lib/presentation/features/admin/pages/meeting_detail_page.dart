@@ -47,7 +47,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
         children: [
           InfoPage(meeting: widget.meeting),
           ParticipantPage(meeting: widget.meeting),
-          SummaryPage(meeting: widget.meeting),
+          SummaryPage(meetingId: widget.meeting.id),
         ],
       ),
       floatingActionButton: ChatButton(onPressed: _onChatButtonPressed),
@@ -107,24 +107,22 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
               title: const Text('Edit Rapat'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Navigate to edit page
               },
             ),
             ListTile(
               leading: const Icon(Icons.share),
               title: const Text('Bagikan'),
               onTap: () {
-                Navigator.pop(context);
                 _shareMeetingInfo();
-                // TODO: Implement share functionality
+                Navigator.pop(context);
               },
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
               title: const Text('Hapus', style: TextStyle(color: Colors.red)),
               onTap: () {
-                Navigator.pop(context);
                 controller.deleteMeeting(widget.meeting.id);
+                Navigator.pop(context);
               },
             ),
           ],
