@@ -133,11 +133,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
     );
   }
 
-  void _shareMeetingInfo() {
+  void _shareMeetingInfo() async {
     final meeting = widget.meeting;
 
-    // Jika ada URL atau passcode, sesuaikan
-    final passcode = controller.getMeetingPasscodeById(widget.meeting.id);
+    final passcode = await controller.getMeetingPasscodeById(widget.meeting.id);
     final message =
         """
           📅 *Undangan Rapat*

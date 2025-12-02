@@ -642,9 +642,9 @@ class MeetingController extends GetxController {
   // Get meeting passcode
   Future<String?> getMeetingPasscodeById(int id) async {
     try {
-      final meeting = await _getPasscodeByIdUseCase.execute(id);
+      final passcode = await _getPasscodeByIdUseCase.execute(id);
 
-      return meeting.passcode;
+      return passcode;
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingController] ApiException in getMeetingPasscodeById: ${e.message}',

@@ -406,23 +406,20 @@ class MeetingRepositoryImpl extends MeetingRepository {
       );
     }
   }
-  
+
   @override
-  Future<Meeting> getPasscodeById(int id) async{
-     try {
+  Future<String> getPasscodeById(int id) async {
+    try {
       final request = GetPasscodeByIdRequest(id: id);
       final response = await request.request();
 
-      final apiResponse = ApiResponse.fromJson(
-        response as Map<String, dynamic>,
-        (data) => MeetingModel.fromJson(data as Map<String, dynamic>),
-      );
+      final apiResponse = ApiResponse.fromJson(response, (data) => data);
 
       if (!apiResponse.status || apiResponse.data == null) {
         throw ApiException.fromJson(response);
       }
 
-      return apiResponse.data as Meeting;
+      return apiResponse.data as String;
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingRepository] ApiException in getMeetingById: ${e.message}',
@@ -436,6 +433,4 @@ class MeetingRepositoryImpl extends MeetingRepository {
       );
     }
   }
-
-  
 }

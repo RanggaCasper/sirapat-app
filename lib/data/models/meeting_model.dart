@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 
 MeetingModel meetingModelFromJson(String str) =>

@@ -1,4 +1,3 @@
-import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/domain/repositories/meeting_repository.dart';
 
 class GetPasscodeByIdUseCase {
@@ -6,7 +5,7 @@ class GetPasscodeByIdUseCase {
 
   GetPasscodeByIdUseCase(this.repository);
 
-  Future<Meeting> execute(int id) {
+  Future<String> execute(int id) {
     return repository.getPasscodeById(id);
   }
 }
