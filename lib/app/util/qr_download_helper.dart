@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class QrDownloadHelper {
   /// Download QR code to Download/Sirapat folder
@@ -13,6 +14,15 @@ class QrDownloadHelper {
     required String fileName,
   }) async {
     try {
+      // Request storage permission for Android 13+
+      if (Platform.isAndroid) {
+        final bool hasPermission = await _requestStoragePermission();
+        if (!hasPermission) {
+          debugPrint('[QrDownloadHelper] Storage permission denied');
+          return null;
+        }
+      }
+
       // Capture QR code as image
       final Uint8List? imageBytes = await _captureQrCode(repaintBoundaryKey);
       if (imageBytes == null) {
@@ -55,6 +65,35 @@ class QrDownloadHelper {
     } catch (e) {
       debugPrint('[QrDownloadHelper] Error downloading QR code: $e');
       return null;
+    }
+  }
+
+  /// Request storage permission for Android 13+
+  static Future<bool> _requestStoragePermission() async {
+    try {
+      // For Android 13+ (API 33+), use photos permission
+      if (await Permission.photos.isGranted) {
+        return true;
+      }
+
+      // Request permission
+      final status = await Permission.photos.request();
+
+      if (status.isGranted) {
+        return true;
+      }
+
+      // If photos permission denied, try storage permission for older Android
+      if (await Permission.storage.isGranted) {
+        return true;
+      }
+
+      final storageStatus = await Permission.storage.request();
+      return storageStatus.isGranted;
+    } catch (e) {
+      debugPrint('[QrDownloadHelper] Error requesting permission: $e');
+      // On older Android versions, storage permission might not be needed
+      return true;
     }
   }
 

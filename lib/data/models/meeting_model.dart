@@ -36,7 +36,9 @@ class MeetingModel extends Meeting {
     location: json["location"],
     agenda: json["agenda"],
     status: json["status"] ?? 'scheduled',
-    createdBy: json["created_by"],
+    createdBy: json["created_by"] is String
+        ? int.tryParse(json["created_by"])
+        : json["created_by"],
     createdAt: json["created_at"],
     updatedAt: json["updated_at"],
   );
