@@ -3,6 +3,7 @@ import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/domain/repositories/meeting_repository.dart';
 import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_get_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_get_by_id_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_get_passcode_by_id_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_create_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_update_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/meeting/meeting_update_status_request.dart';
@@ -405,4 +406,36 @@ class MeetingRepositoryImpl extends MeetingRepository {
       );
     }
   }
+  
+  @override
+  Future<Meeting> getPasscodeById(int id) async{
+     try {
+      final request = GetPasscodeByIdRequest(id: id);
+      final response = await request.request();
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => MeetingModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (!apiResponse.status || apiResponse.data == null) {
+        throw ApiException.fromJson(response);
+      }
+
+      return apiResponse.data as Meeting;
+    } on ApiException catch (e) {
+      debugPrint(
+        '[MeetingRepository] ApiException in getMeetingById: ${e.message}',
+      );
+      rethrow;
+    } catch (e) {
+      debugPrint('[MeetingRepository] Exception in getMeetingById: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to fetch meeting: ${e.toString()}',
+      );
+    }
+  }
+
+  
 }

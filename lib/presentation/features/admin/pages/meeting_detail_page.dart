@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/presentation/shared/widgets/meet/chat_button.dart';
@@ -8,6 +10,7 @@ import 'package:sirapat_app/presentation/features/chat/pages/chat_meet_page.dart
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/info_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/participant_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/summary_page.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final Meeting meeting;
@@ -21,7 +24,7 @@ class MeetingDetailPage extends StatefulWidget {
 class _MeetingDetailPageState extends State<MeetingDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
+  final MeetingController controller = Get.find<MeetingController>();
   @override
   void initState() {
     super.initState();
@@ -112,6 +115,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
               title: const Text('Bagikan'),
               onTap: () {
                 Navigator.pop(context);
+                _shareMeetingInfo();
                 // TODO: Implement share functionality
               },
             ),
@@ -120,12 +124,44 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
               title: const Text('Hapus', style: TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Implement delete functionality
+                controller.deleteMeeting(widget.meeting.id);
               },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _shareMeetingInfo() {
+    final meeting = widget.meeting;
+
+    // Jika ada URL atau passcode, sesuaikan
+    final passcode = controller.getMeetingPasscodeById(widget.meeting.id);
+    final message =
+        """
+          📅 *Undangan Rapat*
+          Judul: ${meeting.title}
+          Tanggal: ${meeting.date}
+          Waktu: ${meeting.startTime} - ${meeting.endTime}
+
+          🔑 *Passcode:* $passcode
+          🔗 *Link Join:* (masukkan link jika ada)
+          📷 *QR Code tersedia pada aplikasi*
+
+          Dibagikan via *SIRAPAT App*
+          """;
+
+    Share.share(message, subject: "Undangan Rapat: ${meeting.title}");
+    _copyToClipboard(message);
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    Get.snackbar(
+      "Disalin",
+      "Teks undangan telah disalin ke clipboard",
+      snackPosition: SnackPosition.BOTTOM,
     );
   }
 }
