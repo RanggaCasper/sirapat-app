@@ -9,16 +9,11 @@ class AppConstants {
   static const String productionUrl = 'https://sirapat.my.id';
   static const String localHost = '127.0.0.1';
   static const String localPort = '8000';
-  
+
   // Auto-switch between production and local
-  static String get baseUrl => isProduction 
-      ? productionUrl 
-      : 'http://$localHost:$localPort';
-  
-  // Legacy (for backward compatibility)
-  static const String host =
-      '127.0.0.1'; // Default: '127.0.0.1' (for local development)
-  static const String port = '8000'; // Default: '8000' (for local development)
+  static String get baseUrl =>
+      isProduction ? productionUrl : 'http://$localHost:$localPort';
+
   static const String apiVersion = 'v1';
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
