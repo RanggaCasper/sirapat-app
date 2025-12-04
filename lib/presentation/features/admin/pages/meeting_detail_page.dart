@@ -11,6 +11,7 @@ import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/info_
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/participant_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/summary_page.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
+import 'package:sirapat_app/presentation/controllers/participant_controller.dart';
 import 'package:sirapat_app/presentation/features/voice_assistant/pages/voice_assistant_page.dart';
 
 class MeetingDetailPage extends StatefulWidget {
@@ -215,6 +216,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   }
 
   void _showInviteBottomSheet(BuildContext context) {
+    final ParticipantController participantController =
+        Get.find<ParticipantController>();
+    final TextEditingController identifierController = TextEditingController();
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -234,6 +239,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
               const SizedBox(height: 16),
 
               TextField(
+                controller: identifierController,
                 decoration: InputDecoration(
                   labelText: "Email / Phone Number / NIP",
                   border: OutlineInputBorder(
@@ -244,12 +250,15 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
 
               const SizedBox(height: 16),
 
-              // INVITE BUTTON
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // TODO: Add your invite logic here
+                    final identifier = identifierController.text.trim();
+                    participantController.inviteParticipant(
+                      meetingId: widget.meeting.id,
+                      identifier: identifier,
+                    );
                     Navigator.pop(context);
                   },
                   icon: const Icon(Icons.send),
