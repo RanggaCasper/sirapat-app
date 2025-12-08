@@ -18,7 +18,7 @@ class APIEndpoint {
   static String get divisions => "$baseUrl/master/division";
   static String get users => "$baseUrl/master/user";
   static String get chatMinutes => "$baseUrl/chat-minute";
-  static String get attendace => "$baseUrl/admin/attendance";
+  // static String get attendace => "$baseUrl/admin/attendance";
   static String get participants => "$baseUrl/admin/meeting-participant";
   static String get meetingMinutes => "$baseUrl/admin/meeting-minute";
 
@@ -35,6 +35,21 @@ class APIEndpoint {
       return "$baseUrl/employee/meeting";
     } catch (e) {
       return "$baseUrl/employee/meeting";
+    }
+  }
+
+  static String get attendace {
+    try {
+      final authController = Get.find<AuthController>();
+      final userRole =
+          authController.currentUser?.role?.toLowerCase() ?? 'employee';
+
+      if (userRole == 'admin' || userRole == 'master') {
+        return "$baseUrl/admin/attendance";
+      }
+      return "$baseUrl/employee/attendance";
+    } catch (e) {
+      return "$baseUrl/employee/attendance";
     }
   }
 
