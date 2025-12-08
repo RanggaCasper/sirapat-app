@@ -131,7 +131,7 @@ class MeetingsPage extends GetView<MeetingController> {
                                     onTap: () {
                                       Get.toNamed(
                                         '/admin-meeting-detail',
-                                        arguments: meeting,
+                                        arguments: meeting.id,
                                       );
                                     },
                                   ),

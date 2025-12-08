@@ -13,6 +13,7 @@ import 'package:sirapat_app/domain/usecases/meeting/delete_meeting_usecase.dart'
 import 'package:sirapat_app/domain/usecases/meeting/join_meeting_by_code_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 import 'package:sirapat_app/presentation/shared/widgets/passcode_qr_bottom_sheet.dart';
 
 class MeetingController extends GetxController {
@@ -404,6 +405,9 @@ class MeetingController extends GetxController {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Center(
+              child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
+            ),
             const Text(
               'Konfirmasi Hapus',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

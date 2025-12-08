@@ -7,6 +7,10 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
+import 'package:sirapat_app/presentation/controllers/participant_binding.dart';
+import 'package:sirapat_app/domain/usecases/attendance/get_attendance_usecase.dart';
+import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 
 class QrScannerPage extends StatefulWidget {
   const QrScannerPage({super.key});
@@ -64,6 +68,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
             const Icon(Icons.qr_code_scanner, color: Colors.blue, size: 64),
             const SizedBox(height: 16),
 
@@ -123,7 +128,13 @@ class _QrScannerPageState extends State<QrScannerPage> {
 
                             await meetingController.joinMeetingByCode(passcode);
                             Get.to(
-                              DetailMeetPage(meetingId: data["id"]),
+                              () => DetailMeetPage(meetingId: data!["id"]),
+                              binding: BindingsBuilder(() {
+                                if (!Get.isRegistered<GetAttendanceUseCase>()) {
+                                  MeetingBinding().dependencies();
+                                  ParticipantBinding().dependencies();
+                                }
+                              }),
                               transition: Transition.rightToLeft,
                               arguments: data["id"],
                             );

@@ -6,6 +6,7 @@ import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/app/util/qr_download_helper.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 
 class PasscodeQrBottomSheet extends StatefulWidget {
   final String passcode;
@@ -44,7 +45,7 @@ class _PasscodeQrBottomSheetState extends State<PasscodeQrBottomSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: AppSpacing.sm),
-            _buildHandle(),
+            BottomSheetHandle(color: AppColors.secondary.withOpacity(0.3)),
             const SizedBox(height: AppSpacing.md),
             _buildHeader(),
             const SizedBox(height: AppSpacing.lg),
@@ -54,17 +55,6 @@ class _PasscodeQrBottomSheetState extends State<PasscodeQrBottomSheet> {
             const SizedBox(height: AppSpacing.lg),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildHandle() {
-    return Container(
-      width: 40,
-      height: 4,
-      decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(2),
       ),
     );
   }
@@ -203,17 +193,15 @@ class _PasscodeQrBottomSheetState extends State<PasscodeQrBottomSheet> {
         fileName: 'qr_${widget.meetingTitle}',
       );
 
-      if (filePath == null) {
-        _notif.showError('Gagal menyimpan QR code');
-        return;
+      if (filePath != null) {
+        _notif.showSuccess(
+          'QR code berhasil disimpan di folder Download/Sirapat',
+        );
       }
-
-      _notif.showSuccess(
-        'QR code berhasil disimpan di folder Download/Sirapat',
-      );
     } catch (e) {
       debugPrint('[PasscodeQrBottomSheet] Error downloading QR code: $e');
-      _notif.showError('Gagal menyimpan QR code: ${e.toString()}');
+      final errorMsg = e.toString().replaceAll('Exception: ', '');
+      _notif.showError(errorMsg);
     } finally {
       setState(() => _isProcessing = false);
     }

@@ -22,7 +22,13 @@ class MeetingMinuteRepositoryImpl extends MeetingMinuteRepository {
 
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
-        (data) => MeetingMinuteModel.fromJson(data as Map<String, dynamic>),
+        (data) {
+          // API returns data as a list of meeting minutes
+          if (data is List && data.isNotEmpty) {
+            return MeetingMinuteModel.fromJson(data[0] as Map<String, dynamic>);
+          }
+          throw ApiException(status: false, message: 'No meeting minute found');
+        },
       );
 
       if (!apiResponse.status || apiResponse.data == null) {

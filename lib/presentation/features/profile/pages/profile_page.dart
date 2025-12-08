@@ -6,6 +6,7 @@ import 'package:sirapat_app/presentation/features/profile/pages/edit_user_page.d
 import 'package:sirapat_app/presentation/features/profile/pages/user_info_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/change_password_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 
 class ProfilePage extends GetView<AuthController> {
   const ProfilePage({super.key});
@@ -419,6 +420,9 @@ class ProfilePage extends GetView<AuthController> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Center(
+              child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
+            ),
             const Text(
               'Tentang Aplikasi',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -465,6 +469,9 @@ class ProfilePage extends GetView<AuthController> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Center(
+              child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
+            ),
             const Text(
               'Konfirmasi Keluar',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

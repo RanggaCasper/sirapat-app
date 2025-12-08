@@ -16,6 +16,9 @@ import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
+import 'package:sirapat_app/presentation/controllers/participant_binding.dart';
+import 'package:sirapat_app/domain/usecases/attendance/get_attendance_usecase.dart';
 
 class EmployeePage extends StatefulWidget {
   const EmployeePage({super.key});
@@ -321,7 +324,13 @@ class _EmployeePageState extends State<EmployeePage> {
 
     // Navigate to detail page with meeting ID
     Get.to(
-      DetailMeetPage(meetingId: meetingId),
+      () => DetailMeetPage(meetingId: meetingId),
+      binding: BindingsBuilder(() {
+        if (!Get.isRegistered<GetAttendanceUseCase>()) {
+          MeetingBinding().dependencies();
+          ParticipantBinding().dependencies();
+        }
+      }),
       transition: Transition.rightToLeft,
       arguments: meetingId,
     );

@@ -20,7 +20,6 @@ import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dar
 import 'package:sirapat_app/presentation/features/employee/pages/employee_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/history_meet_page.dart';
-import 'package:sirapat_app/domain/entities/meeting.dart';
 
 /// Application pages configuration
 class AppPages {
@@ -86,12 +85,8 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.adminMeetingDetail,
-      page: () => MeetingDetailPage(meeting: Get.arguments as Meeting),
-      bindings: [
-        MeetingBinding(),
-        ParticipantBinding(),
-        MeetingMinuteBinding(),
-      ],
+      page: () => MeetingDetailPage(meetingId: Get.arguments as int),
+      bindings: [MeetingBinding(), ParticipantBinding(), MeetingMinuteBinding()],
     ),
     // Employee Dashboard
     GetPage(
@@ -102,7 +97,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.employeeDetailMeeting,
       page: () => const DetailMeetPage(),
-      binding: MeetingBinding(),
+      bindings: [MeetingBinding(), ParticipantBinding()],
     ),
     GetPage(
       name: AppRoutes.employeeHistoryMeeting,
