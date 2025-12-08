@@ -9,7 +9,6 @@ import 'package:sirapat_app/domain/usecases/user/get_user_by_id_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/create_user_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/update_user_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/update_user_role_usecase.dart';
-import 'package:sirapat_app/domain/usecases/user/update_user_division_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/delete_user_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/change_password_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
@@ -718,6 +717,4 @@ class UserController extends GetxController {
   //     isLoadingActionObs.value = false;
   //   }
   // }
-
-
 }
