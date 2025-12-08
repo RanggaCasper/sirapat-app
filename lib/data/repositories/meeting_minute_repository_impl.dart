@@ -1,0 +1,49 @@
+import 'package:flutter/foundation.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting_minute/meeting_minute_get_by_meeting_id_request.dart';
+import 'package:sirapat_app/domain/entities/meeting_minute.dart';
+import 'package:sirapat_app/domain/repositories/meeting_minute_repository.dart';
+import 'package:sirapat_app/data/models/api_response_model.dart';
+import 'package:sirapat_app/data/models/meeting_minute_model.dart';
+import 'package:sirapat_app/data/models/api_exception.dart';
+
+class MeetingMinuteRepositoryImpl extends MeetingMinuteRepository {
+  @override
+  Future<MeetingMinute> getMeetingById(int meetingId) async {
+    try {
+      final request = GetMeetingMinuteByMeetingIdRequest(meetingId: meetingId);
+      final response = await request.request();
+      debugPrint(
+        '[MeetingMinute] getmeetingminutebymeetingid response: $response',
+      );
+
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        throw ApiException.fromJson(response);
+      }
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => MeetingMinuteModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (!apiResponse.status || apiResponse.data == null) {
+        throw ApiException.fromJson(response);
+      }
+
+      return apiResponse.data as MeetingMinute;
+    } on ApiException catch (e) {
+      debugPrint(
+        '[MeetingMinute] ApiException in getmeetingminutebymeetingid: ${e.message}',
+      );
+      debugPrint('[MeetingMinute] Errors: ${e.errors}');
+      rethrow;
+    } catch (e) {
+      debugPrint(
+        '[MeetingMinute] Exception in getmeetingminutebymeetingid: $e',
+      );
+      throw ApiException(
+        status: false,
+        message: 'Failed to invite meetingminute: ${e.toString()}',
+      );
+    }
+  }
+}

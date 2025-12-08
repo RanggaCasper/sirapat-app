@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:sirapat_app/app/routes/app_routes.dart';
 import 'package:sirapat_app/presentation/controllers/auth_binding.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_minute_binding.dart';
 import 'package:sirapat_app/presentation/controllers/participant_binding.dart';
 import 'package:sirapat_app/presentation/controllers/user_binding.dart';
 import 'package:sirapat_app/presentation/controllers/division_binding.dart';
@@ -80,7 +81,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.adminMeetingDetail,
       page: () => MeetingDetailPage(meeting: Get.arguments as Meeting),
-      bindings: [MeetingBinding(), ParticipantBinding()],
+      bindings: [
+        MeetingBinding(),
+        ParticipantBinding(),
+        MeetingMinuteBinding(),
+      ],
     ),
     // Employee Dashboard
     GetPage(
