@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/domain/entities/attendance.dart';
@@ -87,76 +88,103 @@ class _ParticipantPageState extends State<ParticipantPage> {
         padding: EdgeInsets.all(AppSpacing.lg),
         itemCount: attendanceList.length,
         separatorBuilder: (context, index) =>
-            const Divider(height: 1, thickness: 0.5),
+            const SizedBox(height: AppSpacing.md),
         itemBuilder: (context, index) {
           final attendance = attendanceList[index];
-          return _buildParticipantTile(attendance);
+          return _buildParticipantCard(attendance);
         },
       );
     });
   }
 
-  Widget _buildParticipantTile(Attendance attendance) {
+  Widget _buildParticipantCard(Attendance attendance) {
     final participant = attendance.participant;
     final statusColor = attendance.isPresent ? Colors.green : Colors.orange;
     final statusText = attendance.statusDisplay;
 
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
+    return Container(
+      padding: AppSpacing.paddingLG,
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: AppRadius.radiusLG,
+        boxShadow: AppShadow.card,
       ),
-      leading: CircleAvatar(
-        backgroundColor: statusColor.withOpacity(0.2),
-        radius: 24,
-        child: Text(
-          participant?.fullName?.isNotEmpty == true
-              ? participant!.fullName![0].toUpperCase()
-              : '?',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: statusColor,
-          ),
-        ),
-      ),
-      title: Text(
-        participant?.fullName ?? 'Unknown',
-        style: AppTextStyles.title.copyWith(fontSize: 15),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              participant?.nip ?? '-',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+      child: Row(
+        children: [
+          // Avatar Icon
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Check-in: ${attendance.checkInTime}',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            child: Center(
+              child: Text(
+                participant?.fullName?.isNotEmpty == true
+                    ? participant!.fullName![0].toUpperCase()
+                    : '?',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: statusColor,
+                ),
+              ),
             ),
-          ],
-        ),
-      ),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: statusColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          statusText,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: statusColor,
           ),
-        ),
+          const SizedBox(width: AppSpacing.lg),
+
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  participant?.fullName ?? 'Unknown',
+                  style: AppTextStyles.title.copyWith(
+                    fontSize: AppTextStyles.body.fontSize,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: AppIconSize.sm,
+                      color: AppColors.secondary,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      '${attendance.checkInTime}',
+                      style: AppTextStyles.body.copyWith(
+                        fontSize: AppTextStyles.caption.fontSize,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Status Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              statusText,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: statusColor,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

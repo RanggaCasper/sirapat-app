@@ -26,16 +26,22 @@ class Attendance {
   // Factory from JSON (for entity)
   factory Attendance.fromJson(Map<String, dynamic> json) {
     return Attendance(
-      id: json['id'] as int?,
-      userId: json['user_id'] as int,
-      meetingId: json['meeting_id'] as int,
+      id: json['id'] is String ? int.tryParse(json['id']) : json['id'] as int?,
+      userId: json['user_id'] is String
+          ? int.parse(json['user_id'])
+          : json['user_id'] as int,
+      meetingId: json['meeting_id'] is String
+          ? int.parse(json['meeting_id'])
+          : json['meeting_id'] as int,
       date: json['date'] != null
           ? DateTime.parse(json['date'] as String)
           : DateTime.now(),
       checkInTime: json['check_in_time'] != null
           ? DateTime.parse(json['check_in_time'] as String)
           : DateTime.now(),
-      status: AttendanceStatus.fromString(json['status'] as String? ?? 'unknown'),
+      status: AttendanceStatus.fromString(
+        json['status'] as String? ?? 'unknown',
+      ),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -92,7 +98,7 @@ class Attendance {
   bool get isPresent => status == AttendanceStatus.present;
   bool get isAbsent => status == AttendanceStatus.absent;
   bool get isLate => status == AttendanceStatus.late;
-  
+
   String get statusDisplay => status.displayName;
   String get participantName => participant?.fullName ?? 'Unknown';
 

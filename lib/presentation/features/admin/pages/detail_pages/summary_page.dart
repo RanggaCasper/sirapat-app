@@ -10,17 +10,17 @@ class SummaryPage extends GetView<MeetingController> {
   @override
   Widget build(BuildContext context) {
     // Fetch meeting data when arguments are available
-    if (Get.arguments != null) {
+    if (Get.arguments != null && Get.arguments is int) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (controller.meetings.isEmpty) {
           // If no meetings loaded yet, fetch all first
           controller.fetchMeetings().then((_) {
             // Then fetch the specific meeting (will use cache)
-            controller.fetchMeetingById(Get.arguments!);
+            controller.fetchMeetingById(Get.arguments as int);
           });
         } else {
           // If meetings already loaded, just fetch specific one
-          controller.fetchMeetingById(Get.arguments!);
+          controller.fetchMeetingById(Get.arguments as int);
         }
       });
     }

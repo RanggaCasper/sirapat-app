@@ -12,6 +12,7 @@ import 'package:sirapat_app/domain/usecases/division/update_division_usecase.dar
 import 'package:sirapat_app/domain/usecases/division/delete_division_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 
 class DivisionController extends GetxController {
   final GetDivisionsUseCase _getDivisionsUseCase;
@@ -276,6 +277,9 @@ class DivisionController extends GetxController {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Center(
+              child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
+            ),
             const Text(
               'Konfirmasi Hapus',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

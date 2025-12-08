@@ -311,7 +311,7 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   void _onMeetingCardTapped(dynamic meeting) {
-    // Navigate to meeting detail page
-    Get.toNamed('/admin-meeting-detail', arguments: meeting);
+    // Navigate to meeting detail page with meeting ID
+    Get.toNamed('/admin-meeting-detail', arguments: meeting.id);
   }
 }

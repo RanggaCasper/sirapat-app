@@ -4,7 +4,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
-import 'package:sirapat_app/presentation/shared/widgets/meet/chat_button.dart';
 import 'package:sirapat_app/presentation/controllers/chat_binding.dart';
 import 'package:sirapat_app/presentation/features/chat/pages/chat_meet_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/info_page.dart';
@@ -12,12 +11,12 @@ import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/parti
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/summary_page.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/controllers/participant_controller.dart';
-import 'package:sirapat_app/presentation/features/voice_assistant/pages/voice_assistant_page.dart';
+import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 
 class MeetingDetailPage extends StatefulWidget {
-  final Meeting meeting;
+  final int meetingId;
 
-  const MeetingDetailPage({super.key, required this.meeting});
+  const MeetingDetailPage({super.key, required this.meetingId});
 
   @override
   State<MeetingDetailPage> createState() => _MeetingDetailPageState();
@@ -27,12 +26,17 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final MeetingController controller = Get.find<MeetingController>();
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     _tabController.addListener(() {
       setState(() {});
+    });
+    // Fetch meeting detail when page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchMeetingById(widget.meetingId);
     });
   }
 
@@ -44,24 +48,40 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: _buildAppBar(),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          InfoPage(meeting: widget.meeting),
-          ParticipantPage(meeting: widget.meeting),
-          SummaryPage(meetingId: widget.meeting.id),
-        ],
-      ),
-      floatingActionButton: _buildFloatingButton(),
-    );
+    return Obx(() {
+      final meeting = controller.selectedMeeting.value;
+
+      if (meeting == null) {
+        return Scaffold(
+          backgroundColor: Colors.grey.shade50,
+          appBar: AppBar(
+            title: const Text('Loading...'),
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+          ),
+          body: const Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      return Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: _buildAppBar(meeting),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            InfoPage(meeting: meeting),
+            ParticipantPage(meeting: meeting),
+            SummaryPage(meetingId: meeting.id),
+          ],
+        ),
+        floatingActionButton: _buildFloatingButton(meeting),
+      );
+    });
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(Meeting meeting) {
     return AppBar(
-      title: Text(widget.meeting.title),
+      title: Text(meeting.title),
       actions: [
         IconButton(
           icon: const Icon(Icons.more_vert),
@@ -74,8 +94,8 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
         unselectedLabelColor: Colors.white70,
         indicatorColor: Colors.white,
         indicatorWeight: 3,
-        labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+        labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         tabs: const [
           Tab(text: 'Info'),
           Tab(text: 'Peserta'),
@@ -90,7 +110,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
 
   void _onChatButtonPressed() {
     Get.to(
-      ChatMeetPage(meetingId: widget.meeting.id),
+      ChatMeetPage(meetingId: widget.meetingId),
       binding: ChatBinding(),
       transition: Transition.rightToLeft,
     );
@@ -107,20 +127,22 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: Icon(Icons.mic, color: AppColors.primary),
-              title: Text(
-                'Meeting Assistant',
-                style: TextStyle(color: AppColors.primary),
-              ),
-              onTap: () {
-                // Navigator.pop(context);
-                Get.to(
-                  () => VoiceRecordPage(meetingId: widget.meeting.id),
-                  transition: Transition.rightToLeft,
-                );
-              },
-            ),
+            // Handle indicator
+            const BottomSheetHandle(margin: EdgeInsets.only(bottom: 20)),
+            // Meeting Assistant feature commented out (flutter_sound removed)
+            // ListTile(
+            //   leading: Icon(Icons.mic, color: AppColors.primary),
+            //   title: Text(
+            //     'Meeting Assistant',
+            //     style: TextStyle(color: AppColors.primary),
+            //   ),
+            //   onTap: () {
+            //     Get.to(
+            //       () => VoiceRecordPage(meetingId: widget.meetingId),
+            //       transition: Transition.rightToLeft,
+            //     );
+            //   },
+            // ),
             ListTile(
               leading: const Icon(Icons.edit),
               title: const Text('Edit Rapat'),
@@ -140,7 +162,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
               leading: const Icon(Icons.delete, color: Colors.red),
               title: const Text('Hapus', style: TextStyle(color: Colors.red)),
               onTap: () {
-                controller.deleteMeeting(widget.meeting.id);
+                controller.deleteMeeting(widget.meetingId);
                 Navigator.pop(context);
               },
             ),
@@ -151,9 +173,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   }
 
   void _shareMeetingInfo() async {
-    final meeting = widget.meeting;
+    final meeting = controller.selectedMeeting.value;
+    if (meeting == null) return;
 
-    final passcode = await controller.getMeetingPasscodeById(widget.meeting.id);
+    final passcode = await controller.getMeetingPasscodeById(widget.meetingId);
     final message =
         """
           📅 *Undangan Rapat*
@@ -165,7 +188,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
           🔗 *Link Join:* (masukkan link jika ada)
           📷 *QR Code tersedia pada aplikasi*
 
-          Dibagikan via *SIRAPAT App*
+          Dibagikan via *SiRapat App*
           """;
 
     Share.share(message, subject: "Undangan Rapat: ${meeting.title}");
@@ -181,18 +204,18 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
     );
   }
 
-  Widget? _buildFloatingButton() {
+  Widget? _buildFloatingButton(Meeting meeting) {
     switch (_tabController.index) {
       case 0:
+        // Tab Info: Chat button
         return FloatingActionButton(
           backgroundColor: AppColors.primary,
-          onPressed: () {
-            ChatButton(onPressed: _onChatButtonPressed);
-          },
+          onPressed: _onChatButtonPressed,
           child: const Icon(Icons.chat_bubble),
         );
 
       case 1:
+        // Tab Peserta: Tambah peserta (hanya admin)
         return FloatingActionButton(
           backgroundColor: Colors.orange,
           onPressed: () {
@@ -202,12 +225,11 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
         );
 
       case 2:
+        // Tab Summary: Chat button
         return FloatingActionButton(
-          backgroundColor: Colors.green,
-          onPressed: () {
-            print("Summary FAB pressed");
-          },
-          child: const Icon(Icons.edit),
+          backgroundColor: AppColors.primary,
+          onPressed: _onChatButtonPressed,
+          child: const Icon(Icons.chat_bubble),
         );
 
       default:
@@ -222,19 +244,33 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              // Handle indicator
+              const Center(
+                child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
+              ),
+              Text(
                 "Invite Participant",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -256,7 +292,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
                   onPressed: () {
                     final identifier = identifierController.text.trim();
                     participantController.inviteParticipant(
-                      meetingId: widget.meeting.id,
+                      meetingId: widget.meetingId,
                       identifier: identifier,
                     );
                     Navigator.pop(context);

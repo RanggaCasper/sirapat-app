@@ -6,6 +6,8 @@ import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_pag
 import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 import 'package:sirapat_app/presentation/shared/widgets/pagination_controls.dart';
 import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
+import 'package:sirapat_app/presentation/controllers/participant_binding.dart';
+import 'package:sirapat_app/domain/usecases/attendance/get_attendance_usecase.dart';
 
 class HistoryMeetPage extends StatefulWidget {
   const HistoryMeetPage({super.key});
@@ -162,7 +164,15 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
                             date: DateTime.parse(meeting.date),
                             onTap: () {
                               Get.to(
-                                DetailMeetPage(meetingId: meeting.id),
+                                () => DetailMeetPage(meetingId: meeting.id),
+                                binding: BindingsBuilder(() {
+                                  if (!Get.isRegistered<
+                                    GetAttendanceUseCase
+                                  >()) {
+                                    MeetingBinding().dependencies();
+                                    ParticipantBinding().dependencies();
+                                  }
+                                }),
                                 transition: Transition.rightToLeft,
                               );
                             },
