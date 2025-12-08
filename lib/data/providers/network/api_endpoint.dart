@@ -10,6 +10,7 @@ class APIEndpoint {
 
   // Auth endpoints
   static String get login => "$baseUrl/auth/login";
+  static String get updateDivision => "$baseUrl/auth/update-division";
   static String get register => "$baseUrl/auth/register";
   static String get logout => "$baseUrl/auth/logout";
   static String get currentUser => "$baseUrl/auth/profile";

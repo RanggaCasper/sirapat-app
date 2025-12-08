@@ -10,6 +10,7 @@ import 'package:sirapat_app/presentation/features/admin/pages/admin_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/create_meeting_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/meetings_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/meeting_detail_page.dart';
+import 'package:sirapat_app/presentation/features/profile/pages/edit_user_page.dart';
 import 'package:sirapat_app/presentation/features/splash/pages/splash_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/login_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/register_page.dart';
@@ -46,6 +47,11 @@ class AppPages {
       name: AppRoutes.forgotPassword,
       page: () => ForgotPasswordPage(),
       binding: AuthBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.forgotPassword,
+      page: () => EditUserPage(),
+      binding: UserBinding(),
     ),
 
     // Profile (with AuthBinding for accessing currentUser)

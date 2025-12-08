@@ -8,6 +8,7 @@ import 'package:sirapat_app/data/providers/network/requests/user/user_delete_req
 import 'package:sirapat_app/data/providers/network/requests/user/user_create_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/user/user_change_password_request.dart';
 import 'package:sirapat_app/data/providers/network/requests/user/user_update_role_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/user/user_update_division_request.dart';
 import 'package:sirapat_app/data/models/api_response_model.dart';
 import 'package:sirapat_app/data/models/user_model.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
@@ -304,6 +305,45 @@ class UserRepositoryImpl extends UserRepository {
       throw ApiException(
         status: false,
         message: 'Failed to change password: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<User> updateDivision({
+    required int id,
+    required int divisionId,
+  }) async {
+    try {
+      final request = UpdateUserDivisonRequest(id: id, divisionId: divisionId);
+
+      final response = await request.request();
+
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        throw ApiException.fromJson(response);
+      }
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => UserModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (!apiResponse.status || apiResponse.data == null) {
+        throw ApiException.fromJson(response);
+      }
+
+      return apiResponse.data as User;
+    } on ApiException catch (e) {
+      debugPrint(
+        '[UserRepository] ApiException in updateDivision: ${e.message}',
+      );
+      debugPrint('[UserRepository] Errors: ${e.errors}');
+      rethrow;
+    } catch (e) {
+      debugPrint('[UserRepository] Exception in updateDivision: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to update division: ${e.toString()}',
       );
     }
   }

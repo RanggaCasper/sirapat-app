@@ -9,6 +9,7 @@ import 'package:sirapat_app/domain/usecases/user/get_user_by_id_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/create_user_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/update_user_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/update_user_role_usecase.dart';
+import 'package:sirapat_app/domain/usecases/user/update_user_division_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/delete_user_usecase.dart';
 import 'package:sirapat_app/domain/usecases/user/change_password_usecase.dart';
 import 'package:sirapat_app/data/models/api_exception.dart';
@@ -20,6 +21,7 @@ class UserController extends GetxController {
   final CreateUserUseCase _createUserUseCase;
   final UpdateUserUseCase _updateUserUseCase;
   final UpdateUserRoleUseCase _updateUserRoleUseCase;
+  // final UpdateUserDivisionUseCase _updateUserDivisionUseCase;
   final DeleteUserUseCase _deleteUserUseCase;
   final ChangePasswordUseCase _changePasswordUseCase;
 
@@ -29,6 +31,7 @@ class UserController extends GetxController {
     this._createUserUseCase,
     this._updateUserUseCase,
     this._updateUserRoleUseCase,
+    // this._updateUserDivisionUseCase,
     this._deleteUserUseCase,
     this._changePasswordUseCase,
   );
@@ -677,4 +680,40 @@ class UserController extends GetxController {
       orElse: () => {'value': role, 'label': role},
     )['label']!;
   }
+
+  // // Update user division only
+  // Future<void> updateUserDivision(int userId, int divisionId) async {
+  //   try {
+  //     isLoadingActionObs.value = true;
+  //     _errorMessage.value = '';
+
+  //     final user = await _updateUserDivisionUseCase.execute(
+  //       UpdateUserDivisionParams(id: userId, divisionId: divisionId),
+  //     );
+
+  //     _notif.showSuccess(
+  //       'Divisi pengguna "${user.fullName}" berhasil diperbarui',
+  //     );
+
+  //     fetchUsers();
+  //     // Dialog/UI akan menutup di layer UI
+  //   } on ApiException catch (e) {
+  //     debugPrint(
+  //       '[UserController] ApiException in updateUserDivision: ${e.message}',
+  //     );
+
+  //     _errorMessage.value = e.message;
+
+  //     _notif.showError('Gagal mengubah divisi: ${e.message}');
+  //   } catch (e) {
+  //     debugPrint('[UserController] Exception in updateUserDivision: $e');
+  //     _errorMessage.value = e.toString();
+
+  //     _notif.showError('Gagal mengubah divisi: ${e.toString()}');
+  //   } finally {
+  //     isLoadingActionObs.value = false;
+  //   }
+  // }
+
+
 }

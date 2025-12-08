@@ -34,4 +34,6 @@ abstract class UserRepository {
     required String newPassword,
     required String newPasswordConfirmation,
   });
+
+  Future<User> updateDivision({required int id, required int divisionId});
 }

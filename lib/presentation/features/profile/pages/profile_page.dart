@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
+import 'package:sirapat_app/presentation/features/profile/pages/edit_user_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/user_info_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/change_password_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
@@ -137,6 +138,22 @@ class ProfilePage extends GetView<AuthController> {
                       Get.to(() => const UserInfoPage());
                     },
                   ),
+                ),
+                _buildMenuItem(
+                  icon: Icons.badge_outlined,
+                  title: 'Ubah Divisi',
+                  subtitle: 'Informasi divisi Anda',
+                  iconColor: const Color.fromARGB(255, 89, 255, 0),
+                  onTap: () {
+                    final id = controller.currentUser?.id;
+                    if (id == null) {
+                      Get.find<NotificationController>().showError(
+                        'Gagal mendapatkan informasi pengguna',
+                      );
+                      return;
+                    }
+                    Get.to(() => EditUserPage());
+                  },
                 ),
                 _buildMenuItem(
                   icon: Icons.lock_outline,
