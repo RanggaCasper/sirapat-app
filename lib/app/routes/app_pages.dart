@@ -79,17 +79,8 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.adminMeetingDetail,
-<<<<<<< HEAD
       page: () => MeetingDetailPage(meetingId: Get.arguments as int),
-      bindings: [MeetingBinding(), ParticipantBinding()],
-=======
-      page: () => MeetingDetailPage(meeting: Get.arguments as Meeting),
-      bindings: [
-        MeetingBinding(),
-        ParticipantBinding(),
-        MeetingMinuteBinding(),
-      ],
->>>>>>> 582d619f68873416dbcb51ecd7b3dde9a9f4180a
+      bindings: [MeetingBinding(), ParticipantBinding(), MeetingMinuteBinding()],
     ),
     // Employee Dashboard
     GetPage(
