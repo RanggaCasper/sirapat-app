@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:sirapat_app/data/providers/network/requests/meeting_minute/meeting_minute_get_by_meeting_id_request.dart';
+import 'package:sirapat_app/data/providers/network/requests/meeting_minute/meeting_minute_approve_request.dart';
 import 'package:sirapat_app/domain/entities/meeting_minute.dart';
 import 'package:sirapat_app/domain/repositories/meeting_minute_repository.dart';
 import 'package:sirapat_app/data/models/api_response_model.dart';
@@ -48,7 +49,49 @@ class MeetingMinuteRepositoryImpl extends MeetingMinuteRepository {
       );
       throw ApiException(
         status: false,
-        message: 'Failed to invite meetingminute: ${e.toString()}',
+        message: 'Failed to get meeting minute: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<void> approveMeetingMinute(int meetingMinuteId) async {
+    try {
+      final request = ApproveMeetingMinuteRequest(
+        meetingMinuteId: meetingMinuteId,
+      );
+      final response = await request.request();
+
+      debugPrint('[MeetingMinute] approvemeetingminute response: $response');
+
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        throw ApiException.fromJson(response);
+      }
+
+      final apiResponse = ApiResponse.fromJson(
+        response as Map<String, dynamic>,
+        (data) => data, // No data transformation needed for approve
+      );
+
+      if (!apiResponse.status) {
+        throw ApiException(
+          status: false,
+          message: apiResponse.message ?? 'Failed to approve meeting minute',
+        );
+      }
+
+      debugPrint('[MeetingMinute] Meeting minute approved successfully');
+    } on ApiException catch (e) {
+      debugPrint(
+        '[MeetingMinute] ApiException in approvemeetingminute: ${e.message}',
+      );
+      debugPrint('[MeetingMinute] Errors: ${e.errors}');
+      rethrow;
+    } catch (e) {
+      debugPrint('[MeetingMinute] Exception in approvemeetingminute: $e');
+      throw ApiException(
+        status: false,
+        message: 'Failed to approve meeting minute: ${e.toString()}',
       );
     }
   }

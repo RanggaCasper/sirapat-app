@@ -12,6 +12,8 @@ import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/summa
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/controllers/participant_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
+import 'package:sirapat_app/domain/entities/meeting_minute.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_minute_controller.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final int meetingId;
@@ -26,6 +28,8 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final MeetingController controller = Get.find<MeetingController>();
+  final MeetingMinuteController meetingMinuteController =
+      Get.find<MeetingMinuteController>();
 
   @override
   void initState() {
@@ -223,13 +227,66 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
           },
           child: const Icon(Icons.person_add),
         );
-
       case 2:
-        // Tab Summary: Chat button
-        return FloatingActionButton(
-          backgroundColor: AppColors.primary,
-          onPressed: _onChatButtonPressed,
-          child: const Icon(Icons.chat_bubble),
+        return FutureBuilder<MeetingMinute?>(
+          future: meetingMinuteController.getMeetingMinuteByMeetingId(
+            meeting.id,
+          ),
+          builder: (context, snapshot) {
+            // Sementara loading → tampilkan chat button
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return FloatingActionButton(
+                backgroundColor: AppColors.primary,
+                onPressed: _onChatButtonPressed,
+                child: const Icon(Icons.chat_bubble),
+              );
+            }
+
+            // Jika error → tampilkan chat button
+            if (snapshot.hasError) {
+              return FloatingActionButton(
+                backgroundColor: AppColors.primary,
+                onPressed: _onChatButtonPressed,
+                child: const Icon(Icons.chat_bubble),
+              );
+            }
+
+            final meetingMinute = snapshot.data;
+
+            // Cek approved
+            final isApproved =
+                meetingMinute?.approvedBy != null &&
+                meetingMinute?.approvedAt != null;
+
+            // Jika sudah approved → TIDAK tampilkan tombol apa pun
+            if (isApproved) {
+              return const SizedBox.shrink(); // penting!
+            }
+
+            // Jika belum approved → tampil 2 tombol
+            return Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 10, bottom: 10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FloatingActionButton(
+                      backgroundColor: AppColors.accentRed,
+                      onPressed: _onNoteButtonPressed,
+                      child: const Icon(Icons.edit_note),
+                    ),
+                    const SizedBox(height: 12),
+                    FloatingActionButton(
+                      backgroundColor: AppColors.primary,
+                      onPressed: _onChatButtonPressed,
+                      child: const Icon(Icons.chat_bubble),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
 
       default:
@@ -307,6 +364,186 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
                   ),
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _onNoteButtonPressed() async {
+    // Ambil data meeting minute terlebih dahulu
+    final meetingMinute = await meetingMinuteController
+        .getMeetingMinuteByMeetingId(widget.meetingId);
+
+    if (meetingMinute == null) {
+      Get.snackbar(
+        'Error',
+        'Notulen rapat tidak ditemukan',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade900,
+        icon: const Icon(Icons.error, color: Colors.red),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle indicator
+              const BottomSheetHandle(margin: EdgeInsets.only(bottom: 20)),
+
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.description,
+                  size: 48,
+                  color: AppColors.primary,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Title
+              const Text(
+                'Approve Notulen Rapat',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 12),
+
+              // Description
+              Text(
+                'Apakah Anda yakin ingin menyetujui notulen rapat ini?',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade700,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 32),
+
+              // Action Buttons
+              Row(
+                children: [
+                  // Cancel Button
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: Colors.grey.shade400),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Batal',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // Approve Button
+                  Expanded(
+                    child: Obx(() {
+                      final isLoading = meetingMinuteController.isLoadingAction;
+
+                      return ElevatedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                // Call approve method dari controller
+                                final success = await meetingMinuteController
+                                    .approveMeetingMinute(meetingMinute.id);
+
+                                if (!context.mounted) return;
+
+                                Navigator.pop(context);
+
+                                if (success) {
+                                  // Refresh halaman summary
+                                  setState(() {});
+
+                                  // Show success message
+                                  Get.snackbar(
+                                    'Berhasil',
+                                    'Notulen rapat telah disetujui',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.green.shade100,
+                                    colorText: Colors.green.shade900,
+                                    icon: const Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                    ),
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Text(
+                                'Approve',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
             ],
           ),
         );
