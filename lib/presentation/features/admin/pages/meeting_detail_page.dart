@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/presentation/shared/widgets/meet/chat_button.dart';
@@ -8,6 +10,9 @@ import 'package:sirapat_app/presentation/features/chat/pages/chat_meet_page.dart
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/info_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/participant_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/summary_page.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
+import 'package:sirapat_app/presentation/controllers/participant_controller.dart';
+import 'package:sirapat_app/presentation/features/voice_assistant/pages/voice_assistant_page.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final Meeting meeting;
@@ -21,11 +26,14 @@ class MeetingDetailPage extends StatefulWidget {
 class _MeetingDetailPageState extends State<MeetingDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
+  final MeetingController controller = Get.find<MeetingController>();
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+    _tabController.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -44,10 +52,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
         children: [
           InfoPage(meeting: widget.meeting),
           ParticipantPage(meeting: widget.meeting),
-          SummaryPage(meeting: widget.meeting),
+          SummaryPage(meetingId: widget.meeting.id),
         ],
       ),
-      floatingActionButton: ChatButton(onPressed: _onChatButtonPressed),
+      floatingActionButton: _buildFloatingButton(),
     );
   }
 
@@ -100,32 +108,173 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
+              leading: Icon(Icons.mic, color: AppColors.primary),
+              title: Text(
+                'Meeting Assistant',
+                style: TextStyle(color: AppColors.primary),
+              ),
+              onTap: () {
+                // Navigator.pop(context);
+                Get.to(
+                  () => VoiceRecordPage(meetingId: widget.meeting.id),
+                  transition: Transition.rightToLeft,
+                );
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.edit),
               title: const Text('Edit Rapat'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Navigate to edit page
               },
             ),
             ListTile(
               leading: const Icon(Icons.share),
               title: const Text('Bagikan'),
               onTap: () {
+                _shareMeetingInfo();
                 Navigator.pop(context);
-                // TODO: Implement share functionality
               },
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
               title: const Text('Hapus', style: TextStyle(color: Colors.red)),
               onTap: () {
+                controller.deleteMeeting(widget.meeting.id);
                 Navigator.pop(context);
-                // TODO: Implement delete functionality
               },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _shareMeetingInfo() async {
+    final meeting = widget.meeting;
+
+    final passcode = await controller.getMeetingPasscodeById(widget.meeting.id);
+    final message =
+        """
+          📅 *Undangan Rapat*
+          Judul: ${meeting.title}
+          Tanggal: ${meeting.date}
+          Waktu: ${meeting.startTime} - ${meeting.endTime}
+
+          🔑 *Passcode:* $passcode
+          🔗 *Link Join:* (masukkan link jika ada)
+          📷 *QR Code tersedia pada aplikasi*
+
+          Dibagikan via *SIRAPAT App*
+          """;
+
+    Share.share(message, subject: "Undangan Rapat: ${meeting.title}");
+    _copyToClipboard(message);
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    Get.snackbar(
+      "Disalin",
+      "Teks undangan telah disalin ke clipboard",
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
+  Widget? _buildFloatingButton() {
+    switch (_tabController.index) {
+      case 0:
+        return FloatingActionButton(
+          backgroundColor: AppColors.primary,
+          onPressed: () {
+            ChatButton(onPressed: _onChatButtonPressed);
+          },
+          child: const Icon(Icons.chat_bubble),
+        );
+
+      case 1:
+        return FloatingActionButton(
+          backgroundColor: Colors.orange,
+          onPressed: () {
+            _showInviteBottomSheet(context);
+          },
+          child: const Icon(Icons.person_add),
+        );
+
+      case 2:
+        return FloatingActionButton(
+          backgroundColor: Colors.green,
+          onPressed: () {
+            print("Summary FAB pressed");
+          },
+          child: const Icon(Icons.edit),
+        );
+
+      default:
+        return null;
+    }
+  }
+
+  void _showInviteBottomSheet(BuildContext context) {
+    final ParticipantController participantController =
+        Get.find<ParticipantController>();
+    final TextEditingController identifierController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Invite Participant",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+
+              TextField(
+                controller: identifierController,
+                decoration: InputDecoration(
+                  labelText: "Email / Phone Number / NIP",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final identifier = identifierController.text.trim();
+                    participantController.inviteParticipant(
+                      meetingId: widget.meeting.id,
+                      identifier: identifier,
+                    );
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.send),
+                  label: const Text("Send Invitation"),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

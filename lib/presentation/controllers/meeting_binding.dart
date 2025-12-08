@@ -5,6 +5,7 @@ import 'package:sirapat_app/domain/repositories/meeting_repository.dart';
 import 'package:sirapat_app/domain/repositories/attendance_repository.dart';
 import 'package:sirapat_app/domain/usecases/meeting/get_meetings_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/get_meeting_by_id_usecase.dart';
+import 'package:sirapat_app/domain/usecases/meeting/get_passcode_by_id_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/create_meeting_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/update_meeting_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/delete_meeting_usecase.dart';
@@ -27,6 +28,7 @@ class MeetingBinding extends Bindings {
     Get.lazyPut(() => DeleteMeetingUseCase(Get.find<MeetingRepository>()));
     Get.lazyPut(() => JoinMeetingByCodeUseCase(Get.find<MeetingRepository>()));
     Get.lazyPut(() => GetAttendanceUseCase(Get.find<AttendanceRepository>()));
+    Get.lazyPut(() => GetPasscodeByIdUseCase(Get.find<MeetingRepository>()));
 
     // Controller
     Get.lazyPut(
@@ -37,6 +39,7 @@ class MeetingBinding extends Bindings {
         Get.find<UpdateMeetingUseCase>(),
         Get.find<DeleteMeetingUseCase>(),
         Get.find<JoinMeetingByCodeUseCase>(),
+        Get.find<GetPasscodeByIdUseCase>(),
       ),
     );
   }

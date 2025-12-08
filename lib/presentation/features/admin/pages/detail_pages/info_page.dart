@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -8,6 +10,7 @@ import 'package:sirapat_app/app/util/qr_download_helper.dart';
 import 'package:sirapat_app/app/util/date_formatter.dart';
 import 'package:sirapat_app/app/util/status_chip_builder.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class InfoPage extends StatefulWidget {
@@ -20,10 +23,16 @@ class InfoPage extends StatefulWidget {
 }
 
 class _InfoPageState extends State<InfoPage> {
+  String? decryptedPasscode;
   final GlobalKey _qrKey = GlobalKey();
   bool _isDownloading = false;
 
   NotificationController get _notif => Get.find<NotificationController>();
+  @override
+  void initState() {
+    super.initState();
+    _loadPasscode();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +125,14 @@ class _InfoPageState extends State<InfoPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: QrImageView(
-                          data: widget.meeting.passcode!,
+                          data: jsonEncode({
+                            'id': widget.meeting.id,
+                            'title': widget.meeting.title,
+                            'date': widget.meeting.date,
+                            'startTime': widget.meeting.startTime,
+                            'endTime': widget.meeting.endTime,
+                            'passcode': decryptedPasscode,
+                          }),
                           version: QrVersions.auto,
                           size: 300,
                           backgroundColor: Colors.white,
@@ -288,6 +304,15 @@ class _InfoPageState extends State<InfoPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _loadPasscode() async {
+    final controller = Get.find<MeetingController>();
+    final code = await controller.getMeetingPasscodeById(widget.meeting.id);
+
+    setState(() {
+      decryptedPasscode = code;
+    });
   }
 
   Future<void> _downloadQrCode() async {

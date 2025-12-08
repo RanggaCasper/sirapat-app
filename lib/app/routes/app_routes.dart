@@ -21,6 +21,7 @@ class AppRoutes {
   static const String adminCreateMeeting = '/admin-create-meeting';
   static const String adminAllMeetings = '/admin-all-meetings';
   static const String adminMeetingDetail = '/admin-meeting-detail';
+  static const String adminInviteParticipant = '/admin-invite-participant';
 
   // Employee
   static const String employeeDashboard = '/employee-dashboard';

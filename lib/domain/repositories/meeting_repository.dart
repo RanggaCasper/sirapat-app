@@ -43,4 +43,6 @@ abstract class MeetingRepository {
   Future<List<Meeting>> getUpcomingMeetings();
 
   Future<List<Meeting>> getPastMeetings();
+
+  Future<String> getPasscodeById(int id);
 }

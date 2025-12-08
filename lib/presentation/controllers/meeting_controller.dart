@@ -6,6 +6,7 @@ import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/domain/entities/pagination.dart';
 import 'package:sirapat_app/domain/usecases/meeting/get_meetings_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/get_meeting_by_id_usecase.dart';
+import 'package:sirapat_app/domain/usecases/meeting/get_passcode_by_id_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/create_meeting_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/update_meeting_usecase.dart';
 import 'package:sirapat_app/domain/usecases/meeting/delete_meeting_usecase.dart';
@@ -21,6 +22,7 @@ class MeetingController extends GetxController {
   final UpdateMeetingUseCase _updateMeetingUseCase;
   final DeleteMeetingUseCase _deleteMeetingUseCase;
   final JoinMeetingByCodeUseCase _joinMeetingByCodeUseCase;
+  final GetPasscodeByIdUseCase _getPasscodeByIdUseCase;
 
   MeetingController(
     this._getMeetingsUseCase,
@@ -29,6 +31,7 @@ class MeetingController extends GetxController {
     this._updateMeetingUseCase,
     this._deleteMeetingUseCase,
     this._joinMeetingByCodeUseCase,
+    this._getPasscodeByIdUseCase,
   );
 
   // Observable lists
@@ -633,6 +636,25 @@ class MeetingController extends GetxController {
       _notif.showError('Gagal mengikuti rapat');
     } finally {
       isLoadingActionObs.value = false;
+    }
+  }
+
+  // Get meeting passcode
+  Future<String?> getMeetingPasscodeById(int id) async {
+    try {
+      final passcode = await _getPasscodeByIdUseCase.execute(id);
+
+      return passcode;
+    } on ApiException catch (e) {
+      debugPrint(
+        '[MeetingController] ApiException in getMeetingPasscodeById: ${e.message}',
+      );
+      _notif.showError(e.message);
+      return null;
+    } catch (e) {
+      debugPrint('[MeetingController] Exception in getMeetingPasscodeById: $e');
+      _notif.showError(e.toString());
+      return null;
     }
   }
 }
