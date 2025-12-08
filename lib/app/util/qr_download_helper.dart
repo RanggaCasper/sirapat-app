@@ -18,23 +18,28 @@ class QrDownloadHelper {
       if (Platform.isAndroid) {
         final bool hasPermission = await _requestStoragePermission();
         if (!hasPermission) {
-          debugPrint('[QrDownloadHelper] Storage permission denied');
-          return null;
+          final String error =
+              'Permission ditolak. Berikan izin penyimpanan di Settings > Apps > SiRapat > Permissions';
+          debugPrint('[QrDownloadHelper] $error');
+          throw Exception(error);
         }
       }
 
       // Capture QR code as image
       final Uint8List? imageBytes = await _captureQrCode(repaintBoundaryKey);
       if (imageBytes == null) {
-        debugPrint('[QrDownloadHelper] Failed to capture QR code');
-        return null;
+        final String error = 'Gagal mengambil gambar QR code. Coba lagi.';
+        debugPrint('[QrDownloadHelper] $error');
+        throw Exception(error);
       }
 
       // Get Download/Sirapat directory
       final Directory? directory = await _getDownloadDirectory();
       if (directory == null) {
-        debugPrint('[QrDownloadHelper] Failed to get download directory');
-        return null;
+        final String error =
+            'Tidak dapat mengakses folder Download. Periksa izin penyimpanan.';
+        debugPrint('[QrDownloadHelper] $error');
+        throw Exception(error);
       }
 
       // Create Sirapat subfolder if not exists
@@ -64,7 +69,7 @@ class QrDownloadHelper {
       return filePath;
     } catch (e) {
       debugPrint('[QrDownloadHelper] Error downloading QR code: $e');
-      return null;
+      rethrow; // Propagate error with details
     }
   }
 

@@ -301,17 +301,15 @@ class _InfoPageState extends State<InfoPage> {
         fileName: 'qr_${widget.meeting.title}',
       );
 
-      if (filePath == null) {
-        _notif.showError('Gagal menyimpan QR code');
-        return;
+      if (filePath != null) {
+        _notif.showSuccess(
+          'QR code berhasil disimpan di folder Download/Sirapat',
+        );
       }
-
-      _notif.showSuccess(
-        'QR code berhasil disimpan di folder Download/Sirapat',
-      );
     } catch (e) {
       debugPrint('[InfoPage] Error downloading QR code: $e');
-      _notif.showError('Gagal menyimpan QR code: ${e.toString()}');
+      final errorMsg = e.toString().replaceAll('Exception: ', '');
+      _notif.showError(errorMsg);
     } finally {
       if (mounted) {
         setState(() => _isDownloading = false);
