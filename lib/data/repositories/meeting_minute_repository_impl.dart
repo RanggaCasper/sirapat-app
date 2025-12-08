@@ -76,7 +76,7 @@ class MeetingMinuteRepositoryImpl extends MeetingMinuteRepository {
       if (!apiResponse.status) {
         throw ApiException(
           status: false,
-          message: apiResponse.message ?? 'Failed to approve meeting minute',
+          message: apiResponse.message,
         );
       }
 

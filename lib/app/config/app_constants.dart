@@ -3,7 +3,7 @@ class AppConstants {
 
   // Environment Configuration
   // 🔴 Set to true for PRODUCTION, false for LOCAL DEVELOPMENT
-  static const bool isProduction = false;
+  static const bool isProduction = true;
 
   // API Configuration
   static const String productionUrl = 'https://sirapat.my.id';

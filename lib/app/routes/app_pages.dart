@@ -86,7 +86,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.adminMeetingDetail,
       page: () => MeetingDetailPage(meetingId: Get.arguments as int),
-      bindings: [MeetingBinding(), ParticipantBinding(), MeetingMinuteBinding()],
+      bindings: [
+        MeetingBinding(),
+        ParticipantBinding(),
+        MeetingMinuteBinding(),
+      ],
     ),
     // Employee Dashboard
     GetPage(
@@ -97,7 +101,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.employeeDetailMeeting,
       page: () => const DetailMeetPage(),
-      bindings: [MeetingBinding(), ParticipantBinding()],
+      bindings: [
+        MeetingBinding(),
+        ParticipantBinding(),
+        MeetingMinuteBinding(),
+      ],
     ),
     GetPage(
       name: AppRoutes.employeeHistoryMeeting,

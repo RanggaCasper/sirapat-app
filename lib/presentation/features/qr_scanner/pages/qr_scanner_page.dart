@@ -120,7 +120,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: data == null
                         ? null
                         : () async {
@@ -144,6 +144,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 ),
               ],
             ),
+            const SizedBox(width: 24),
           ],
         ),
       ),

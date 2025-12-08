@@ -17,7 +17,7 @@ class UpdateUserDivisonRequest implements APIRequestRepresentable {
   String get endpoint => APIEndpoint.baseUrl;
 
   @override
-  String get path => "auth/update-divison";
+  String get path => "auth/update-division";
 
   @override
   HTTPMethod get method => HTTPMethod.put;
