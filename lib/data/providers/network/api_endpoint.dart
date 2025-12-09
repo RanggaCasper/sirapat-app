@@ -15,7 +15,7 @@ class APIEndpoint {
   static String get logout => "$baseUrl/auth/logout";
   static String get currentUser => "$baseUrl/auth/profile";
   static String get resetPassword => "$baseUrl/profile/reset-password";
-  static String get divisions => "$baseUrl/master/division";
+  // static String get divisions => "$baseUrl/master/division";
   static String get users => "$baseUrl/master/user";
   static String get chatMinutes => "$baseUrl/chat-minute";
   // static String get attendace => "$baseUrl/admin/attendance";
@@ -53,6 +53,20 @@ class APIEndpoint {
     }
   }
 
+  static String get divisions {
+    try {
+      final authController = Get.find<AuthController>();
+      final userRole =
+          authController.currentUser?.role?.toLowerCase() ?? 'employee';
+
+      if (userRole == 'admin' || userRole == 'employee') {
+        return "$baseUrl/profile/get-division";
+      }
+      return "$baseUrl/master/division";
+    } catch (e) {
+      return "$baseUrl/master/division";
+    }
+  }
   // // Endpoint khusus admin
   // static String get meetingsAdmin => "$baseUrl/admin/meeting";
 

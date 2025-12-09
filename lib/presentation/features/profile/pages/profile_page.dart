@@ -143,8 +143,8 @@ class ProfilePage extends GetView<AuthController> {
                 ),
                 _buildMenuItem(
                   icon: Icons.badge_outlined,
-                  title: 'Ubah Divisi',
-                  subtitle: 'Informasi divisi Anda',
+                  title: 'Ubah Profile',
+                  subtitle: 'Informasi Profile Anda',
                   iconColor: const Color.fromARGB(255, 89, 255, 0),
                   onTap: () {
                     final id = controller.currentUser?.id;

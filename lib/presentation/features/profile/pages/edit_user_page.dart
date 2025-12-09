@@ -3,20 +3,74 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
-import 'package:sirapat_app/presentation/controllers/user_controller.dart';
+import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
+import 'package:sirapat_app/presentation/controllers/division_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 
-class EditUserPage extends StatelessWidget {
+class EditUserPage extends StatefulWidget {
   const EditUserPage({super.key});
 
   @override
+  State<EditUserPage> createState() => _EditUserPageState();
+}
+
+class _EditUserPageState extends State<EditUserPage> {
+  // Text controllers untuk menghindari recreation
+  late final TextEditingController nipController;
+  late final TextEditingController fullNameController;
+  late final TextEditingController usernameController;
+  late final TextEditingController emailController;
+  late final TextEditingController phoneController;
+
+  // Selected division ID (as String for dropdown)
+  String? selectedDivisionId;
+
+  @override
+  void initState() {
+    super.initState();
+    final authController = Get.find<AuthController>();
+
+    nipController = TextEditingController(
+      text: authController.currentUser?.nip,
+    );
+    fullNameController = TextEditingController(
+      text: authController.currentUser?.fullName,
+    );
+    usernameController = TextEditingController(
+      text: authController.currentUser?.username,
+    );
+    emailController = TextEditingController(
+      text: authController.currentUser?.email,
+    );
+    phoneController = TextEditingController(
+      text: authController.currentUser?.phone,
+    );
+
+    // Set initial division value
+    if (authController.currentUser?.divisionId != null) {
+      selectedDivisionId = authController.currentUser!.divisionId.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    nipController.dispose();
+    fullNameController.dispose();
+    usernameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final controller = Get.find<UserController>();
+    final authController = Get.find<AuthController>();
+    final divisionController = Get.find<DivisionController>();
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Edit Pengguna'),
+        title: const Text('Edit Profile'),
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -34,14 +88,15 @@ class EditUserPage extends StatelessWidget {
                   // NIP Field
                   Obx(
                     () => CustomTextField(
-                      controller: controller.nipController,
+                      controller: nipController,
                       labelText: 'NIP *',
                       hintText: 'Masukkan NIP',
                       prefixIcon: Icons.badge_outlined,
-                      errorText: controller.getFieldError('nip'),
+                      errorText: authController.getFieldError('nip'),
+                      readOnly: true,
                       onChanged: (value) {
-                        if (controller.getFieldError('nip') != null) {
-                          controller.clearFieldError('nip');
+                        if (authController.getFieldError('nip') != null) {
+                          authController.clearFieldError('nip');
                         }
                       },
                     ),
@@ -51,15 +106,15 @@ class EditUserPage extends StatelessWidget {
                   // Full Name Field
                   Obx(
                     () => CustomTextField(
-                      controller: controller.fullNameController,
+                      controller: fullNameController,
                       labelText: 'Nama Lengkap *',
                       hintText: 'Masukkan nama lengkap',
                       prefixIcon: Icons.person_outlined,
-                      errorText: controller.getFieldError('full_name'),
+                      errorText: authController.getFieldError('full_name'),
                       textCapitalization: TextCapitalization.words,
                       onChanged: (value) {
-                        if (controller.getFieldError('full_name') != null) {
-                          controller.clearFieldError('full_name');
+                        if (authController.getFieldError('full_name') != null) {
+                          authController.clearFieldError('full_name');
                         }
                       },
                     ),
@@ -69,14 +124,14 @@ class EditUserPage extends StatelessWidget {
                   // Username Field
                   Obx(
                     () => CustomTextField(
-                      controller: controller.usernameController,
+                      controller: usernameController,
                       labelText: 'Username *',
                       hintText: 'Masukkan username',
                       prefixIcon: Icons.account_circle_outlined,
-                      errorText: controller.getFieldError('username'),
+                      errorText: authController.getFieldError('username'),
                       onChanged: (value) {
-                        if (controller.getFieldError('username') != null) {
-                          controller.clearFieldError('username');
+                        if (authController.getFieldError('username') != null) {
+                          authController.clearFieldError('username');
                         }
                       },
                     ),
@@ -86,15 +141,15 @@ class EditUserPage extends StatelessWidget {
                   // Email Field
                   Obx(
                     () => CustomTextField(
-                      controller: controller.emailController,
+                      controller: emailController,
                       labelText: 'Email *',
                       hintText: 'Masukkan email',
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
-                      errorText: controller.getFieldError('email'),
+                      errorText: authController.getFieldError('email'),
                       onChanged: (value) {
-                        if (controller.getFieldError('email') != null) {
-                          controller.clearFieldError('email');
+                        if (authController.getFieldError('email') != null) {
+                          authController.clearFieldError('email');
                         }
                       },
                     ),
@@ -104,28 +159,30 @@ class EditUserPage extends StatelessWidget {
                   // Phone Field
                   Obx(
                     () => CustomTextField(
-                      controller: controller.phoneController,
+                      controller: phoneController,
                       labelText: 'Nomor Telepon *',
                       hintText: 'Masukkan nomor telepon',
                       prefixIcon: Icons.phone_outlined,
                       keyboardType: TextInputType.phone,
-                      errorText: controller.getFieldError('phone'),
+                      errorText: authController.getFieldError('phone'),
                       onChanged: (value) {
-                        if (controller.getFieldError('phone') != null) {
-                          controller.clearFieldError('phone');
+                        if (authController.getFieldError('phone') != null) {
+                          authController.clearFieldError('phone');
                         }
                       },
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  // Role Dropdown
+                  // Divisi Dropdown
                   Obx(() {
+                    final divisions = divisionController.divisionOptions;
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Role *',
+                          'Divisi *',
                           style: AppTextStyles.body.copyWith(
                             fontWeight: FontWeight.w600,
                             color: AppColors.textDark,
@@ -138,7 +195,7 @@ class EditUserPage extends StatelessWidget {
                             borderRadius: AppRadius.radiusMD,
                           ),
                           child: DropdownButtonFormField<String>(
-                            value: controller.selectedRole.value,
+                            value: selectedDivisionId,
                             decoration: const InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -149,27 +206,45 @@ class EditUserPage extends StatelessWidget {
                                 Icons.admin_panel_settings_outlined,
                               ),
                             ),
-                            items: controller.roleOptions
-                                .map(
-                                  (role) => DropdownMenuItem(
-                                    value: role['value'],
-                                    child: Text(role['label']!),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                controller.selectedRole.value = value;
-                              }
-                            },
+                            hint: const Text('Pilih Divisi'),
+                            isExpanded: true,
+                            items: divisions.isEmpty
+                                ? []
+                                : divisions.map((division) {
+                                    return DropdownMenuItem<String>(
+                                      value: division.id.toString(),
+                                      child: Text(
+                                        division.name,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  }).toList(),
+                            onChanged: divisions.isEmpty
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      selectedDivisionId = value;
+                                    });
+                                  },
                           ),
                         ),
+                        if (divisions.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              'Tidak ada divisi tersedia',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.red.shade700,
+                              ),
+                            ),
+                          ),
                       ],
                     );
                   }),
 
                   const SizedBox(height: 12),
-                  Text(
+                  const Text(
                     '* Wajib diisi',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
@@ -221,20 +296,39 @@ class EditUserPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    flex: 2,
                     child: Obx(
                       () => ElevatedButton(
-                        onPressed: controller.isLoadingActionObs.value
+                        onPressed: authController.isLoading
                             ? null
                             : () async {
-                                await controller.updateUser();
-                                if (controller.fieldErrors.isEmpty &&
-                                    context.mounted) {
-                                  Navigator.of(context).pop();
+                                // Validate division selected
+                                if (selectedDivisionId == null ||
+                                    selectedDivisionId!.isEmpty) {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Silakan pilih divisi',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.red,
+                                    colorText: Colors.white,
+                                  );
+                                  return;
                                 }
+
+                                // TODO: Implement updateUser method in controller
+                                // await authController.updateUser(
+                                //   nip: nipController.text,
+                                //   fullName: fullNameController.text,
+                                //   username: usernameController.text,
+                                //   email: emailController.text,
+                                //   phone: phoneController.text,
+                                //   divisionId: int.parse(selectedDivisionId!),
+                                // );
+                                // if (authController.fieldErrors.isEmpty && context.mounted) {
+                                //   Navigator.of(context).pop();
+                                // }
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -242,7 +336,7 @@ class EditUserPage extends StatelessWidget {
                           ),
                           elevation: 0,
                         ),
-                        child: controller.isLoadingActionObs.value
+                        child: authController.isLoading
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,

@@ -56,6 +56,7 @@ class DivisionController extends GetxController {
 
   // Notification helper
   NotificationController get _notif => Get.find<NotificationController>();
+  List<Division> get divisionOptions => _allDivisions;
 
   @override
   void onInit() {
@@ -69,6 +70,50 @@ class DivisionController extends GetxController {
     descriptionController.dispose();
     searchController.dispose();
     super.onClose();
+  }
+
+  String getDivisionNameById(int divisionId) {
+    try {
+      final division = _allDivisions.firstWhere((div) => div.id == divisionId);
+      return division.name;
+    } catch (e) {
+      return 'Unknown Division';
+    }
+  }
+
+  // Get division by ID
+  Division? getDivisionById(int divisionId) {
+    try {
+      return _allDivisions.firstWhere((div) => div.id == divisionId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Get all divisions as dropdown items (Map format)
+  List<Map<String, String>> getDivisionDropdownItems() {
+    return _allDivisions.map((division) {
+      return {'value': division.id.toString(), 'label': division.name};
+    }).toList();
+  }
+
+  // Check if division exists
+  bool isDivisionExists(int divisionId) {
+    return _allDivisions.any((div) => div.id == divisionId);
+  }
+
+  // Get divisions count
+  int get divisionsCount => _allDivisions.length;
+
+  // Refresh divisions for dropdown (lightweight call)
+  Future<void> refreshDivisionsForDropdown() async {
+    try {
+      final result = await _getDivisionsUseCase.execute();
+      _allDivisions.value = result;
+      totalCount.value = result.length;
+    } catch (e) {
+      debugPrint('[DivisionController] Error refreshing divisions: $e');
+    }
   }
 
   // Fetch all divisions from API (only once)

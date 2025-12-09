@@ -11,6 +11,7 @@ import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/parti
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/summary_page.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/controllers/participant_controller.dart';
+import 'package:sirapat_app/presentation/features/voice_assistant/pages/voice_assistant_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 import 'package:sirapat_app/domain/entities/meeting_minute.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_minute_controller.dart';
@@ -134,19 +135,19 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
             // Handle indicator
             const BottomSheetHandle(margin: EdgeInsets.only(bottom: 20)),
             // Meeting Assistant feature commented out (flutter_sound removed)
-            // ListTile(
-            //   leading: Icon(Icons.mic, color: AppColors.primary),
-            //   title: Text(
-            //     'Meeting Assistant',
-            //     style: TextStyle(color: AppColors.primary),
-            //   ),
-            //   onTap: () {
-            //     Get.to(
-            //       () => VoiceRecordPage(meetingId: widget.meetingId),
-            //       transition: Transition.rightToLeft,
-            //     );
-            //   },
-            // ),
+            ListTile(
+              leading: Icon(Icons.mic, color: AppColors.primary),
+              title: Text(
+                'Meeting Assistant',
+                style: TextStyle(color: AppColors.primary),
+              ),
+              onTap: () {
+                Get.to(
+                  () => VoiceRecordPage(meetingId: widget.meetingId),
+                  transition: Transition.rightToLeft,
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.edit),
               title: const Text('Edit Rapat'),
