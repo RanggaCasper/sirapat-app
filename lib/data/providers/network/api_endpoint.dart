@@ -59,12 +59,12 @@ class APIEndpoint {
       final userRole =
           authController.currentUser?.role?.toLowerCase() ?? 'employee';
 
-      if (userRole == 'admin' || userRole == 'employee') {
-        return "$baseUrl/profile/get-division";
+      if (userRole == 'master') {
+        return "$baseUrl/master/division";
       }
-      return "$baseUrl/master/division";
+      return "$baseUrl/profile/get-division";
     } catch (e) {
-      return "$baseUrl/master/division";
+      return "$baseUrl/profile/get-division";
     }
   }
   // // Endpoint khusus admin

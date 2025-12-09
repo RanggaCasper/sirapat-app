@@ -7,6 +7,7 @@ import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 import 'package:sirapat_app/presentation/shared/widgets/pagination_controls.dart';
 import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
 import 'package:sirapat_app/presentation/controllers/participant_binding.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_minute_binding.dart';
 import 'package:sirapat_app/domain/usecases/attendance/get_attendance_usecase.dart';
 
 class HistoryMeetPage extends StatefulWidget {
@@ -171,6 +172,7 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
                                   >()) {
                                     MeetingBinding().dependencies();
                                     ParticipantBinding().dependencies();
+                                    MeetingMinuteBinding().dependencies();
                                   }
                                 }),
                                 transition: Transition.rightToLeft,

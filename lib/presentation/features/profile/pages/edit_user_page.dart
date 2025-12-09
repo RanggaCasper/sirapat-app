@@ -5,6 +5,7 @@ import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/division_controller.dart';
+import 'package:sirapat_app/presentation/controllers/division_binding.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 
 class EditUserPage extends StatefulWidget {
@@ -65,6 +66,10 @@ class _EditUserPageState extends State<EditUserPage> {
   @override
   Widget build(BuildContext context) {
     final authController = Get.find<AuthController>();
+    // Ensure DivisionController is registered (in case navigation didn't apply bindings)
+    if (!Get.isRegistered<DivisionController>()) {
+      DivisionBinding().dependencies();
+    }
     final divisionController = Get.find<DivisionController>();
 
     return Scaffold(

@@ -9,6 +9,7 @@ import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/controllers/participant_binding.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_minute_binding.dart';
 import 'package:sirapat_app/domain/usecases/attendance/get_attendance_usecase.dart';
 import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 
@@ -133,6 +134,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
                                 if (!Get.isRegistered<GetAttendanceUseCase>()) {
                                   MeetingBinding().dependencies();
                                   ParticipantBinding().dependencies();
+                                  MeetingMinuteBinding().dependencies();
                                 }
                               }),
                               transition: Transition.rightToLeft,

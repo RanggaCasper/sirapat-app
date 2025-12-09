@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_minute_binding.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/domain/entities/meeting_minute.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_minute_controller.dart';
 
-class SummaryPage extends GetView<MeetingMinuteController> {
+class SummaryPage extends StatelessWidget {
   final int meetingId;
 
   const SummaryPage({super.key, required this.meetingId});
 
   @override
   Widget build(BuildContext context) {
+    // Ensure MeetingMinuteController is registered before accessing it.
+    if (!Get.isRegistered<MeetingMinuteController>()) {
+      MeetingMinuteBinding().dependencies();
+    }
+
+    final meetingMinuteController = Get.find<MeetingMinuteController>();
+
     return FutureBuilder<MeetingMinute?>(
-      future: controller.getMeetingMinuteByMeetingId(meetingId),
+      future: meetingMinuteController.getMeetingMinuteByMeetingId(meetingId),
       builder: (context, snapshot) {
         // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -305,7 +313,6 @@ class SummaryPage extends GetView<MeetingMinuteController> {
       ),
     );
   }
-
 
   Widget _buildPendingApprovalBadge() {
     return Container(

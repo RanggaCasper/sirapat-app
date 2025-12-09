@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/user_binding.dart';
+import 'package:sirapat_app/presentation/controllers/division_binding.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/edit_user_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/user_info_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/change_password_page.dart';
@@ -154,7 +155,13 @@ class ProfilePage extends GetView<AuthController> {
                       );
                       return;
                     }
-                    Get.to(() => EditUserPage(), binding: UserBinding());
+                    Get.to(
+                      () => EditUserPage(),
+                      binding: BindingsBuilder(() {
+                        UserBinding().dependencies();
+                        DivisionBinding().dependencies();
+                      }),
+                    );
                   },
                 ),
                 _buildMenuItem(

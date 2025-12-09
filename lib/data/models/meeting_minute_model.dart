@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:sirapat_app/domain/entities/meeting_minute.dart';
 
 class MeetingMinuteModel extends MeetingMinute {
@@ -11,22 +12,40 @@ class MeetingMinuteModel extends MeetingMinute {
   });
 
   factory MeetingMinuteModel.fromJson(Map<String, dynamic> json) {
+    // Parse decisions field - handle both String (JSON encoded) and List
+    List<Decision>? parseDecisions(dynamic decisionsField) {
+      if (decisionsField == null) return null;
+
+      List decisionsData;
+
+      // If it's a String, parse it as JSON
+      if (decisionsField is String) {
+        try {
+          decisionsData = jsonDecode(decisionsField) as List;
+        } catch (e) {
+          return null;
+        }
+      } else if (decisionsField is List) {
+        decisionsData = decisionsField;
+      } else {
+        return null;
+      }
+
+      return decisionsData.map((d) {
+        return Decision(
+          title: d is String ? d : d['title'],
+          description: d is String ? '' : (d['description'] ?? ''),
+        );
+      }).toList();
+    }
+
     return MeetingMinuteModel(
       id: json['id'] is String ? int.parse(json['id']) : json['id'],
       meetingId: json['meeting_id'] is String
           ? int.parse(json['meeting_id'])
           : json['meeting_id'],
       content: json['content'],
-      decisions: json['decisions'] != null
-          ? (json['decisions'] as List)
-                .map(
-                  (d) => Decision(
-                    title: d is String ? d : d['title'],
-                    description: d is String ? '' : (d['description'] ?? ''),
-                  ),
-                )
-                .toList()
-          : null,
+      decisions: parseDecisions(json['decisions']),
       approvedBy: json['approved_by'] != null
           ? (json['approved_by'] is String
                 ? int.parse(json['approved_by'])

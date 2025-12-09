@@ -18,6 +18,7 @@ import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
 import 'package:sirapat_app/presentation/controllers/participant_binding.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_minute_binding.dart';
 import 'package:sirapat_app/domain/usecases/attendance/get_attendance_usecase.dart';
 
 class EmployeePage extends StatefulWidget {
@@ -329,6 +330,7 @@ class _EmployeePageState extends State<EmployeePage> {
         if (!Get.isRegistered<GetAttendanceUseCase>()) {
           MeetingBinding().dependencies();
           ParticipantBinding().dependencies();
+          MeetingMinuteBinding().dependencies();
         }
       }),
       transition: Transition.rightToLeft,
