@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:sirapat_app/data/repositories/auth_repository_impl.dart';
+import 'package:sirapat_app/domain/usecases/auth/update_profile_usecase.dart';
 import 'package:sirapat_app/domain/usecases/login_usecase.dart';
 import 'package:sirapat_app/domain/usecases/register_usecase.dart';
 import 'package:sirapat_app/domain/usecases/get_current_user_usecase.dart';
@@ -18,6 +19,7 @@ class AuthBinding extends Bindings {
     Get.lazyPut(() => RegisterUseCase(Get.find<AuthRepositoryImpl>()));
     Get.lazyPut(() => GetCurrentUserUseCase(Get.find<AuthRepositoryImpl>()));
     Get.lazyPut(() => ResetPasswordUseCase(Get.find<AuthRepositoryImpl>()));
+    Get.lazyPut(() => UpdateProfileUseCase(Get.find<AuthRepositoryImpl>()));
 
     // Controllers
     Get.put(
@@ -27,6 +29,7 @@ class AuthBinding extends Bindings {
         Get.find<GetCurrentUserUseCase>(),
         Get.find<ResetPasswordUseCase>(),
         Get.find<AuthRepositoryImpl>(),
+        Get.find<UpdateProfileUseCase>(),
       ),
       permanent: true,
     );

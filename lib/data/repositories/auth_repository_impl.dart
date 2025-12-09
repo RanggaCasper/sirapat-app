@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:sirapat_app/data/models/user_model.dart';
+import 'package:sirapat_app/data/providers/network/requests/auth/profile_update_request.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/repositories/auth_repository.dart';
 import 'package:sirapat_app/app/services/local_storage.dart';
@@ -283,6 +285,72 @@ class AuthRepositoryImpl extends AuthRepository {
         status: false,
         message: 'Reset password failed: ${e.toString()}',
       );
+    }
+  }
+
+  @override
+  Future<User> updateProfile({
+    required String fullName,
+    required String phone,
+    required int divisionId,
+  }) async {
+    try {
+      debugPrint('[AuthRepository] Updating profile...');
+      debugPrint('[AuthRepository] Request data:');
+      debugPrint('  - Full Name: $fullName');
+      debugPrint('  - Phone: $phone');
+      debugPrint('  - Division ID: $divisionId');
+
+      final request = ProfileUpdateRequest(
+        fullName: fullName,
+        phone: phone,
+        divisionId: divisionId,
+      );
+
+      final response = await request.request();
+
+      debugPrint('[AuthRepository] Update profile response: $response');
+
+      // Check if response is null or not successful
+      if (response == null || response['status'] != true) {
+        throw Exception('Failed to update profile: ${response?['message']}');
+      }
+
+      // Since API returns data: null, we need to create user from the input data
+      // and get other fields from current stored user
+      final currentUserJson = _storage.getData<Map<String, dynamic>>(
+        StorageKey.user,
+      );
+
+      if (currentUserJson == null) {
+        throw Exception('Current user data not found in storage');
+      }
+
+      debugPrint('[AuthRepository] Current user data: $currentUserJson');
+
+      // Update the user data with new values
+      final updatedUserJson = Map<String, dynamic>.from(currentUserJson);
+      updatedUserJson['full_name'] = fullName;
+      updatedUserJson['phone'] = phone;
+      updatedUserJson['division_id'] = divisionId;
+
+      debugPrint('[AuthRepository] Updated user data: $updatedUserJson');
+
+      // Parse user model
+      final userModel = UserModel.fromJson(updatedUserJson);
+
+      // Save updated user data to local storage
+      await _storage.saveData(StorageKey.user, updatedUserJson);
+
+      debugPrint(
+        '[AuthRepository] Profile updated successfully for: ${userModel.fullName}',
+      );
+
+      return userModel.toEntity();
+    } catch (e, stackTrace) {
+      debugPrint('[AuthRepository] Error updating profile: $e');
+      debugPrint('[AuthRepository] Stack trace: $stackTrace');
+      rethrow;
     }
   }
 }

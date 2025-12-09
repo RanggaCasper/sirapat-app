@@ -134,6 +134,7 @@ class _EditUserPageState extends State<EditUserPage> {
                       hintText: 'Masukkan username',
                       prefixIcon: Icons.account_circle_outlined,
                       errorText: authController.getFieldError('username'),
+                      readOnly: true,
                       onChanged: (value) {
                         if (authController.getFieldError('username') != null) {
                           authController.clearFieldError('username');
@@ -152,6 +153,7 @@ class _EditUserPageState extends State<EditUserPage> {
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                       errorText: authController.getFieldError('email'),
+                      readOnly: true,
                       onChanged: (value) {
                         if (authController.getFieldError('email') != null) {
                           authController.clearFieldError('email');
@@ -320,17 +322,15 @@ class _EditUserPageState extends State<EditUserPage> {
                                 }
 
                                 // TODO: Implement updateUser method in controller
-                                // await authController.updateUser(
-                                //   nip: nipController.text,
-                                //   fullName: fullNameController.text,
-                                //   username: usernameController.text,
-                                //   email: emailController.text,
-                                //   phone: phoneController.text,
-                                //   divisionId: int.parse(selectedDivisionId!),
-                                // );
-                                // if (authController.fieldErrors.isEmpty && context.mounted) {
-                                //   Navigator.of(context).pop();
-                                // }
+                                await authController.updateProfile(
+                                  fullName: fullNameController.text.trim(),
+                                  phone: phoneController.text.trim(),
+                                  divisionId: int.parse(selectedDivisionId!),
+                                );
+                                if (authController.fieldErrors.isEmpty &&
+                                    context.mounted) {
+                                  Navigator.of(context).pop();
+                                }
                               },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
