@@ -7,6 +7,7 @@ import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/division_controller.dart';
 import 'package:sirapat_app/presentation/controllers/division_binding.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class EditUserPage extends StatefulWidget {
   const EditUserPage({super.key});
@@ -311,13 +312,9 @@ class _EditUserPageState extends State<EditUserPage> {
                                 // Validate division selected
                                 if (selectedDivisionId == null ||
                                     selectedDivisionId!.isEmpty) {
-                                  Get.snackbar(
-                                    'Error',
-                                    'Silakan pilih divisi',
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    backgroundColor: Colors.red,
-                                    colorText: Colors.white,
-                                  );
+                                  final notif =
+                                      Get.find<NotificationController>();
+                                  notif.showError('Silakan pilih divisi');
                                   return;
                                 }
 

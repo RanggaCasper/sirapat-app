@@ -16,6 +16,7 @@ import 'package:sirapat_app/presentation/features/voice_assistant/pages/voice_as
 import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 import 'package:sirapat_app/domain/entities/meeting_minute.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_minute_controller.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final int meetingId;
@@ -49,6 +50,8 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   @override
   void dispose() {
     _tabController.dispose();
+    // Clear selected meeting to prevent stale data
+    controller.selectedMeeting.value = null;
     super.dispose();
   }
 
@@ -64,6 +67,13 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
             title: const Text('Loading...'),
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                controller.selectedMeeting.value = null;
+                Get.back();
+              },
+            ),
           ),
           body: const Center(child: CircularProgressIndicator()),
         );
@@ -88,6 +98,14 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   PreferredSizeWidget _buildAppBar(Meeting meeting) {
     return AppBar(
       title: Text(meeting.title),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          // Clear selected meeting and go back
+          controller.selectedMeeting.value = null;
+          Get.back();
+        },
+      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.more_vert),
@@ -143,6 +161,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
                 style: TextStyle(color: AppColors.primary),
               ),
               onTap: () {
+                Navigator.pop(context); // Close bottom sheet first
                 Get.to(
                   () => VoiceRecordPage(meetingId: widget.meetingId),
                   transition: Transition.rightToLeft,
@@ -153,10 +172,17 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
               leading: const Icon(Icons.edit),
               title: const Text('Edit Rapat'),
               onTap: () {
-                Get.to(
-                  () => EditMeetingPage(meetingId: "${widget.meetingId}"),
-                  transition: Transition.rightToLeft,
-                );
+                Navigator.pop(context); // Close bottom sheet first
+
+                // Ensure meeting data is available for edit
+                final meeting = controller.selectedMeeting.value;
+                if (meeting != null) {
+                  controller.prepareEdit(meeting);
+                  Get.to(
+                    () => EditMeetingPage(meetingId: "${widget.meetingId}"),
+                    transition: Transition.rightToLeft,
+                  );
+                }
               },
             ),
             ListTile(
@@ -206,11 +232,8 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    Get.snackbar(
-      "Disalin",
-      "Teks undangan telah disalin ke clipboard",
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    final notif = Get.find<NotificationController>();
+    notif.showSuccess('Teks undangan telah disalin ke clipboard');
   }
 
   Widget? _buildFloatingButton(Meeting meeting) {
@@ -382,14 +405,8 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
         .getMeetingMinuteByMeetingId(widget.meetingId);
 
     if (meetingMinute == null) {
-      Get.snackbar(
-        'Error',
-        'Notulen rapat tidak ditemukan',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade900,
-        icon: const Icon(Icons.error, color: Colors.red),
-      );
+      final notif = Get.find<NotificationController>();
+      notif.showError('Notulen rapat tidak ditemukan');
       return;
     }
 
@@ -502,16 +519,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
                                   setState(() {});
 
                                   // Show success message
-                                  Get.snackbar(
-                                    'Berhasil',
+                                  final notif =
+                                      Get.find<NotificationController>();
+                                  notif.showSuccess(
                                     'Notulen rapat telah disetujui',
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    backgroundColor: Colors.green.shade100,
-                                    colorText: Colors.green.shade900,
-                                    icon: const Icon(
-                                      Icons.check_circle,
-                                      color: Colors.green,
-                                    ),
                                   );
                                 }
                               },

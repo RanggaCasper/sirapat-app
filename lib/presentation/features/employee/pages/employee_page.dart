@@ -330,6 +330,10 @@ class _EmployeePageState extends State<EmployeePage> {
       return;
     }
 
+    // Clear previous selected meeting to avoid conflicts
+    final meetingController = Get.find<MeetingController>();
+    meetingController.selectedMeeting.value = null;
+
     // Navigate to detail page with meeting ID
     Get.to(
       () => DetailMeetPage(meetingId: meetingId),
@@ -341,7 +345,6 @@ class _EmployeePageState extends State<EmployeePage> {
         }
       }),
       transition: Transition.rightToLeft,
-      arguments: meetingId,
     );
   }
 }
