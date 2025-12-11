@@ -95,10 +95,39 @@ class MeetingRepositoryImpl extends MeetingRepository {
       final request = GetMeetingByIdRequest(id: id);
       final response = await request.request();
 
-      final apiResponse = ApiResponse.fromJson(
-        response as Map<String, dynamic>,
-        (data) => MeetingModel.fromJson(data as Map<String, dynamic>),
+      debugPrint(
+        '[MeetingRepository] Get Meeting By ID API Response: $response',
       );
+      debugPrint('[MeetingRepository] Response type: ${response.runtimeType}');
+
+      // Check if response is a String (error case or empty response)
+      if (response is String) {
+        debugPrint('[MeetingRepository] Response is String: "$response"');
+        throw ApiException(
+          status: false,
+          message: response.isEmpty ? 'Meeting not found' : response,
+        );
+      }
+
+      // Ensure response is a Map
+      if (response is! Map<String, dynamic>) {
+        debugPrint(
+          '[MeetingRepository] Response is not a Map: ${response.runtimeType}',
+        );
+        throw ApiException(status: false, message: 'Invalid response format');
+      }
+
+      final apiResponse = ApiResponse.fromJson(response, (data) {
+        debugPrint('[MeetingRepository] Data in getMeetingById: $data');
+        debugPrint('[MeetingRepository] Data type: ${data.runtimeType}');
+
+        // Handle if data is already a Map
+        if (data is Map<String, dynamic>) {
+          return MeetingModel.fromJson(data);
+        }
+
+        throw Exception('Unexpected data format: ${data.runtimeType}');
+      });
 
       if (!apiResponse.status || apiResponse.data == null) {
         throw ApiException.fromJson(response);

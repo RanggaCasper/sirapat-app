@@ -30,10 +30,10 @@ class _DetailMeetPageState extends State<DetailMeetPage>
     _tabController.addListener(() {
       setState(() {});
     });
-    // Fetch meeting detail when page loads
-    if (Get.arguments != null) {
+    // Fetch meeting detail when page loads using meetingId parameter
+    if (widget.meetingId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        controller.fetchMeetingById(Get.arguments!);
+        controller.fetchMeetingById(widget.meetingId!);
       });
     }
   }
@@ -41,6 +41,8 @@ class _DetailMeetPageState extends State<DetailMeetPage>
   @override
   void dispose() {
     _tabController.dispose();
+    // Clear selected meeting to prevent stale data on next navigation
+    controller.selectedMeeting.value = null;
     super.dispose();
   }
 

@@ -276,6 +276,13 @@ class MeetingController extends GetxController {
         ),
       );
 
+      // Add to local cache immediately
+      _allMeetings.insert(0, meeting);
+      _applyPagination(
+        page: 1, // Go to first page to show the new meeting
+        perPage: paginationMeta.value?.perPage ?? AppConstants.defaultPageSize,
+      );
+
       // Show success toast
       _notif.showSuccess('Rapat "${meeting.title}" berhasil ditambahkan');
 
@@ -290,8 +297,10 @@ class MeetingController extends GetxController {
         );
       }
 
-      // Refresh meeting list
-      await fetchMeetings();
+      // Refresh from API in background
+      Future.delayed(const Duration(milliseconds: 200)).then((_) {
+        fetchMeetings();
+      });
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingController] ApiException in createMeeting: ${e.message}',
@@ -352,13 +361,32 @@ class MeetingController extends GetxController {
         ),
       );
 
+      // Update local cache immediately to show updated data
+      final index = _allMeetings.indexWhere((m) => m.id == meeting.id);
+      if (index != -1) {
+        _allMeetings[index] = meeting;
+        _applyPagination(
+          page: paginationMeta.value?.currentPage ?? 1,
+          perPage:
+              paginationMeta.value?.perPage ?? AppConstants.defaultPageSize,
+        );
+      }
+
+      // Update selectedMeeting so detail page shows updated data
+      selectedMeeting.value = meeting;
+
       _notif.showSuccess('Rapat "${meeting.title}" berhasil diperbarui');
 
       clearForm();
 
-      // Refresh meetings list
-      await fetchMeetings();
-      Get.back();
+      // Close edit page and detail page, return to meeting list
+      Get.back(); // Close edit page
+      Get.back(); // Close detail page
+
+      // Refresh from API in background without blocking UI
+      Future.delayed(const Duration(milliseconds: 200)).then((_) {
+        fetchMeetings();
+      });
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingController] ApiException in updateMeeting: ${e.message}',
@@ -437,11 +465,11 @@ class MeetingController extends GetxController {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: () => Navigator.of(Get.context!).pop(true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: Colors.red,
                     ),
                     child: const Text('Hapus'),
                   ),
@@ -462,12 +490,28 @@ class MeetingController extends GetxController {
       _errorMessage.value = '';
 
       await _deleteMeetingUseCase.execute(id);
-      meetings.removeWhere((m) => m.id == id); // remove dari cache
+
+      // Remove from local cache immediately
+      _allMeetings.removeWhere((m) => m.id == id);
+      meetings.removeWhere((m) => m.id == id);
+
+      // Reapply pagination to update UI
+      _applyPagination(
+        page: paginationMeta.value?.currentPage ?? 1,
+        perPage: paginationMeta.value?.perPage ?? AppConstants.defaultPageSize,
+      );
 
       _notif.showSuccess('Rapat "$meetingTitle" berhasil dihapus');
-      await Future.delayed(const Duration(milliseconds: 150));
-      fetchMeetings();
-      // Get.back();
+
+      // Navigate back to list if we're in detail page
+      if (Get.currentRoute.contains('detail')) {
+        Get.back();
+      }
+
+      // Refresh from API in background
+      Future.delayed(const Duration(milliseconds: 200)).then((_) {
+        fetchMeetings();
+      });
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingController] ApiException in deleteMeeting: ${e.message}',
@@ -664,11 +708,11 @@ class MeetingController extends GetxController {
       debugPrint(
         '[MeetingController] ApiException in getMeetingPasscodeById: ${e.message}',
       );
-      _notif.showError(e.message);
+      // Don't show error notification - passcode might not be available yet
       return null;
     } catch (e) {
       debugPrint('[MeetingController] Exception in getMeetingPasscodeById: $e');
-      _notif.showError(e.toString());
+      // Don't show error notification - handle silently
       return null;
     }
   }

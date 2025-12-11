@@ -17,8 +17,11 @@ class HistoryMeetPage extends StatefulWidget {
   State<HistoryMeetPage> createState() => _HistoryMeetPageState();
 }
 
-class _HistoryMeetPageState extends State<HistoryMeetPage> {
+class _HistoryMeetPageState extends State<HistoryMeetPage> with AutomaticKeepAliveClientMixin {
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -27,6 +30,14 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
     if (!Get.isRegistered<MeetingController>()) {
       MeetingBinding().dependencies();
     }
+    
+    // Fetch meetings if not already loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final meetingController = Get.find<MeetingController>();
+      if (meetingController.meetings.isEmpty && !meetingController.isLoading) {
+        meetingController.fetchMeetings();
+      }
+    });
   }
 
   @override
@@ -42,6 +53,7 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -164,6 +176,10 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
                             title: meeting.title,
                             date: DateTime.parse(meeting.date),
                             onTap: () {
+                              // Clear any previous selected meeting before navigating
+                              final meetingController = Get.find<MeetingController>();
+                              meetingController.selectedMeeting.value = null;
+                              
                               Get.to(
                                 () => DetailMeetPage(meetingId: meeting.id),
                                 binding: BindingsBuilder(() {
@@ -178,7 +194,7 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> {
                                 transition: Transition.rightToLeft,
                               );
                             },
-                          ),
+                          )
                         );
                       },
                     ),
