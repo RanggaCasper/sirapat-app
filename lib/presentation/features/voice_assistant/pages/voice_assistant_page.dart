@@ -1,8 +1,15 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:get/get.dart';
+import 'package:sirapat_app/data/repositories/audio_repository.dart';
+import 'package:sirapat_app/data/models/audio_transcript_model.dart';
+import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class VoiceRecordPage extends StatefulWidget {
   final int meetingId;
@@ -14,9 +21,19 @@ class VoiceRecordPage extends StatefulWidget {
 
 class _VoiceRecordPageState extends State<VoiceRecordPage> {
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  final AudioRepository _audioRepository = Get.find<AudioRepository>();
+  final NotificationController _notif = Get.find<NotificationController>();
+  final TextEditingController _transcriptController = TextEditingController();
+
   bool _isRecorderReady = false;
   bool _isRecording = false;
+  bool _isPaused = false;
+  bool _isProcessing = false;
   String? _filePath;
+  AudioTranscriptModel? _transcript;
+  Duration _recordDuration = Duration.zero;
+  Timer? _timer;
+  AudioTranscriptModel? _recordTranscript;
 
   @override
   void initState() {
@@ -25,22 +42,37 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
   }
 
   Future<void> _initRecorder() async {
-    // Request microphone
-    final micStatus = await Permission.microphone.request();
-    if (micStatus != PermissionStatus.granted) {
-      throw Exception("Microphone permission not granted");
-    }
+    try {
+      // Request microphone
+      final micStatus = await Permission.microphone.request();
+      if (micStatus != PermissionStatus.granted) {
+        _notif.showError("Microphone permission not granted");
+        return;
+      }
 
-    // Request storage
-    final storageStatus = await Permission.storage.request();
-    if (storageStatus != PermissionStatus.granted) {
-      throw Exception("Storage permission not granted");
-    }
+      // Request storage permissions based on Android version
+      if (Platform.isAndroid) {
+        // For Android 13 (API 33) and above, use different permissions
+        if (await Permission.photos.request().isGranted ||
+            await Permission.manageExternalStorage.request().isGranted ||
+            await Permission.storage.request().isGranted) {
+          // At least one storage permission granted
+        } else {
+          _notif.showWarning(
+            'Storage permission not granted. Recording will be saved to app directory.',
+          );
+        }
+      }
 
-    await _recorder.openRecorder();
-    _isRecorderReady = true;
-    setState(() {});
+      await _recorder.openRecorder();
+      _isRecorderReady = true;
+      setState(() {});
+    } catch (e) {
+      _notif.showError('Failed to initialize recorder: $e');
+      debugPrint('Error initializing recorder: $e');
+    }
   }
+
   Future<String> _getDownloadPath() async {
     Directory? directory;
 
@@ -60,110 +92,608 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
   }
 
   Future<void> _startRecording() async {
-    if (!_isRecorderReady) return;
+    if (!_isRecorderReady) {
+      _notif.showError('Recorder is not ready');
+      return;
+    }
 
-    final downloadPath = await _getDownloadPath();
-    final fileName = "voice_${DateTime.now().millisecondsSinceEpoch}.wav";
+    try {
+      final downloadPath = await _getDownloadPath();
+      final fileName = "voice_${DateTime.now().millisecondsSinceEpoch}.wav";
+      final fullPath = "$downloadPath/$fileName";
 
-    final fullPath = "$downloadPath/$fileName";
+      debugPrint('Starting recording to: $fullPath');
 
-    await _recorder.startRecorder(toFile: fullPath, codec: Codec.pcm16WAV);
+      await _recorder.startRecorder(
+        toFile: fullPath,
+        codec: Codec.pcm16WAV,
+        sampleRate: 16000,
+      );
 
-    _filePath = fullPath;
+      _filePath = fullPath;
+      _recordDuration = Duration.zero;
+      _startTimer();
 
+      setState(() {
+        _isRecording = true;
+        _isPaused = false;
+      });
+    } catch (e) {
+      _notif.showError('Failed to start recording: $e');
+      debugPrint('Error starting recording: $e');
+    }
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!_isPaused) {
+        setState(() {
+          _recordDuration = Duration(seconds: _recordDuration.inSeconds + 1);
+        });
+      }
+    });
+  }
+
+  Future<void> _pauseRecording() async {
+    if (!_isRecorderReady || !_isRecording) return;
+
+    await _recorder.pauseRecorder();
     setState(() {
-      _isRecording = true;
+      _isPaused = true;
+    });
+  }
+
+  Future<void> _resumeRecording() async {
+    if (!_isRecorderReady || !_isRecording) return;
+
+    await _recorder.resumeRecorder();
+    setState(() {
+      _isPaused = false;
     });
   }
 
   Future<void> _stopRecording() async {
     if (!_isRecorderReady) return;
 
-    await _recorder.stopRecorder();
+    try {
+      await _recorder.stopRecorder();
+      _timer?.cancel();
 
-    setState(() {
-      _isRecording = false;
-    });
+      setState(() {
+        _isRecording = false;
+        _isPaused = false;
+      });
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("Saved to:\n$_filePath")));
+      debugPrint('Recording saved to: $_filePath');
+      _notif.showSuccess(
+        'Recording saved: ${_formatDuration(_recordDuration)}',
+      );
+    } catch (e) {
+      _notif.showError('Failed to stop recording: $e');
+      debugPrint('Error stopping recording: $e');
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return duration.inHours > 0
+        ? "$hours:$minutes:$seconds"
+        : "$minutes:$seconds";
+  }
+
+  Future<void> _pickAndUploadFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['mp3', 'wav', 'm4a', 'aac'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() => _isProcessing = true);
+
+        File file = File(result.files.single.path!);
+        final fileSize = await file.length();
+
+        debugPrint('Uploading file: ${file.path}');
+        debugPrint(
+          'File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)} MB',
+        );
+
+        final transcript = await _audioRepository.uploadAndTranscribeAudio(
+          file,
+        );
+
+        debugPrint(
+          'Transcription received: ${transcript.text.length} characters',
+        );
+
+        setState(() {
+          _transcript = transcript;
+          _transcriptController.text = transcript.text;
+          _isProcessing = false;
+        });
+
+        _notif.showSuccess('Audio transcribed successfully');
+      }
+    } catch (e) {
+      debugPrint('Upload error: $e');
+      setState(() => _isProcessing = false);
+      _notif.showError('Failed to upload audio: $e');
+    }
+  }
+
+  Future<void> _uploadRecordedFile() async {
+    if (_filePath == null) {
+      _notif.showWarning('No recording file found');
+      return;
+    }
+
+    try {
+      setState(() => _isProcessing = true);
+
+      File file = File(_filePath!);
+
+      if (!await file.exists()) {
+        throw Exception('Recording file not found');
+      }
+
+      final fileSize = await file.length();
+      debugPrint('Uploading recorded file: $_filePath');
+      debugPrint(
+        'File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)} MB',
+      );
+
+      final transcript = await _audioRepository.uploadAndTranscribeAudio(file);
+
+      debugPrint(
+        'Transcription received: ${transcript.text.length} characters',
+      );
+
+      setState(() {
+        _recordTranscript = transcript;
+        _transcript = transcript;
+        _transcriptController.text = transcript.text;
+        _isProcessing = false;
+      });
+
+      _notif.showSuccess('Recording transcribed successfully');
+    } catch (e) {
+      debugPrint('Upload recorded file error: $e');
+      setState(() => _isProcessing = false);
+      _notif.showError('Failed to transcribe recording: $e');
+    }
+  }
+
+  Future<void> _createMeetingMinutes() async {
+    if (_transcriptController.text.trim().isEmpty) {
+      _notif.showWarning('Please provide transcript text');
+      return;
+    }
+
+    try {
+      setState(() => _isProcessing = true);
+
+      debugPrint(
+        'Creating meeting minutes for meeting ID: ${widget.meetingId}',
+      );
+      debugPrint('Text length: ${_transcriptController.text.length}');
+
+      await _audioRepository.createMeetingMinutes(
+        text: _transcriptController.text,
+        meetingId: widget.meetingId,
+        style: 'detailed',
+        includeElements: true,
+      );
+
+      debugPrint('Meeting minutes created successfully');
+
+      setState(() => _isProcessing = false);
+
+      _notif.showSuccess('Meeting minutes created successfully');
+
+      // Navigate back after success
+      Get.back();
+    } catch (e) {
+      debugPrint('Create meeting minutes error: $e');
+      setState(() => _isProcessing = false);
+      _notif.showError('Failed to create meeting minutes: $e');
+    }
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _recorder.closeRecorder();
+    _transcriptController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Voice Recorder")),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              height: _isRecording ? 180 : 80,
-              width: 180,
-              decoration: BoxDecoration(
-                color: _isRecording ? Colors.redAccent : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: Icon(
-                _isRecording ? Icons.mic : Icons.mic_none,
-                size: 80,
-                color: Colors.white,
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            Text(
-              _isRecording ? "Recording..." : "Tap to start recording",
-              style: const TextStyle(fontSize: 18),
-            ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-              onPressed: () {
-                _isRecording ? _stopRecording() : _startRecording();
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                backgroundColor: _isRecording ? Colors.red : Colors.blueAccent,
-              ),
-              child: Text(
-                _isRecording ? "Stop" : "Record",
-                style: const TextStyle(fontSize: 18, color: Colors.white),
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            if (_filePath != null)
-              Column(
+      appBar: AppBar(
+        title: const Text("Voice Assistant"),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: _isProcessing
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text("Last recording:"),
-                  Text(
-                    _filePath!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 12),
+                  // Recording Section
+                  Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            height: _isRecording ? 120 : 80,
+                            width: _isRecording ? 120 : 80,
+                            decoration: BoxDecoration(
+                              color: _isRecording
+                                  ? Colors.redAccent
+                                  : AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Icon(
+                              _isRecording ? Icons.mic : Icons.mic_none,
+                              size: 50,
+                              color: _isRecording
+                                  ? Colors.white
+                                  : AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _isRecording
+                                ? (_isPaused ? "Paused" : "Recording...")
+                                : "Record Meeting Audio",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (_isRecording) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              _formatDuration(_recordDuration),
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: _isPaused ? Colors.orange : Colors.red,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (!_isRecording)
+                                ElevatedButton.icon(
+                                  onPressed: _startRecording,
+                                  icon: const Icon(Icons.mic),
+                                  label: const Text("Start Recording"),
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 12,
+                                    ),
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              if (_isRecording) ...[
+                                ElevatedButton.icon(
+                                  onPressed: _isPaused
+                                      ? _resumeRecording
+                                      : _pauseRecording,
+                                  icon: Icon(
+                                    _isPaused ? Icons.play_arrow : Icons.pause,
+                                  ),
+                                  label: Text(_isPaused ? "Resume" : "Pause"),
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                ElevatedButton.icon(
+                                  onPressed: _stopRecording,
+                                  icon: const Icon(Icons.stop),
+                                  label: const Text("Stop"),
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 12,
+                                    ),
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (_filePath != null) ...[
+                            const SizedBox(height: 16),
+                            const Divider(),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Recording saved (${_formatDuration(_recordDuration)})",
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: _uploadRecordedFile,
+                              icon: const Icon(Icons.cloud_upload),
+                              label: const Text("Transcribe Recording"),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 12,
+                                ),
+                                backgroundColor: AppColors.success,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                            if (_recordTranscript != null) ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.green.shade200,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.description,
+                                          size: 16,
+                                          color: Colors.green.shade700,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          "Transkrip Recording",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      _recordTranscript!.text,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade800,
+                                      ),
+                                      maxLines: 4,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Upload File Section
+                  Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.upload_file,
+                            size: 50,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "Upload Audio File",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Supported formats: MP3, WAV, M4A, AAC",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _pickAndUploadFile,
+                            icon: const Icon(Icons.folder_open),
+                            label: const Text("Choose File"),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 12,
+                              ),
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Transcript Section
+                  if (_transcript != null) ...[
+                    Card(
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.article, color: AppColors.primary),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  "Transcript",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.audiotrack,
+                                        size: 16,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        "Duration: ${_transcript!.audioInfo.duration.toStringAsFixed(1)}s",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade700,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Icon(
+                                        Icons.timer,
+                                        size: 16,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        "Processing: ${_transcript!.processingTime.toStringAsFixed(2)}s",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Transcript Editor
+                  Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.edit_note, color: AppColors.primary),
+                              const SizedBox(width: 8),
+                              const Text(
+                                "Transcript Text",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _transcriptController,
+                            maxLines: 10,
+                            decoration: InputDecoration(
+                              hintText: _transcript == null
+                                  ? "Upload or record audio to get transcript, or type manually..."
+                                  : "Edit transcript if needed...",
+                              border: const OutlineInputBorder(),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _createMeetingMinutes,
+                              icon: const Icon(Icons.description),
+                              label: const Text("Create Meeting Minutes"),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
-          ],
-        ),
-      ),
+            ),
     );
   }
 }

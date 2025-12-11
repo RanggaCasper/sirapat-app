@@ -7,14 +7,11 @@ import 'package:sirapat_app/presentation/features/admin/pages/meetings_page.dart
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
-import 'package:sirapat_app/presentation/shared/widgets/custom_button.dart';
-import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 import 'package:sirapat_app/presentation/shared/widgets/user_header_card.dart';
 import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
-import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -25,8 +22,7 @@ class AdminPage extends StatefulWidget {
 
 class _AdminPageState extends State<AdminPage> {
   int _currentIndex = 0;
-  final TextEditingController _meetingCodeController = TextEditingController();
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,7 +96,6 @@ class _AdminPageState extends State<AdminPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildUserHeader(currentUser),
-            _buildMeetingCodeCard(),
             _buildMeetingListHeader(),
             _buildMeetingList(),
           ],
@@ -117,52 +112,6 @@ class _AdminPageState extends State<AdminPage> {
         userNip: currentUser?.nip ?? '-',
         userRole: currentUser?.role,
       ),
-    );
-  }
-
-  Widget _buildMeetingCodeCard() {
-    return Padding(
-      padding: AppSpacing.paddingLG,
-      child: Container(
-        padding: AppSpacing.paddingLG,
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: AppRadius.radiusLG,
-          boxShadow: AppShadow.card,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Masukkan Kode Rapat', style: AppTextStyles.subtitle),
-            const SizedBox(height: AppSpacing.md),
-            _buildMeetingCodeInput(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMeetingCodeInput() {
-    return Row(
-      children: [
-        Expanded(
-          child: CustomTextField(
-            hintText: 'Contoh: MTG-12345',
-            controller: _meetingCodeController,
-            textColor: AppColors.textDark,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        CustomButton(
-          text: 'Ikuti',
-          height: 50,
-          width: 90,
-          borderRadius: 12,
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.cardBackground,
-          onPressed: _onJoinMeetingPressed,
-        ),
-      ],
     );
   }
 
@@ -208,20 +157,6 @@ class _AdminPageState extends State<AdminPage> {
         ),
       ),
     );
-  }
-
-  void _onJoinMeetingPressed() {
-    final meetingCode = _meetingCodeController.text.trim();
-
-    if (meetingCode.isEmpty) {
-      Get.find<NotificationController>().showError(
-        'Silakan masukkan kode rapat',
-      );
-      return;
-    }
-
-    // TODO: Implement join meeting logic
-    debugPrint('Join meeting with code: $meetingCode');
   }
 
   void _onViewAllPressed() {

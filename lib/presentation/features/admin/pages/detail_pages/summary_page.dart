@@ -27,250 +27,114 @@ class SummaryPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // Error state
-        if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
-                const SizedBox(height: 16),
-                Text(
-                  'Error: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
-        }
+        // Get meeting minute data (may be null)
+        final meetingMinute = snapshot.data;
+        final minutes = meetingMinute?.minutes ?? '';
 
-        // Empty state
-        if (!snapshot.hasData || snapshot.data == null) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.description_outlined,
-                  size: 64,
-                  color: Colors.grey.shade300,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Belum ada notulen untuk rapat ini',
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
-                ),
-              ],
-            ),
-          );
-        }
+        // Get keputusan from elements instead of decisions
+        final keputusan = meetingMinute?.elements?['keputusan'] as List?;
 
-        final meetingMinute = snapshot.data!;
-        final content = meetingMinute.content;
-        final decisions = meetingMinute.decisions ?? [];
-        final approvedBy = meetingMinute.approvedBy;
-        final approvedAt = meetingMinute.approvedAt;
-        // final meeting = meetingMinute.meeting;
+        final approvedBy = meetingMinute?.approvedBy;
+        final approvedAt = meetingMinute?.approvedAt;
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Meeting Info Card
-              // if (meeting != null) ...[
-              //   _buildMeetingInfoCard(meeting),
-              //   const SizedBox(height: 20),
-              // ],
-
-              // Summary (content)
-              _buildSummarySection(title: 'Ringkasan Rapat', content: content),
-
-              const SizedBox(height: 20),
-
-              // Decisions Section
-              _buildDecisionsSection(decisions),
-
-              const SizedBox(height: 20),
-
-              // Approval Status
-              if (approvedBy != null && approvedAt != null) ...[
-                _buildApprovalSection(approvedBy, approvedAt),
-              ] else ...[
-                _buildPendingApprovalBadge(),
-              ],
-            ],
-          ),
-        );
+        // Always display the notulensi layout (even if empty)
+        return _buildMinutesTab(minutes, keputusan, approvedBy, approvedAt);
       },
     );
   }
 
-  Widget _buildSummarySection({
+  Widget _buildMinutesTab(
+    String minutes,
+    List? keputusan,
+    dynamic approvedBy,
+    DateTime? approvedAt,
+  ) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildFormattedContentSection(
+            title: 'Notulensi Rapat',
+            content: minutes,
+            icon: Icons.description,
+            iconColor: AppColors.primary,
+          ),
+          const SizedBox(height: 20),
+          if (approvedBy != null && approvedAt != null) ...[
+            _buildApprovalSection(approvedBy, approvedAt),
+          ] else ...[
+            _buildPendingApprovalBadge(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormattedContentSection({
     required String title,
     required String content,
+    required IconData icon,
+    required Color iconColor,
   }) {
+    // Split content by \n and render each line
+    final lines = content.split('\\n');
+
     return SizedBox(
       width: double.infinity,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.15),
+          color: iconColor.withOpacity(0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary),
+          border: Border.all(color: iconColor.withOpacity(0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.summarize, color: Colors.blue[900], size: 20),
+                Icon(icon, color: iconColor, size: 22),
                 const SizedBox(width: 8),
                 Text(
                   title,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.blue[900],
+                    color: iconColor,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              content,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDecisionsSection(List<dynamic> decisions) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.gavel, color: Colors.green.shade700, size: 20),
-            const SizedBox(width: 8),
-            const Text(
-              'Keputusan',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (decisions.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.grey.shade600, size: 20),
-                const SizedBox(width: 12),
-                const Text(
-                  "Belum ada keputusan.",
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+            const SizedBox(height: 16),
+            if (content.isEmpty)
+              Text(
+                'Belum ada konten',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  fontStyle: FontStyle.italic,
                 ),
-              ],
-            ),
-          )
-        else
-          ...decisions.map((item) {
-            String title;
-            String description;
-
-            if (item is Map<String, dynamic>) {
-              title = item['title'] ?? "-";
-              description = item['description'] ?? "-";
-            } else {
-              // Assume it's a Decision entity
-              title = item.title ?? "-";
-              description = item.description ?? "-";
-            }
-
-            return _buildDecisionItem(title: title, description: description);
-          }),
-      ],
-    );
-  }
-
-  Widget _buildDecisionItem({
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.green.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(top: 2),
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: Colors.green.shade600,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: lines.map((line) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      line,
                       style: const TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w600,
                         color: Colors.black87,
+                        height: 1.6,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade700,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                }).toList(),
               ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

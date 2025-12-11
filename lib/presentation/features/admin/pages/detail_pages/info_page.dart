@@ -168,12 +168,12 @@ class _InfoPageState extends State<InfoPage> {
                 _isDownloading ? 'Mengunduh...' : 'Simpan QR Code',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                // padding: const EdgeInsets.symmetric(vertical: 14),
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

@@ -62,6 +62,7 @@ dependencies:
 
   # Voice Record
   flutter_sound: ^9.2.13
+  file_picker: ^8.1.6
 
   # JSON Serialization
   json_annotation: ^4.9.0

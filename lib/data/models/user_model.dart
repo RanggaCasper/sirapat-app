@@ -1,4 +1,6 @@
 import 'package:sirapat_app/domain/entities/user.dart';
+import 'package:sirapat_app/domain/entities/division.dart';
+import 'package:sirapat_app/data/models/division_model.dart';
 
 class UserModel extends User {
   UserModel({
@@ -13,6 +15,7 @@ class UserModel extends User {
     super.createdAt,
     super.updatedAt,
     super.divisionId,
+    super.division,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +31,9 @@ class UserModel extends User {
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
       divisionId: json['division_id'] as int?,
+      division: json['division'] != null
+          ? DivisionModel.fromJson(json['division'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -44,6 +50,7 @@ class UserModel extends User {
     'created_at': createdAt,
     'updated_at': updatedAt,
     'division_id': divisionId,
+    if (division != null) 'division': division!.toJson(),
   };
 
   // From Entity to Model
@@ -59,6 +66,8 @@ class UserModel extends User {
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      divisionId: user.divisionId,
+      division: user.division,
     );
   }
 
@@ -75,6 +84,8 @@ class UserModel extends User {
       role: role,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      divisionId: divisionId,
+      division: division,
     );
   }
 
@@ -91,6 +102,8 @@ class UserModel extends User {
     String? role,
     String? createdAt,
     String? updatedAt,
+    int? divisionId,
+    Division? division,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -103,6 +116,8 @@ class UserModel extends User {
       role: role ?? this.role,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      divisionId: divisionId ?? this.divisionId,
+      division: division ?? this.division,
     );
   }
 }

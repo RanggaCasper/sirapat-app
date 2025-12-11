@@ -155,7 +155,7 @@ class UserInfoPage extends GetView<AuthController> {
                     _buildInfoCard(
                       icon: Icons.business_outlined,
                       label: 'Divisi',
-                      value: user.divisionId?.toString() ?? 'Belum ada divisi',
+                      value: user.division?.name ?? 'Belum ada divisi',
                       iconColor: Colors.teal,
                     ),
                   ],

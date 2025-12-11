@@ -43,11 +43,89 @@ class APIProvider {
     }
   }
 
+  // Convenience methods for common HTTP operations
+  Future<dynamic> get(String url, {Map<String, dynamic>? query}) async {
+    try {
+      final response = await _dio.get(url, queryParameters: query);
+      return _returnResponse(response);
+    } on DioException catch (e) {
+      return _handleDioException(e);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+  }
+
+  Future<dynamic> post(
+    String url,
+    dynamic data, {
+    Map<String, dynamic>? query,
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final response = await _dio.post(
+        url,
+        data: data,
+        queryParameters: query,
+        options: Options(headers: headers),
+      );
+      return _returnResponse(response);
+    } on DioException catch (e) {
+      return _handleDioException(e);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+  }
+
+  Future<dynamic> put(
+    String url,
+    dynamic data, {
+    Map<String, dynamic>? query,
+  }) async {
+    try {
+      final response = await _dio.put(url, data: data, queryParameters: query);
+      return _returnResponse(response);
+    } on DioException catch (e) {
+      return _handleDioException(e);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+  }
+
+  Future<dynamic> delete(String url, {Map<String, dynamic>? query}) async {
+    try {
+      final response = await _dio.delete(url, queryParameters: query);
+      return _returnResponse(response);
+    } on DioException catch (e) {
+      return _handleDioException(e);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+  }
+
+  dynamic _handleDioException(DioException e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      throw TimeOutException('Request timeout');
+    } else if (e.type == DioExceptionType.connectionError) {
+      throw FetchDataException('No Internet connection');
+    } else if (e.response != null) {
+      return _returnResponse(e.response!);
+    } else {
+      throw FetchDataException(e.message ?? 'Unknown error occurred');
+    }
+  }
+
   dynamic _returnResponse(Response<dynamic> response) {
     switch (response.statusCode) {
       case 200:
       case 201:
         return response.data;
+      case 302:
+      case 301:
+      case 307:
+      case 308:
+        // Redirect - biasanya masalah autentikasi atau session expired
+        throw UnauthorisedException('Session expired or unauthorized access');
       case 400:
         throw BadRequestException(response.data.toString());
       case 401:

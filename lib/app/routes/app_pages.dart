@@ -85,7 +85,9 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.adminMeetingDetail,
-      page: () => MeetingDetailPage(meetingId: Get.arguments as int),
+      page: () => MeetingDetailPage(
+        meetingId: Get.arguments != null ? Get.arguments as int : 0,
+      ),
       bindings: [
         MeetingBinding(),
         ParticipantBinding(),
