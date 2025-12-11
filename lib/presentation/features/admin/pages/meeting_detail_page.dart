@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/presentation/controllers/chat_binding.dart';
+import 'package:sirapat_app/presentation/features/admin/pages/edit_meeting_page.dart';
 import 'package:sirapat_app/presentation/features/chat/pages/chat_meet_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/info_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/detail_pages/participant_page.dart';
@@ -152,7 +153,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
               leading: const Icon(Icons.edit),
               title: const Text('Edit Rapat'),
               onTap: () {
-                Navigator.pop(context);
+                Get.to(
+                  () => EditMeetingPage(meetingId: "${widget.meetingId}"),
+                  transition: Transition.rightToLeft,
+                );
               },
             ),
             ListTile(

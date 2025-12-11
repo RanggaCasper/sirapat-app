@@ -358,6 +358,7 @@ class MeetingController extends GetxController {
 
       // Refresh meetings list
       await fetchMeetings();
+      Get.back();
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingController] ApiException in updateMeeting: ${e.message}',
