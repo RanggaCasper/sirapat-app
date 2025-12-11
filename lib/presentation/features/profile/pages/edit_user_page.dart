@@ -321,15 +321,43 @@ class _EditUserPageState extends State<EditUserPage> {
                                   return;
                                 }
 
-                                // TODO: Implement updateUser method in controller
+                                // Save role before update (role shouldn't change)
+                                final userRole = authController
+                                    .currentUser
+                                    ?.role
+                                    ?.toLowerCase();
+
                                 await authController.updateProfile(
                                   fullName: fullNameController.text.trim(),
                                   phone: phoneController.text.trim(),
                                   divisionId: int.parse(selectedDivisionId!),
                                 );
+
                                 if (authController.fieldErrors.isEmpty &&
                                     context.mounted) {
-                                  Navigator.of(context).pop();
+                                  // Navigate back to appropriate dashboard based on original role
+                                  if (userRole != null) {
+                                    String targetRoute;
+                                    switch (userRole) {
+                                      case 'master':
+                                        targetRoute = '/master-dashboard';
+                                        break;
+                                      case 'admin':
+                                        targetRoute = '/admin-dashboard';
+                                        break;
+                                      case 'employee':
+                                        targetRoute = '/employee-dashboard';
+                                        break;
+                                      default:
+                                        // Default fallback
+                                        Navigator.of(context).pop();
+                                        return;
+                                    }
+                                    // Navigate to dashboard and remove all previous routes
+                                    Get.offAllNamed(targetRoute);
+                                  } else {
+                                    Navigator.of(context).pop();
+                                  }
                                 }
                               },
                         style: ElevatedButton.styleFrom(

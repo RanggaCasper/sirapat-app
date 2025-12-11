@@ -1,3 +1,5 @@
+import 'package:sirapat_app/domain/entities/division.dart';
+
 class User {
   final int? id;
   final String? nip;
@@ -10,6 +12,7 @@ class User {
   final String? createdAt;
   final String? updatedAt;
   final int? divisionId;
+  final Division? division;
 
   User({
     this.id,
@@ -23,6 +26,7 @@ class User {
     this.createdAt,
     this.updatedAt,
     this.divisionId,
+    this.division,
   });
 
   factory User.fromJson(Map<String, dynamic>? json) {
@@ -40,6 +44,9 @@ class User {
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
       divisionId: json['division_id'] as int?,
+      division: json['division'] != null
+          ? Division.fromJson(json['division'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -55,6 +62,7 @@ class User {
     'created_at': createdAt,
     'updated_at': updatedAt,
     'division_id': divisionId,
+    if (division != null) 'division': division!.toJson(),
   };
 
   User copyWith({
@@ -68,6 +76,8 @@ class User {
     String? role,
     String? createdAt,
     String? updatedAt,
+    int? divisionId,
+    Division? division,
   }) {
     return User(
       id: id ?? this.id,
@@ -80,6 +90,8 @@ class User {
       role: role ?? this.role,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      divisionId: divisionId ?? this.divisionId,
+      division: division ?? this.division,
     );
   }
 

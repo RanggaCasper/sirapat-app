@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:sirapat_app/data/models/user_model.dart';
 import 'package:sirapat_app/data/providers/network/requests/auth/profile_update_request.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
 import 'package:sirapat_app/domain/repositories/auth_repository.dart';
@@ -316,37 +315,20 @@ class AuthRepositoryImpl extends AuthRepository {
         throw Exception('Failed to update profile: ${response?['message']}');
       }
 
-      // Since API returns data: null, we need to create user from the input data
-      // and get other fields from current stored user
-      final currentUserJson = _storage.getData<Map<String, dynamic>>(
-        StorageKey.user,
-      );
+      // Since API returns data: null, we need to fetch fresh user data from server
+      debugPrint('[AuthRepository] Fetching updated user data from server...');
 
-      if (currentUserJson == null) {
-        throw Exception('Current user data not found in storage');
+      final updatedUser = await verifyUserFromServer();
+
+      if (updatedUser == null) {
+        throw Exception('Failed to fetch updated user data from server');
       }
 
-      debugPrint('[AuthRepository] Current user data: $currentUserJson');
-
-      // Update the user data with new values
-      final updatedUserJson = Map<String, dynamic>.from(currentUserJson);
-      updatedUserJson['full_name'] = fullName;
-      updatedUserJson['phone'] = phone;
-      updatedUserJson['division_id'] = divisionId;
-
-      debugPrint('[AuthRepository] Updated user data: $updatedUserJson');
-
-      // Parse user model
-      final userModel = UserModel.fromJson(updatedUserJson);
-
-      // Save updated user data to local storage
-      await _storage.saveData(StorageKey.user, updatedUserJson);
-
       debugPrint(
-        '[AuthRepository] Profile updated successfully for: ${userModel.fullName}',
+        '[AuthRepository] Profile updated successfully for: ${updatedUser.fullName}',
       );
 
-      return userModel.toEntity();
+      return updatedUser;
     } catch (e, stackTrace) {
       debugPrint('[AuthRepository] Error updating profile: $e');
       debugPrint('[AuthRepository] Stack trace: $stackTrace');
