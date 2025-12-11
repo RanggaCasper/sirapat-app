@@ -5,7 +5,6 @@ import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/meetings_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
-import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
 import 'package:sirapat_app/presentation/shared/widgets/user_header_card.dart';
 import 'package:sirapat_app/presentation/features/employee/widgets/meeting_card.dart';
@@ -44,12 +43,6 @@ class _AdminPageState extends State<AdminPage> {
         route: '/admin-dashboard',
       ),
       BottomNavItem(
-        icon: Icons.qr_code_scanner_outlined,
-        activeIcon: Icons.qr_code_scanner,
-        label: 'Pindai',
-        route: '/users',
-      ),
-      BottomNavItem(
         icon: Icons.calendar_month_outlined,
         activeIcon: Icons.calendar_month,
         label: 'Rapat',
@@ -75,10 +68,8 @@ class _AdminPageState extends State<AdminPage> {
       case 0:
         return _buildHomeSection();
       case 1:
-        return const QrScannerPage();
-      case 2:
         return const MeetingsPage();
-      case 3:
+      case 2:
         return const ProfilePage();
       default:
         return _buildHomeSection();

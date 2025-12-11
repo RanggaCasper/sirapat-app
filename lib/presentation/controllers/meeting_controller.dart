@@ -436,11 +436,11 @@ class MeetingController extends GetxController {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: () => Navigator.of(Get.context!).pop(true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: Colors.red,
                     ),
                     child: const Text('Hapus'),
                   ),
@@ -464,9 +464,14 @@ class MeetingController extends GetxController {
       meetings.removeWhere((m) => m.id == id); // remove dari cache
 
       _notif.showSuccess('Rapat "$meetingTitle" berhasil dihapus');
+
+      // Navigate back to list if we're in detail page
+      if (Get.currentRoute.contains('detail')) {
+        Get.back();
+      }
+
       await Future.delayed(const Duration(milliseconds: 150));
       fetchMeetings();
-      // Get.back();
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingController] ApiException in deleteMeeting: ${e.message}',
@@ -663,11 +668,11 @@ class MeetingController extends GetxController {
       debugPrint(
         '[MeetingController] ApiException in getMeetingPasscodeById: ${e.message}',
       );
-      _notif.showError(e.message);
+      // Don't show error notification - passcode might not be available yet
       return null;
     } catch (e) {
       debugPrint('[MeetingController] Exception in getMeetingPasscodeById: $e');
-      _notif.showError(e.toString());
+      // Don't show error notification - handle silently
       return null;
     }
   }

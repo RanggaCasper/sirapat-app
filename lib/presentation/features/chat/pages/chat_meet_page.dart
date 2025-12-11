@@ -110,24 +110,34 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
   // Widget untuk App Bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.cardBackground,
+      backgroundColor: AppColors.primary,
       elevation: AppElevation.sm,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: AppColors.primaryDark),
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      title: Row(
         children: [
-          Text('Rapat Koordinasi', style: AppTextStyles.title),
-          const SizedBox(height: 2),
-          Obx(
-            () => Text(
-              '${_controller.messages.length} pesan',
-              style: AppTextStyles.caption.copyWith(color: AppColors.textLight),
-            ),
+          IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+
+          const SizedBox(width: 4),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Rapat Koordinasi',
+                style: AppTextStyles.title.copyWith(color: Colors.white),
+              ),
+              const SizedBox(height: 2),
+              Obx(
+                () => Text(
+                  '${_controller.messages.length} pesan',
+                  style: AppTextStyles.caption.copyWith(color: Colors.white70),
+                ),
+              ),
+            ],
           ),
         ],
       ),

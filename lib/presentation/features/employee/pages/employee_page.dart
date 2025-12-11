@@ -6,7 +6,7 @@ import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/history_meet_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
-import 'package:sirapat_app/presentation/features/qr_scanner/pages/qr_scanner_page.dart';
+import 'package:sirapat_app/presentation/features/qr_scanner/qr_scanner_bottom_sheet.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_button.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
@@ -74,6 +74,12 @@ class _EmployeePageState extends State<EmployeePage> {
   }
 
   void _onNavItemTapped(int index) {
+    // If QR Scanner tab is tapped, show bottom sheet instead
+    if (index == 1) {
+      showQrScannerBottomSheet();
+      return;
+    }
+
     setState(() {
       _currentIndex = index;
     });
@@ -84,7 +90,8 @@ class _EmployeePageState extends State<EmployeePage> {
       case 0:
         return _buildHomeSection();
       case 1:
-        return const QrScannerPage();
+        // QR Scanner is now shown as bottom sheet, not as a section
+        return _buildHomeSection();
       case 2:
         return const HistoryMeetPage();
       case 3:
