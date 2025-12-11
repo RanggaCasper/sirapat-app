@@ -323,7 +323,7 @@ class MeetingController extends GetxController {
   }
 
   // Update existing meeting
-  Future<void> updateMeeting() async {
+  Future<void> updateMeeting(String meetingId) async {
     if (selectedMeeting.value == null) return;
     if (!_validateForm(isEdit: true)) return;
 
@@ -392,7 +392,15 @@ class MeetingController extends GetxController {
   // Delete meeting
   Future<void> deleteMeeting(int id) async {
     final meeting = meetings.firstWhereOrNull((m) => m.id == id);
-    final meetingTitle = meeting?.title ?? 'rapat ini';
+    if (meeting == null) {
+      _notif.showError("Rapat tidak ditemukan.");
+      return;
+    }
+
+    final meetingTitle = meeting.title;
+    debugPrint(
+      '[MeetingController] Prompting delete confirmation for meeting ID: $id',
+    );
 
     final confirmed = await Get.bottomSheet<bool>(
       Container(
@@ -453,10 +461,12 @@ class MeetingController extends GetxController {
       _errorMessage.value = '';
 
       await _deleteMeetingUseCase.execute(id);
+      meetings.removeWhere((m) => m.id == id); // remove dari cache
 
       _notif.showSuccess('Rapat "$meetingTitle" berhasil dihapus');
-
+      await Future.delayed(const Duration(milliseconds: 150));
       fetchMeetings();
+      // Get.back();
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingController] ApiException in deleteMeeting: ${e.message}',

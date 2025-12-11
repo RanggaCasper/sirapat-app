@@ -167,8 +167,8 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
               leading: const Icon(Icons.delete, color: Colors.red),
               title: const Text('Hapus', style: TextStyle(color: Colors.red)),
               onTap: () {
-                controller.deleteMeeting(widget.meetingId);
                 Navigator.pop(context);
+                controller.deleteMeeting(widget.meetingId);
               },
             ),
           ],

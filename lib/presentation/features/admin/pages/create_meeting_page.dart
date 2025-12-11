@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
-import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 
@@ -86,8 +85,6 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
                       Expanded(child: _buildTimeField(isStartTime: false)),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  _buildPasscodeToggle(),
                   const SizedBox(height: 12),
                   Text(
                     '* Wajib diisi',
@@ -271,46 +268,6 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
             }
           }
         },
-      );
-    });
-  }
-
-  Widget _buildPasscodeToggle() {
-    return Obx(() {
-      return Container(
-        padding: AppSpacing.paddingMD,
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: AppRadius.radiusMD,
-          border: Border.all(color: AppColors.secondary.withOpacity(0.2)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Gunakan Passcode', style: AppTextStyles.subtitle),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Peserta memerlukan passcode untuk masuk',
-                    style: AppTextStyles.body.copyWith(
-                      fontSize: 12,
-                      color: AppColors.secondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Switch(
-              value: meetingController.hasPasscode.value,
-              onChanged: (value) {
-                meetingController.hasPasscode.value = value;
-              },
-              activeColor: AppColors.primary,
-            ),
-          ],
-        ),
       );
     });
   }
