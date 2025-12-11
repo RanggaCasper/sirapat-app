@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/routes/app_routes.dart';
 import 'package:sirapat_app/app/util/form_error_handler.dart';
 import 'package:sirapat_app/domain/entities/user.dart';
+import 'package:sirapat_app/domain/usecases/auth/update_profile_usecase.dart';
 import 'package:sirapat_app/domain/usecases/login_usecase.dart';
 import 'package:sirapat_app/domain/usecases/register_usecase.dart';
 import 'package:sirapat_app/domain/usecases/get_current_user_usecase.dart';
@@ -18,6 +19,7 @@ class AuthController extends GetxController {
   final GetCurrentUserUseCase _getCurrentUserUseCase;
   final ResetPasswordUseCase _resetPasswordUseCase;
   final AuthRepository _authRepository;
+  final UpdateProfileUseCase _updateProfileUseCase;
 
   AuthController(
     this._loginUseCase,
@@ -25,6 +27,7 @@ class AuthController extends GetxController {
     this._getCurrentUserUseCase,
     this._resetPasswordUseCase,
     this._authRepository,
+    this._updateProfileUseCase,
   );
 
   // Reactive state
@@ -287,5 +290,54 @@ class AuthController extends GetxController {
     final errorMsg = e.toString();
     _errorMessage.value = errorMsg;
     _notif.showError(errorMsg);
+  }
+
+  Future<void> updateProfile({
+    required String fullName,
+    required String phone,
+    required int divisionId,
+  }) async {
+    try {
+      _setLoading(true);
+      clearAllErrors();
+
+      debugPrint('[AuthController] Updating profile...');
+
+      final updatedUser = await _updateProfileUseCase.execute(
+        UpdateProfileParams(
+          fullName: fullName,
+          phone: phone,
+          divisionId: divisionId,
+        ),
+      );
+
+      _currentUser.value = updatedUser;
+
+      debugPrint('[AuthController] Profile updated: ${updatedUser.fullName}');
+
+      // Verify from server to get latest data (optional but recommended)
+      try {
+        final verifiedUser = await _authRepository.verifyUserFromServer();
+        if (verifiedUser != null) {
+          _currentUser.value = verifiedUser;
+          debugPrint('[AuthController] Profile verified from server');
+        }
+      } catch (e) {
+        debugPrint('[AuthController] Failed to verify from server: $e');
+        // Continue with local updated data
+      }
+
+      _notif.showSuccess('Profile berhasil diperbarui');
+
+      // Navigation will be handled by UI layer
+    } on ApiException catch (e) {
+      _handleApiException(e);
+      rethrow; // Rethrow to let UI handle it
+    } catch (e) {
+      _handleGenericError(e);
+      rethrow; // Rethrow to let UI handle it
+    } finally {
+      _setLoading(false);
+    }
   }
 }

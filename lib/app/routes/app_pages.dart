@@ -50,7 +50,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.forgotPassword,
       page: () => EditUserPage(),
-      binding: UserBinding(),
+      bindings: [UserBinding(), AuthBinding()],
     ),
 
     // Profile (with AuthBinding for accessing currentUser)
