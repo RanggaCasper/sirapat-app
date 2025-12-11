@@ -8,7 +8,7 @@ class AppConstants {
   // API Configuration
   static const String productionUrl = 'https://sirapat.my.id';
   static const String localHost = '127.0.0.1';
-  static const String localPort = '8000';
+  static const String localPort = '9000';
 
   // Auto-switch between production and local
   static String get baseUrl =>

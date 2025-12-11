@@ -74,10 +74,7 @@ class MeetingMinuteRepositoryImpl extends MeetingMinuteRepository {
       );
 
       if (!apiResponse.status) {
-        throw ApiException(
-          status: false,
-          message: apiResponse.message,
-        );
+        throw ApiException(status: false, message: apiResponse.message);
       }
 
       debugPrint('[MeetingMinute] Meeting minute approved successfully');

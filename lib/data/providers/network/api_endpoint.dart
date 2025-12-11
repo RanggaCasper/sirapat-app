@@ -22,6 +22,10 @@ class APIEndpoint {
   static String get participants => "$baseUrl/admin/meeting-participant";
   static String get meetingMinutes => "$baseUrl/admin/meeting-minute";
 
+  // Audio & AI endpoints
+  static String get audioUpload => "$baseUrl/audio/upload";
+  static String get summarizeMinutes => "$baseUrl/summarize/minutes";
+
   // Meeting endpoints - Dynamic based on role
   static String get meetings {
     try {
