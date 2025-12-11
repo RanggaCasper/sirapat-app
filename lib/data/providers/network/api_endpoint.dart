@@ -21,7 +21,7 @@ class APIEndpoint {
   static String get chatMinutes => "$baseUrl/chat-minute";
   // static String get attendace => "$baseUrl/admin/attendance";
   static String get participants => "$baseUrl/admin/meeting-participant";
-  static String get meetingMinutes => "$baseUrl/admin/meeting-minute";
+  // static String get meetingMinutes => "$baseUrl/admin/meeting-minute";
 
   // Audio & AI endpoints
   static String get audioUpload => "$baseUrl/audio/upload";
@@ -70,6 +70,21 @@ class APIEndpoint {
       return "$baseUrl/profile/get-division";
     } catch (e) {
       return "$baseUrl/profile/get-division";
+    }
+  }
+
+  static String get meetingMinutes {
+    try {
+      final authController = Get.find<AuthController>();
+      final userRole =
+          authController.currentUser?.role?.toLowerCase() ?? 'employee';
+
+      if (userRole == 'admin' || userRole == 'master') {
+        return "$baseUrl/admin/meeting-minute";
+      }
+      return "$baseUrl/employee/meeting-minute";
+    } catch (e) {
+      return "$baseUrl/employee/meeting-minute";
     }
   }
   // // Endpoint khusus admin
