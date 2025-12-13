@@ -67,6 +67,10 @@ dependencies:
   # JSON Serialization
   json_annotation: ^4.9.0
 
+  # App Info & Launcher
+  package_info_plus: ^8.1.2
+  url_launcher: ^6.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -81,6 +85,16 @@ dev_dependencies:
   # Code Generation
   build_runner: ^2.4.13
   json_serializable: ^6.8.0
+
+  # App Icon
+  flutter_launcher_icons: ^0.13.1
+
+# Flutter Launcher Icons Configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

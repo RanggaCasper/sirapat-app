@@ -485,17 +485,7 @@ class _EmployeePageState extends State<EmployeePage> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 28),
-            CustomButton(
-              text: 'Pindai QR Code',
-              width: 160,
-              height: 44,
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              borderRadius: 10,
-              onPressed: () => showQrScannerBottomSheet(),
-            ),
-            const SizedBox(height: 80),
+            const SizedBox(height: 28)
           ],
         ),
       ),

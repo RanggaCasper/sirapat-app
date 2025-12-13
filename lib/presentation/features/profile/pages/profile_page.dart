@@ -10,6 +10,7 @@ import 'package:sirapat_app/presentation/features/profile/pages/user_info_page.d
 import 'package:sirapat_app/presentation/features/profile/pages/change_password_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
+import 'package:sirapat_app/presentation/widgets/update_dialog.dart';
 
 class ProfilePage extends GetView<AuthController> {
   const ProfilePage({super.key});
@@ -218,6 +219,14 @@ class ProfilePage extends GetView<AuthController> {
           subtitle: 'Versi ${AppConstants.appVersion}',
           iconColor: Colors.teal,
           onTap: () => _showAboutDialog(),
+        ),
+        _buildDivider(),
+        _buildMenuItem(
+          icon: Icons.system_update,
+          title: 'Cek Update',
+          subtitle: 'Periksa pembaruan aplikasi',
+          iconColor: Colors.blue,
+          onTap: () => _checkForUpdate(),
         ),
         _buildDivider(),
         _buildMenuItem(
@@ -630,6 +639,14 @@ class ProfilePage extends GetView<AuthController> {
       ),
       isDismissible: true,
       enableDrag: true,
+    );
+  }
+
+  void _checkForUpdate() {
+    UpdateDialog.checkAndShowUpdate(
+      repoOwner: 'RanggaCasper',
+      repoName: 'sirapat_app',
+      forceShow: true, // Selalu tampil saat dicek manual
     );
   }
 }

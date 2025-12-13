@@ -128,9 +128,11 @@ class QrDownloadHelper {
 
   /// Capture widget as image from RepaintBoundary
   static Future<Uint8List?> _captureQrCode(GlobalKey key) async {
+    Uint8List? result;
+    
     try {
       // Wait for the widget to be fully rendered
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 300));
 
       final context = key.currentContext;
       if (context == null) {
@@ -150,19 +152,41 @@ class QrDownloadHelper {
         return null;
       }
 
-      // Check if the boundary needs paint
-      if (boundary.debugNeedsPaint) {
-        debugPrint('[QrDownloadHelper] Boundary needs paint, waiting...');
-        await Future.delayed(const Duration(milliseconds: 200));
+      // Check if the boundary needs paint (only in debug mode)
+      assert(() {
+        if (boundary.debugNeedsPaint) {
+          debugPrint('[QrDownloadHelper] Boundary needs paint in debug mode');
+        }
+        return true;
+      }());
+
+      // Additional wait to ensure rendering is complete
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Capture the image with error handling
+      final ui.Image? image = await boundary.toImage(pixelRatio: 3.0);
+      if (image == null) {
+        debugPrint('[QrDownloadHelper] Failed to capture image');
+        return null;
       }
 
-      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       final ByteData? byteData = await image.toByteData(
         format: ui.ImageByteFormat.png,
       );
-      return byteData?.buffer.asUint8List();
-    } catch (e) {
+
+      if (byteData == null) {
+        debugPrint('[QrDownloadHelper] Failed to convert image to byte data');
+        return null;
+      }
+
+      result = byteData.buffer.asUint8List();
+      debugPrint(
+        '[QrDownloadHelper] Successfully captured QR code: ${result.length} bytes',
+      );
+      return result;
+    } catch (e, stackTrace) {
       debugPrint('[QrDownloadHelper] Error capturing QR code: $e');
+      debugPrint('[QrDownloadHelper] Stack trace: $stackTrace');
       return null;
     }
   }
