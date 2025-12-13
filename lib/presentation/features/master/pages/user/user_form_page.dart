@@ -20,6 +20,7 @@ class UserFormPage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(isEdit ? 'Edit Pengguna' : 'Tambah Pengguna'),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

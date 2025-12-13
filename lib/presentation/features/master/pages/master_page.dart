@@ -10,11 +10,9 @@ import 'package:sirapat_app/presentation/features/master/pages/division/division
 import 'package:sirapat_app/presentation/features/master/pages/user/user_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_bottom_nav_bar.dart';
-import 'package:sirapat_app/presentation/shared/widgets/user_header_card.dart';
-import 'package:sirapat_app/presentation/shared/widgets/dashboard_stat_card.dart';
 import 'package:sirapat_app/presentation/shared/widgets/skeleton_loader.dart';
+import 'package:sirapat_app/presentation/shared/widgets/dashboard_stat_card.dart';
 
-/// Master Page - Single page layout dengan tab-based navigation
 class MasterPage extends StatefulWidget {
   const MasterPage({super.key});
 
@@ -25,47 +23,51 @@ class MasterPage extends StatefulWidget {
 class _MasterPageState extends State<MasterPage> {
   int _currentIndex = 0;
 
-  final List<BottomNavItem> _navItems = [
-    BottomNavItem(
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home,
-      label: 'Beranda',
-      route: '/home',
-    ),
-    BottomNavItem(
-      icon: Icons.people_outline,
-      activeIcon: Icons.people,
-      label: 'Pengguna',
-      route: '/users',
-    ),
-    BottomNavItem(
-      icon: Icons.business_outlined,
-      activeIcon: Icons.business,
-      label: 'Divisi',
-      route: '/divisions',
-    ),
-    BottomNavItem(
-      icon: Icons.person_outline,
-      activeIcon: Icons.person,
-      label: 'Profile',
-      route: '/profile',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(child: _getCurrentSection()),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: _navItems,
+        onTap: _onNavItemTapped,
+        items: _buildNavItems(),
       ),
     );
+  }
+
+  List<BottomNavItem> _buildNavItems() {
+    return [
+      BottomNavItem(
+        icon: Icons.home_outlined,
+        activeIcon: Icons.home,
+        label: 'Beranda',
+        route: '/master-dashboard',
+      ),
+      BottomNavItem(
+        icon: Icons.people_outline,
+        activeIcon: Icons.people,
+        label: 'Pengguna',
+        route: '/users',
+      ),
+      BottomNavItem(
+        icon: Icons.business_outlined,
+        activeIcon: Icons.business,
+        label: 'Divisi',
+        route: '/divisions',
+      ),
+      BottomNavItem(
+        icon: Icons.person_outline,
+        activeIcon: Icons.person,
+        label: 'Profil',
+        route: '/profile',
+      ),
+    ];
+  }
+
+  void _onNavItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
   }
 
   Widget _getCurrentSection() {
@@ -95,72 +97,241 @@ class _MasterPageState extends State<MasterPage> {
       final totalUsers = userController.totalCount.value;
       final currentUser = authController.currentUser;
 
-      return SingleChildScrollView(
+      return CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(currentUser),
+          SliverToBoxAdapter(child: _buildQuickActions()),
+          SliverToBoxAdapter(
+            child: _buildStatisticsSection(
+              isLoading,
+              totalUsers,
+              totalDivisions,
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildSliverAppBar(dynamic currentUser) {
+    return SliverAppBar(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      expandedHeight: 160,
+      automaticallyImplyLeading: false,
+      pinned: false,
+      flexibleSpace: FlexibleSpaceBar(
+        background: _buildHeaderGradient(currentUser),
+      ),
+    );
+  }
+
+  Widget _buildHeaderGradient(dynamic currentUser) {
+    return Container(
+      decoration: BoxDecoration(color: AppColors.primary),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [_buildWelcomeMessage(currentUser)],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeMessage(dynamic currentUser) {
+    final fullName = currentUser?.fullName ?? 'Master Admin';
+    final role = currentUser?.role ?? 'Master';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Selamat datang kembali 👋',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withOpacity(0.9),
+            letterSpacing: 0.3,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          fullName,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            _getRoleLabel(role),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getRoleLabel(String? role) {
+    switch (role?.toLowerCase()) {
+      case 'admin':
+        return 'Administrator';
+      case 'master':
+        return 'Master Admin';
+      case 'employee':
+        return 'Karyawan';
+      default:
+        return 'Master Admin';
+    }
+  }
+
+  Widget _buildQuickActions() {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Aksi Cepat', style: AppTextStyles.title),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  icon: Icons.people_outline,
+                  title: 'Kelola Pengguna',
+                  subtitle: 'Lihat semua',
+                  color: AppColors.accentTeal,
+                  onTap: () => setState(() => _currentIndex = 1),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: _buildActionCard(
+                  icon: Icons.business_outlined,
+                  title: 'Kelola Divisi',
+                  subtitle: 'Lihat semua',
+                  color: AppColors.accentPurple,
+                  onTap: () => setState(() => _currentIndex = 2),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: AppShadow.card,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Header Card
-            Padding(
-              padding: AppSpacing.paddingLG,
-              child: UserHeaderCard(
-                userName: currentUser?.fullName ?? 'Admin',
-                userNip: currentUser?.nip ?? '-',
-                userRole: currentUser?.role,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 32),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              title,
+              style: AppTextStyles.subtitle.copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
-
-            // Statistics Section
-            Padding(
-              padding: AppSpacing.paddingLG,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Statistik',
-                    style: AppTextStyles.heading2.copyWith(
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.md),
-
-                  // Show skeleton while loading
-                  if (isLoading) ...[
-                    const StatCardSkeleton(),
-                    SizedBox(height: AppSpacing.md),
-                    const StatCardSkeleton(),
-                  ] else ...[
-                    DashboardStatCard(
-                      title: 'Total User',
-                      value: totalUsers.toString(),
-                      icon: Icons.people,
-                      backgroundColor: AppColors.accentTeal,
-                      onTap: () {
-                        setState(() {
-                          _currentIndex = 1;
-                        });
-                      },
-                    ),
-
-                    SizedBox(height: AppSpacing.md),
-
-                    DashboardStatCard(
-                      title: 'Total Divisi',
-                      value: totalDivisions.toString(),
-                      icon: Icons.business,
-                      backgroundColor: AppColors.accentPurple,
-                      onTap: () {
-                        setState(() {
-                          _currentIndex = 2;
-                        });
-                      },
-                    ),
-                  ],
-                ],
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: AppTextStyles.body.copyWith(
+                fontSize: 12,
+                color: Colors.grey,
               ),
             ),
           ],
         ),
-      );
-    });
+      ),
+    );
+  }
+
+  Widget _buildStatisticsSection(
+    bool isLoading,
+    int totalUsers,
+    int totalDivisions,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Statistik',
+            style: AppTextStyles.title.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (isLoading) ...[
+            const StatCardSkeleton(),
+            const SizedBox(height: 12),
+            const StatCardSkeleton(),
+          ] else ...[
+            DashboardStatCard(
+              title: 'Total Pengguna',
+              value: totalUsers.toString(),
+              icon: Icons.people,
+              backgroundColor: AppColors.accentTeal,
+              onTap: () {
+                setState(() {
+                  _currentIndex = 1;
+                });
+              },
+            ),
+            const SizedBox(height: 12),
+            DashboardStatCard(
+              title: 'Total Divisi',
+              value: totalDivisions.toString(),
+              icon: Icons.business,
+              backgroundColor: AppColors.accentPurple,
+              onTap: () {
+                setState(() {
+                  _currentIndex = 2;
+                });
+              },
+            ),
+          ],
+          const SizedBox(height: 80),
+        ],
+      ),
+    );
   }
 }

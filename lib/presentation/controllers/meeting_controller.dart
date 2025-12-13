@@ -79,7 +79,10 @@ class MeetingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchMeetings();
+    // Wait for next frame to ensure AuthController is fully initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fetchMeetings();
+    });
   }
 
   @override
@@ -291,8 +294,12 @@ class MeetingController extends GetxController {
       // Show passcode bottom sheet if meeting has passcode
       if (meeting.passcode != null && meeting.passcode!.isNotEmpty) {
         showPasscodeQrBottomSheet(
+          meetingId: meeting.id,
           passcode: meeting.passcode!,
           meetingTitle: meeting.title,
+          meetingDate: meeting.date,
+          meetingStartTime: meeting.startTime,
+          meetingEndTime: meeting.endTime,
           meetingUuid: meeting.uuid,
         );
       }
@@ -324,8 +331,6 @@ class MeetingController extends GetxController {
       String errorMsg =
           'Gagal menambah rapat: ${e.toString().replaceAll('Exception: ', '')}';
       fieldErrors['title'] = errorMsg;
-
-      _notif.showError(errorMsg);
     } finally {
       isLoadingActionObs.value = false;
     }
@@ -394,7 +399,6 @@ class MeetingController extends GetxController {
       debugPrint('[MeetingController] Errors: ${e.errors}');
 
       _errorMessage.value = e.message;
-      _notif.showError('Gagal memperbarui rapat: ${e.message}');
 
       // Use global form error handler
       final errors = FormErrorHandler.handleApiException(e);
@@ -411,8 +415,6 @@ class MeetingController extends GetxController {
       String errorMsg =
           'Gagal memperbarui rapat: ${e.toString().replaceAll('Exception: ', '')}';
       fieldErrors['title'] = errorMsg;
-
-      _notif.showError(errorMsg);
     } finally {
       isLoadingActionObs.value = false;
     }
@@ -542,9 +544,25 @@ class MeetingController extends GetxController {
     locationController.text = meeting.location ?? '';
     agendaController.text = meeting.agenda ?? '';
     dateController.text = meeting.date;
-    startTimeController.text = meeting.startTime;
-    endTimeController.text = meeting.endTime;
+    // Format waktu dari HH:MM:SS ke HH:MM
+    startTimeController.text = _formatTimeToHHMM(meeting.startTime);
+    endTimeController.text = _formatTimeToHHMM(meeting.endTime);
     selectedStatus.value = meeting.status;
+  }
+
+  // Helper method to format time from HH:MM:SS to HH:MM
+  String _formatTimeToHHMM(String time) {
+    if (time.isEmpty) return '';
+    // Jika sudah format HH:MM, return as is
+    if (time.length == 5 && time.contains(':')) return time;
+    // Jika format HH:MM:SS, ambil HH:MM saja
+    if (time.contains(':')) {
+      final parts = time.split(':');
+      if (parts.length >= 2) {
+        return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
+      }
+    }
+    return time;
   }
 
   // Clear form
@@ -569,25 +587,21 @@ class MeetingController extends GetxController {
 
     if (titleController.text.trim().isEmpty) {
       fieldErrors['title'] = 'Judul rapat wajib diisi';
-      _showValidationError('Judul rapat wajib diisi');
       return false;
     }
 
     if (dateController.text.trim().isEmpty) {
       fieldErrors['date'] = 'Tanggal rapat wajib diisi';
-      _showValidationError('Tanggal rapat wajib diisi');
       return false;
     }
 
     if (startTimeController.text.trim().isEmpty) {
       fieldErrors['start_time'] = 'Waktu mulai wajib diisi';
-      _showValidationError('Waktu mulai wajib diisi');
       return false;
     }
 
     if (endTimeController.text.trim().isEmpty) {
       fieldErrors['end_time'] = 'Waktu selesai wajib diisi';
-      _showValidationError('Waktu selesai wajib diisi');
       return false;
     }
 
@@ -595,7 +609,6 @@ class MeetingController extends GetxController {
     if (!_validateTimeRange()) {
       fieldErrors['end_time'] =
           'Waktu selesai harus lebih besar dari waktu mulai';
-      _showValidationError('Waktu selesai harus lebih besar dari waktu mulai');
       return false;
     }
 
@@ -617,12 +630,6 @@ class MeetingController extends GetxController {
     final hour = int.parse(parts[0]);
     final minute = int.parse(parts[1]);
     return DateTime(2000, 1, 1, hour, minute);
-  }
-
-  void _showValidationError(String message) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Get.find<NotificationController>().showWarning(message);
-    });
   }
 
   // Get field error
@@ -661,7 +668,7 @@ class MeetingController extends GetxController {
       fieldErrors.clear();
 
       if (meetingCode.trim().isEmpty) {
-        _notif.showError('Silakan masukkan kode rapat');
+        fieldErrors['meeting_code'] = 'Silakan masukkan kode rapat';
         isLoadingActionObs.value = false;
         return;
       }
@@ -681,18 +688,18 @@ class MeetingController extends GetxController {
         // Refresh meetings list
         await fetchMeetings();
       } else {
-        _notif.showError('Gagal mengikuti rapat');
+        fieldErrors['meeting_code'] = 'Gagal mengikuti rapat';
       }
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingController] ApiException in joinMeetingByCode: ${e.message}',
       );
       _errorMessage.value = e.message;
-      _notif.showError(e.message);
+      fieldErrors['meeting_code'] = e.message;
     } catch (e) {
       debugPrint('[MeetingController] Exception in joinMeetingByCode: $e');
       _errorMessage.value = 'Gagal mengikuti rapat';
-      _notif.showError('Gagal mengikuti rapat');
+      fieldErrors['meeting_code'] = 'Gagal mengikuti rapat';
     } finally {
       isLoadingActionObs.value = false;
     }

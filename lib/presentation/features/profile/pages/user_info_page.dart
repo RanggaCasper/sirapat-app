@@ -6,19 +6,6 @@ import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 class UserInfoPage extends GetView<AuthController> {
   const UserInfoPage({super.key});
 
-  String _getRoleLabel(String? role) {
-    switch (role?.toLowerCase()) {
-      case 'admin':
-        return 'Admin';
-      case 'master':
-        return 'Master';
-      case 'employee':
-        return 'Karyawan';
-      default:
-        return 'Karyawan';
-    }
-  }
-
   Color _getRoleColor(String? role) {
     switch (role?.toLowerCase()) {
       case 'admin':
@@ -38,6 +25,7 @@ class UserInfoPage extends GetView<AuthController> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text('Informasi Pribadi'),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -92,25 +80,6 @@ class UserInfoPage extends GetView<AuthController> {
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getRoleColor(user.role),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _getRoleLabel(user.role),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
                       ),
                     ),
                   ],

@@ -64,7 +64,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
         return Scaffold(
           backgroundColor: Colors.grey.shade50,
           appBar: AppBar(
-            title: const Text('Loading...'),
+            title: const Text('Memuat...'),
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             leading: IconButton(
@@ -98,6 +98,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   PreferredSizeWidget _buildAppBar(Meeting meeting) {
     return AppBar(
       title: Text(meeting.title),
+      centerTitle: false,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () {
@@ -170,7 +171,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
             ),
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text('Edit Rapat'),
+              title: const Text('Ubah Rapat'),
               onTap: () {
                 Navigator.pop(context); // Close bottom sheet first
 

@@ -43,6 +43,7 @@ class UserDetailPage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Detail Pengguna'),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

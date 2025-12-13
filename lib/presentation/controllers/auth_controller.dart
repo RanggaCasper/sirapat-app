@@ -81,6 +81,11 @@ class AuthController extends GetxController {
     try {
       final user = await _getCurrentUserUseCase.execute();
       _currentUser.value = user;
+      debugPrint('[AuthController] Current user loaded: ${user?.fullName}');
+      debugPrint('[AuthController] Current user role: ${user?.role}');
+      debugPrint(
+        '[AuthController] Current user division: ${user?.division?.name}',
+      );
     } catch (e) {
       debugPrint('[AuthController] Error checking current user: $e');
       _currentUser.value = null;
@@ -314,6 +319,12 @@ class AuthController extends GetxController {
       _currentUser.value = updatedUser;
 
       debugPrint('[AuthController] Profile updated: ${updatedUser.fullName}');
+      debugPrint(
+        '[AuthController] Division after update: ${updatedUser.division?.name}',
+      );
+      debugPrint(
+        '[AuthController] DivisionId after update: ${updatedUser.divisionId}',
+      );
 
       // Verify from server to get latest data (optional but recommended)
       try {
@@ -321,6 +332,15 @@ class AuthController extends GetxController {
         if (verifiedUser != null) {
           _currentUser.value = verifiedUser;
           debugPrint('[AuthController] Profile verified from server');
+          debugPrint(
+            '[AuthController] Division after verify: ${verifiedUser.division?.name}',
+          );
+          debugPrint(
+            '[AuthController] DivisionId after verify: ${verifiedUser.divisionId}',
+          );
+
+          // Force update to trigger reactive UI
+          _currentUser.refresh();
         }
       } catch (e) {
         debugPrint('[AuthController] Failed to verify from server: $e');

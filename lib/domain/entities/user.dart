@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:sirapat_app/domain/entities/division.dart';
 
 class User {
@@ -32,7 +33,7 @@ class User {
   factory User.fromJson(Map<String, dynamic>? json) {
     if (json == null) return User();
 
-    return User(
+    final user = User(
       id: json['id'] as int?,
       nip: json['nip'] as String?,
       username: json['username'] as String?,
@@ -48,6 +49,10 @@ class User {
           ? Division.fromJson(json['division'] as Map<String, dynamic>)
           : null,
     );
+
+    debugPrint('[User.fromJson] Parsed user: ${user.fullName}, role: ${user.role}');
+
+    return user;
   }
 
   Map<String, dynamic> toJson() => {

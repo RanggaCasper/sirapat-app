@@ -173,7 +173,6 @@ class _InfoPageState extends State<InfoPage> {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                // padding: const EdgeInsets.symmetric(vertical: 14),
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

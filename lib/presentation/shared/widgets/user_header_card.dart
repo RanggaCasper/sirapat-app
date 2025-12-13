@@ -11,6 +11,7 @@ class UserHeaderCard extends StatelessWidget {
   final String? userImageUrl;
   final Color? backgroundColor;
   final Color? textColor;
+  final bool showShadow;
 
   const UserHeaderCard({
     super.key,
@@ -20,6 +21,7 @@ class UserHeaderCard extends StatelessWidget {
     this.userImageUrl,
     this.backgroundColor,
     this.textColor,
+    this.showShadow = true,
   });
 
   Color _getRoleColor(String? role) {
@@ -45,7 +47,7 @@ class UserHeaderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: AppRadius.radiusLG,
-        boxShadow: AppShadow.md(bgColor),
+        boxShadow: showShadow ? AppShadow.md(bgColor) : null,
       ),
       child: Row(
         children: [

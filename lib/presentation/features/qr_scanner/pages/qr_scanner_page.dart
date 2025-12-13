@@ -119,8 +119,11 @@ class _QrScannerPageState extends State<QrScannerPage> {
 
     // Decode JSON
     try {
+      debugPrint('[QR Scanner] Raw QR code data: $code');
       data = jsonDecode(code);
+      debugPrint('[QR Scanner] Decoded data: $data');
     } catch (e) {
+      debugPrint('[QR Scanner] Error decoding JSON: $e');
       data = null;
     }
 
@@ -346,7 +349,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
                               children: [
                                 Icon(Icons.flash_on),
                                 SizedBox(width: 12),
-                                Text('Toggle Flash'),
+                                Text('Nyalakan/Matikan Flash'),
                               ],
                             ),
                           ),

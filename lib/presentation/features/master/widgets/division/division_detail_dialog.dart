@@ -138,7 +138,7 @@ class DivisionDetailDialog extends StatelessWidget {
                       elevation: 0,
                     ),
                     icon: const Icon(Icons.edit_outlined, size: 20),
-                    label: Text('Edit Divisi', style: AppTextStyles.button),
+                    label: Text('Ubah Divisi', style: AppTextStyles.button),
                   ),
                 ),
               ),

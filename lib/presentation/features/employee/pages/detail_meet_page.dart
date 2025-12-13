@@ -55,7 +55,7 @@ class _DetailMeetPageState extends State<DetailMeetPage>
         return Scaffold(
           backgroundColor: Colors.grey.shade50,
           appBar: AppBar(
-            title: const Text('Loading...'),
+            title: const Text('Memuat...'),
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
           ),
@@ -82,6 +82,7 @@ class _DetailMeetPageState extends State<DetailMeetPage>
   PreferredSizeWidget _buildAppBar(Meeting meeting) {
     return AppBar(
       title: Text(meeting.title),
+      centerTitle: false,
       bottom: TabBar(
         controller: _tabController,
         labelColor: Colors.white,

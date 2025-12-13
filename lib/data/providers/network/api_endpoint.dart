@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
@@ -31,14 +32,30 @@ class APIEndpoint {
   static String get meetings {
     try {
       final authController = Get.find<AuthController>();
-      final userRole =
-          authController.currentUser?.role?.toLowerCase() ?? 'employee';
+      final currentUser = authController.currentUser;
+
+      debugPrint('[APIEndpoint] Current user: ${currentUser?.fullName}');
+
+      if (currentUser == null) {
+        debugPrint(
+          '[APIEndpoint] WARNING: User not loaded yet, defaulting to employee',
+        );
+        return "$baseUrl/employee/meeting";
+      }
+
+      final userRole = currentUser.role?.toLowerCase() ?? 'employee';
+      debugPrint('[APIEndpoint] User role: $userRole');
 
       if (userRole == 'admin' || userRole == 'master') {
-        return "$baseUrl/admin/meeting";
+        final endpoint = "$baseUrl/admin/meeting";
+        debugPrint('[APIEndpoint] Using admin endpoint: $endpoint');
+        return endpoint;
       }
-      return "$baseUrl/employee/meeting";
+      final endpoint = "$baseUrl/employee/meeting";
+      debugPrint('[APIEndpoint] Using employee endpoint: $endpoint');
+      return endpoint;
     } catch (e) {
+      debugPrint('[APIEndpoint] Error getting role, defaulting to employee: $e');
       return "$baseUrl/employee/meeting";
     }
   }

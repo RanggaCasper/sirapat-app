@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
-import 'package:sirapat_app/app/config/app_dimensions.dart';  
+import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 
@@ -30,7 +30,8 @@ class _EditMeetingPageState extends State<EditMeetingPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Edit Rapat'),
+        title: const Text('Ubah Rapat'),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -173,7 +174,7 @@ class _EditMeetingPageState extends State<EditMeetingPage> {
                                 ),
                               )
                             : const Text(
-                                'Simpan Perubahan',
+                                'Simpan',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,

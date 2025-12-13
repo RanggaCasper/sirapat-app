@@ -39,7 +39,7 @@ class LogoutButton extends StatelessWidget {
                   Icon(Icons.logout, size: 20),
                   SizedBox(width: 8),
                   Text(
-                    'Logout',
+                    'Keluar',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ],

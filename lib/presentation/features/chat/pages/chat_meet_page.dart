@@ -113,6 +113,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
       backgroundColor: AppColors.primary,
       elevation: AppElevation.sm,
       automaticallyImplyLeading: false,
+      centerTitle: false,
       titleSpacing: 0,
       title: Row(
         children: [

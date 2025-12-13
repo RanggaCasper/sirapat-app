@@ -17,6 +17,7 @@ class DivisionDetailPage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Detail Divisi'),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

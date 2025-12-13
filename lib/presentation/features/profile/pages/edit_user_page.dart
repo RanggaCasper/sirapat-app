@@ -56,11 +56,14 @@ class _EditUserPageState extends State<EditUserPage> {
 
   @override
   void dispose() {
-    nipController.dispose();
-    fullNameController.dispose();
-    usernameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
+    // Check if widget is still mounted before disposing
+    if (mounted) {
+      nipController.dispose();
+      fullNameController.dispose();
+      usernameController.dispose();
+      emailController.dispose();
+      phoneController.dispose();
+    }
     super.dispose();
   }
 
@@ -76,7 +79,8 @@ class _EditUserPageState extends State<EditUserPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: const Text('Ubah Profil'),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -187,6 +191,7 @@ class _EditUserPageState extends State<EditUserPage> {
                     final divisions = divisionController.divisionOptions;
 
                     return Column(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -216,6 +221,7 @@ class _EditUserPageState extends State<EditUserPage> {
                             ),
                             hint: const Text('Pilih Divisi'),
                             isExpanded: true,
+                            menuMaxHeight: 300,
                             items: divisions.isEmpty
                                 ? []
                                 : divisions.map((division) {
@@ -309,6 +315,9 @@ class _EditUserPageState extends State<EditUserPage> {
                         onPressed: authController.isLoading
                             ? null
                             : () async {
+                                // Check if widget is still mounted
+                                if (!mounted) return;
+
                                 // Validate division selected
                                 if (selectedDivisionId == null ||
                                     selectedDivisionId!.isEmpty) {
@@ -324,11 +333,22 @@ class _EditUserPageState extends State<EditUserPage> {
                                     ?.role
                                     ?.toLowerCase();
 
-                                await authController.updateProfile(
-                                  fullName: fullNameController.text.trim(),
-                                  phone: phoneController.text.trim(),
-                                  divisionId: int.parse(selectedDivisionId!),
+                                // Get text values before async operation
+                                final fullNameValue = fullNameController.text
+                                    .trim();
+                                final phoneValue = phoneController.text.trim();
+                                final divisionIdValue = int.parse(
+                                  selectedDivisionId!,
                                 );
+
+                                await authController.updateProfile(
+                                  fullName: fullNameValue,
+                                  phone: phoneValue,
+                                  divisionId: divisionIdValue,
+                                );
+
+                                // Check if widget is still mounted after async operation
+                                if (!mounted) return;
 
                                 if (authController.fieldErrors.isEmpty &&
                                     context.mounted) {
@@ -347,13 +367,17 @@ class _EditUserPageState extends State<EditUserPage> {
                                         break;
                                       default:
                                         // Default fallback
-                                        Navigator.of(context).pop();
+                                        if (mounted) {
+                                          Navigator.of(context).pop();
+                                        }
                                         return;
                                     }
                                     // Navigate to dashboard and remove all previous routes
                                     Get.offAllNamed(targetRoute);
                                   } else {
-                                    Navigator.of(context).pop();
+                                    if (mounted) {
+                                      Navigator.of(context).pop();
+                                    }
                                   }
                                 }
                               },

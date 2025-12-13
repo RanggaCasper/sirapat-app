@@ -29,6 +29,7 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Tambah Rapat'),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

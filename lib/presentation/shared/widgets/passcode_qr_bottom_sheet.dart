@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -7,16 +8,25 @@ import 'package:sirapat_app/app/config/app_text_styles.dart';
 import 'package:sirapat_app/app/util/qr_download_helper.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
 import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_controller.dart';
 
 class PasscodeQrBottomSheet extends StatefulWidget {
+  final int meetingId;
   final String passcode;
   final String meetingTitle;
+  final String meetingDate;
+  final String meetingStartTime;
+  final String meetingEndTime;
   final String? meetingUuid;
 
   const PasscodeQrBottomSheet({
     super.key,
+    required this.meetingId,
     required this.passcode,
     required this.meetingTitle,
+    required this.meetingDate,
+    required this.meetingStartTime,
+    required this.meetingEndTime,
     this.meetingUuid,
   });
 
@@ -27,8 +37,28 @@ class PasscodeQrBottomSheet extends StatefulWidget {
 class _PasscodeQrBottomSheetState extends State<PasscodeQrBottomSheet> {
   final GlobalKey _qrKey = GlobalKey();
   bool _isProcessing = false;
+  String? decryptedPasscode;
+  bool _isLoading = true;
 
   NotificationController get _notif => Get.find<NotificationController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPasscode();
+  }
+
+  Future<void> _loadPasscode() async {
+    final controller = Get.find<MeetingController>();
+    final code = await controller.getMeetingPasscodeById(widget.meetingId);
+
+    if (mounted) {
+      setState(() {
+        decryptedPasscode = code;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,20 +71,27 @@ class _PasscodeQrBottomSheetState extends State<PasscodeQrBottomSheet> {
         ),
       ),
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: AppSpacing.sm),
-            BottomSheetHandle(color: AppColors.secondary.withOpacity(0.3)),
-            const SizedBox(height: AppSpacing.md),
-            _buildHeader(),
-            const SizedBox(height: AppSpacing.lg),
-            _buildQrCode(),
-            const SizedBox(height: AppSpacing.lg),
-            _buildActionButtons(),
-            const SizedBox(height: AppSpacing.lg),
-          ],
-        ),
+        child: _isLoading
+            ? const Padding(
+                padding: EdgeInsets.all(48.0),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: AppSpacing.sm),
+                  BottomSheetHandle(
+                    color: AppColors.secondary.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildHeader(),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildQrCode(),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildActionButtons(),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+              ),
       ),
     );
   }
@@ -112,16 +149,31 @@ class _PasscodeQrBottomSheetState extends State<PasscodeQrBottomSheet> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: QrImageView(
-                        data: widget.passcode,
-                        version: QrVersions.auto,
-                        size: 200,
-                        backgroundColor: Colors.white,
-                        errorCorrectionLevel: QrErrorCorrectLevel.H,
-                        embeddedImage: const AssetImage('assets/logo.png'),
-                        embeddedImageStyle: const QrEmbeddedImageStyle(
-                          size: Size(40, 40),
-                        ),
+                      child: Builder(
+                        builder: (context) {
+                          final qrData = jsonEncode({
+                            'id': widget.meetingId,
+                            'title': widget.meetingTitle,
+                            'date': widget.meetingDate,
+                            'startTime': widget.meetingStartTime,
+                            'endTime': widget.meetingEndTime,
+                            'passcode': decryptedPasscode,
+                          });
+                          debugPrint(
+                            '[PasscodeQrBottomSheet] QR data: $qrData',
+                          );
+                          return QrImageView(
+                            data: qrData,
+                            version: QrVersions.auto,
+                            size: 200,
+                            backgroundColor: Colors.white,
+                            errorCorrectionLevel: QrErrorCorrectLevel.H,
+                            embeddedImage: const AssetImage('assets/logo.png'),
+                            embeddedImageStyle: const QrEmbeddedImageStyle(
+                              size: Size(40, 40),
+                            ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -210,14 +262,22 @@ class _PasscodeQrBottomSheetState extends State<PasscodeQrBottomSheet> {
 
 // Helper function to show the bottom sheet
 void showPasscodeQrBottomSheet({
+  required int meetingId,
   required String passcode,
   required String meetingTitle,
+  required String meetingDate,
+  required String meetingStartTime,
+  required String meetingEndTime,
   String? meetingUuid,
 }) {
   Get.bottomSheet(
     PasscodeQrBottomSheet(
+      meetingId: meetingId,
       passcode: passcode,
       meetingTitle: meetingTitle,
+      meetingDate: meetingDate,
+      meetingStartTime: meetingStartTime,
+      meetingEndTime: meetingEndTime,
       meetingUuid: meetingUuid,
     ),
     isScrollControlled: true,

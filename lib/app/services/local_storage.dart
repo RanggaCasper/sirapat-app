@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,17 +38,18 @@ class LocalStorageService extends GetxService {
   // Generic method to get data
   T? getData<T>(StorageKey key, {T? defaultValue}) {
     final keyString = key.toString();
+
+    if (_sharedPreferences == null) {
+      debugPrint('[LocalStorage] WARNING: SharedPreferences not initialized!');
+      return defaultValue;
+    }
+
     final value = _sharedPreferences?.get(keyString);
 
     if (value == null) return defaultValue;
 
-    if (T == String && value is String) {
-      return value as T;
-    } else if (T == int && value is int) {
-      return value as T;
-    } else if (T == bool && value is bool) {
-      return value as T;
-    } else if (T == double && value is double) {
+    // Return value if it matches the requested type
+    if (value is T) {
       return value as T;
     }
 
@@ -56,7 +58,22 @@ class LocalStorageService extends GetxService {
 
   // Get string data
   String? getString(StorageKey key) {
-    return _sharedPreferences?.getString(key.toString());
+    if (_sharedPreferences == null) {
+      debugPrint(
+        '[LocalStorage] WARNING: SharedPreferences not initialized when getting ${key.toString()}',
+      );
+      return null;
+    }
+
+    final value = _sharedPreferences?.getString(key.toString());
+
+    if (key == StorageKey.token) {
+      debugPrint(
+        '[LocalStorage] Getting token: ${value != null ? "exists" : "null"}',
+      );
+    }
+
+    return value;
   }
 
   // Get JSON and decode

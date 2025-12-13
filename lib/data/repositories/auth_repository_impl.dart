@@ -156,7 +156,11 @@ class AuthRepositoryImpl extends AuthRepository {
     final userData = _storage.getJson(StorageKey.user);
     if (userData == null) return null;
 
-    return User.fromJson(userData);
+    final user = User.fromJson(userData);
+    debugPrint('[AuthRepository] getCurrentUser: ${user.fullName}');
+    debugPrint('[AuthRepository] Division: ${user.division?.name ?? "null"}');
+    debugPrint('[AuthRepository] DivisionId: ${user.divisionId}');
+    return user;
   }
 
   /// Verify user from server (check if token is still valid)
@@ -211,6 +215,10 @@ class AuthRepositoryImpl extends AuthRepository {
           debugPrint(
             '[AuthRepository] Verification successful for user: ${user.fullName}',
           );
+          debugPrint(
+            '[AuthRepository] User division: ${user.division?.name ?? "null"}',
+          );
+          debugPrint('[AuthRepository] User divisionId: ${user.divisionId}');
           // Update local storage with fresh data
           await _storage.saveData(StorageKey.user, user.toJson());
           return user;

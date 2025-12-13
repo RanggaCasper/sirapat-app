@@ -3,22 +3,51 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 
-class ChangePasswordPage extends GetView<AuthController> {
+class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
 
   @override
+  State<ChangePasswordPage> createState() => _ChangePasswordPageState();
+}
+
+class _ChangePasswordPageState extends State<ChangePasswordPage> {
+  late final TextEditingController currentPasswordController;
+  late final TextEditingController newPasswordController;
+  late final TextEditingController confirmPasswordController;
+  final obscureCurrentPassword = true.obs;
+  final obscureNewPassword = true.obs;
+  final obscureConfirmPassword = true.obs;
+
+  @override
+  void initState() {
+    super.initState();
+    currentPasswordController = TextEditingController();
+    newPasswordController = TextEditingController();
+    confirmPasswordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    if (mounted) {
+      currentPasswordController.dispose();
+      newPasswordController.dispose();
+      confirmPasswordController.dispose();
+      obscureCurrentPassword.close();
+      obscureNewPassword.close();
+      obscureConfirmPassword.close();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final currentPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    final obscureCurrentPassword = true.obs;
-    final obscureNewPassword = true.obs;
-    final obscureConfirmPassword = true.obs;
+    final controller = Get.find<AuthController>();
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text('Ubah Password'),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -306,12 +335,22 @@ class ChangePasswordPage extends GetView<AuthController> {
                     onPressed: controller.isLoading
                         ? null
                         : () async {
+                            if (!mounted) return;
+
+                            // Get text values before async operation
+                            final oldPassword = currentPasswordController.text;
+                            final newPassword = newPasswordController.text;
+                            final newPasswordConfirmation =
+                                confirmPasswordController.text;
+
                             await controller.resetPassword(
-                              oldPassword: currentPasswordController.text,
-                              newPassword: newPasswordController.text,
-                              newPasswordConfirmation:
-                                  confirmPasswordController.text,
+                              oldPassword: oldPassword,
+                              newPassword: newPassword,
+                              newPasswordConfirmation: newPasswordConfirmation,
                             );
+
+                            // Check if widget is still mounted after async operation
+                            if (!mounted) return;
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -331,7 +370,7 @@ class ChangePasswordPage extends GetView<AuthController> {
                             ),
                           )
                         : const Text(
-                            'Simpan Perubahan',
+                            'Simpan',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,

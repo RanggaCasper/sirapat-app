@@ -20,6 +20,7 @@ class DivisionFormPage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(isEdit ? 'Edit Divisi' : 'Tambah Divisi'),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

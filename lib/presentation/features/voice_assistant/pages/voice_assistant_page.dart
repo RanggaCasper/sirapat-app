@@ -34,6 +34,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
   Duration _recordDuration = Duration.zero;
   Timer? _timer;
   AudioTranscriptModel? _recordTranscript;
+  String? _transcriptError;
 
   @override
   void initState() {
@@ -46,7 +47,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
       // Request microphone
       final micStatus = await Permission.microphone.request();
       if (micStatus != PermissionStatus.granted) {
-        _notif.showError("Microphone permission not granted");
+        _notif.showError("Izin mikrofon tidak diberikan");
         return;
       }
 
@@ -59,7 +60,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
           // At least one storage permission granted
         } else {
           _notif.showWarning(
-            'Storage permission not granted. Recording will be saved to app directory.',
+            'Izin penyimpanan tidak diberikan. Rekaman akan disimpan di direktori aplikasi.',
           );
         }
       }
@@ -68,7 +69,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
       _isRecorderReady = true;
       setState(() {});
     } catch (e) {
-      _notif.showError('Failed to initialize recorder: $e');
+      _notif.showError('Gagal menginisialisasi perekam: $e');
       debugPrint('Error initializing recorder: $e');
     }
   }
@@ -93,7 +94,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
 
   Future<void> _startRecording() async {
     if (!_isRecorderReady) {
-      _notif.showError('Recorder is not ready');
+      _notif.showError('Perekam belum siap');
       return;
     }
 
@@ -119,7 +120,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
         _isPaused = false;
       });
     } catch (e) {
-      _notif.showError('Failed to start recording: $e');
+      _notif.showError('Gagal memulai perekaman: $e');
       debugPrint('Error starting recording: $e');
     }
   }
@@ -166,10 +167,10 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
 
       debugPrint('Recording saved to: $_filePath');
       _notif.showSuccess(
-        'Recording saved: ${_formatDuration(_recordDuration)}',
+        'Rekaman tersimpan: ${_formatDuration(_recordDuration)}',
       );
     } catch (e) {
-      _notif.showError('Failed to stop recording: $e');
+      _notif.showError('Gagal menghentikan perekaman: $e');
       debugPrint('Error stopping recording: $e');
     }
   }
@@ -216,20 +217,25 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
           _isProcessing = false;
         });
 
-        _notif.showSuccess('Audio transcribed successfully');
+        _notif.showSuccess('Audio berhasil ditranskripsi');
       }
     } catch (e) {
       debugPrint('Upload error: $e');
       setState(() => _isProcessing = false);
-      _notif.showError('Failed to upload audio: $e');
+      _notif.showError('Gagal mengunggah audio: $e');
     }
   }
 
   Future<void> _uploadRecordedFile() async {
     if (_filePath == null) {
-      _notif.showWarning('No recording file found');
+      setState(() {
+        _transcriptError = 'File rekaman tidak ditemukan';
+      });
       return;
     }
+    setState(() {
+      _transcriptError = null;
+    });
 
     try {
       setState(() => _isProcessing = true);
@@ -237,7 +243,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
       File file = File(_filePath!);
 
       if (!await file.exists()) {
-        throw Exception('Recording file not found');
+        throw Exception('File rekaman tidak ditemukan');
       }
 
       final fileSize = await file.length();
@@ -257,21 +263,27 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
         _transcript = transcript;
         _transcriptController.text = transcript.text;
         _isProcessing = false;
+        _transcriptError = null;
       });
 
-      _notif.showSuccess('Recording transcribed successfully');
+      _notif.showSuccess('Rekaman berhasil ditranskripsi');
     } catch (e) {
       debugPrint('Upload recorded file error: $e');
       setState(() => _isProcessing = false);
-      _notif.showError('Failed to transcribe recording: $e');
+      _notif.showError('Gagal mentranskripsikan rekaman: $e');
     }
   }
 
   Future<void> _createMeetingMinutes() async {
     if (_transcriptController.text.trim().isEmpty) {
-      _notif.showWarning('Please provide transcript text');
+      setState(() {
+        _transcriptError = 'Silakan berikan teks transkrip';
+      });
       return;
     }
+    setState(() {
+      _transcriptError = null;
+    });
 
     try {
       setState(() => _isProcessing = true);
@@ -292,14 +304,14 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
 
       setState(() => _isProcessing = false);
 
-      _notif.showSuccess('Meeting minutes created successfully');
+      _notif.showSuccess('Notulen rapat berhasil dibuat');
 
       // Navigate back after success
       Get.back();
     } catch (e) {
       debugPrint('Create meeting minutes error: $e');
       setState(() => _isProcessing = false);
-      _notif.showError('Failed to create meeting minutes: $e');
+      _notif.showError('Gagal membuat notulen rapat: $e');
     }
   }
 
@@ -315,7 +327,8 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Voice Assistant"),
+        title: const Text("Asisten Suara"),
+        centerTitle: false,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -332,6 +345,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
@@ -354,8 +368,8 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                           const SizedBox(height: 16),
                           Text(
                             _isRecording
-                                ? (_isPaused ? "Paused" : "Recording...")
-                                : "Record Meeting Audio",
+                                ? (_isPaused ? "Dijeda" : "Merekam...")
+                                : "Rekam Audio Rapat",
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -380,7 +394,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                                 ElevatedButton.icon(
                                   onPressed: _startRecording,
                                   icon: const Icon(Icons.mic),
-                                  label: const Text("Start Recording"),
+                                  label: const Text("Mulai Merekam"),
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 32,
@@ -398,7 +412,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                                   icon: Icon(
                                     _isPaused ? Icons.play_arrow : Icons.pause,
                                   ),
-                                  label: Text(_isPaused ? "Resume" : "Pause"),
+                                  label: Text(_isPaused ? "Lanjutkan" : "Jeda"),
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24,
@@ -412,7 +426,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                                 ElevatedButton.icon(
                                   onPressed: _stopRecording,
                                   icon: const Icon(Icons.stop),
-                                  label: const Text("Stop"),
+                                  label: const Text("Berhenti"),
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 32,
@@ -439,7 +453,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  "Recording saved (${_formatDuration(_recordDuration)})",
+                                  "Rekaman tersimpan (${_formatDuration(_recordDuration)})",
                                 ),
                               ],
                             ),
@@ -447,7 +461,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                             ElevatedButton.icon(
                               onPressed: _uploadRecordedFile,
                               icon: const Icon(Icons.cloud_upload),
-                              label: const Text("Transcribe Recording"),
+                              label: const Text("Transkripsi Rekaman"),
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 32,
@@ -469,6 +483,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                                   ),
                                 ),
                                 child: Column(
+                                  mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
@@ -517,6 +532,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.upload_file,
@@ -525,7 +541,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                           ),
                           const SizedBox(height: 16),
                           const Text(
-                            "Upload Audio File",
+                            "Unggah File Audio",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -533,7 +549,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Supported formats: MP3, WAV, M4A, AAC",
+                            "Format yang didukung: MP3, WAV, M4A, AAC",
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey.shade600,
@@ -543,7 +559,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                           ElevatedButton.icon(
                             onPressed: _pickAndUploadFile,
                             icon: const Icon(Icons.folder_open),
-                            label: const Text("Choose File"),
+                            label: const Text("Pilih File"),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 32,
@@ -567,6 +583,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
@@ -590,6 +607,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Column(
+                                mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
@@ -601,7 +619,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        "Duration: ${_transcript!.audioInfo.duration.toStringAsFixed(1)}s",
+                                        "Durasi: ${_transcript!.audioInfo.duration.toStringAsFixed(1)}d",
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey.shade700,
@@ -615,7 +633,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        "Processing: ${_transcript!.processingTime.toStringAsFixed(2)}s",
+                                        "Proses: ${_transcript!.processingTime.toStringAsFixed(2)}d",
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey.shade700,
@@ -639,6 +657,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
@@ -646,7 +665,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                               Icon(Icons.edit_note, color: AppColors.primary),
                               const SizedBox(width: 8),
                               const Text(
-                                "Transcript Text",
+                                "Transkrip",
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -660,12 +679,21 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                             maxLines: 10,
                             decoration: InputDecoration(
                               hintText: _transcript == null
-                                  ? "Upload or record audio to get transcript, or type manually..."
-                                  : "Edit transcript if needed...",
+                                  ? "Unggah atau rekam audio untuk mendapatkan transkrip, atau ketik secara manual..."
+                                  : "Ubah transkrip jika diperlukan...",
                               border: const OutlineInputBorder(),
                               filled: true,
                               fillColor: Colors.grey.shade50,
+                              errorText: _transcriptError,
+                              errorMaxLines: 2,
                             ),
+                            onChanged: (value) {
+                              if (_transcriptError != null) {
+                                setState(() {
+                                  _transcriptError = null;
+                                });
+                              }
+                            },
                           ),
                           const SizedBox(height: 16),
                           SizedBox(
@@ -673,7 +701,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                             child: ElevatedButton.icon(
                               onPressed: _createMeetingMinutes,
                               icon: const Icon(Icons.description),
-                              label: const Text("Create Meeting Minutes"),
+                              label: const Text("Buat Notulen Rapat"),
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 14,
