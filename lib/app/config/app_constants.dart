@@ -1,6 +1,6 @@
 class AppConstants {
   static const String appName = 'SiRapat App';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '0.0.0';
 
   // Environment Configuration
   // 🔴 Set to true for PRODUCTION, false for LOCAL DEVELOPMENT

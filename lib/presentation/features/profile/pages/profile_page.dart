@@ -645,7 +645,7 @@ class ProfilePage extends GetView<AuthController> {
   void _checkForUpdate() {
     UpdateDialog.checkAndShowUpdate(
       repoOwner: 'RanggaCasper',
-      repoName: 'sirapat_app',
+      repoName: 'sirapat-app',
       forceShow: true, // Selalu tampil saat dicek manual
     );
   }
