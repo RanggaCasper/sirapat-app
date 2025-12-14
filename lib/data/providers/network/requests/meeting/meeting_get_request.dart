@@ -19,7 +19,7 @@ class GetMeetingsRequest implements APIRequestRepresentable {
   @override
   String get path {
     final meetingsPath =
-        APIEndpoint.meetings.replaceFirst(APIEndpoint.baseUrl, '') + '/';
+        '${APIEndpoint.meetings.replaceFirst(APIEndpoint.baseUrl, '')}/';
     debugPrint('[GetMeetingsRequest] Path: $meetingsPath');
     return meetingsPath;
   }

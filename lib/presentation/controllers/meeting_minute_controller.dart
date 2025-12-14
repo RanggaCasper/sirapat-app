@@ -27,9 +27,9 @@ class MeetingMinuteController extends GetxController {
 
   NotificationController get _notif => Get.find<NotificationController>();
 
-  get decisions => null;
+  dynamic get decisions => null;
 
-  get content => null;
+  dynamic get content => null;
 
   Future<MeetingMinute?> getMeetingMinuteByMeetingId(int id) async {
     try {
