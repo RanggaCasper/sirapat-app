@@ -76,9 +76,16 @@ class _QrScannerPageState extends State<QrScannerPage> {
 
   Future<void> _pickImageAndScan() async {
     try {
+      // Hanya izinkan pilih dari galeri, BUKAN dari kamera
+      // Untuk menghindari Android menyimpan foto baru ke Pictures
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png'],
         allowMultiple: false,
+        withData: false, // Jangan load data ke memory
+        withReadStream: false, // Jangan buat stream
+        allowCompression:
+            false, // Jangan compress (hindari pembuatan file baru)
       );
 
       if (result != null && result.files.single.path != null) {
@@ -99,6 +106,13 @@ class _QrScannerPageState extends State<QrScannerPage> {
           }
         } else {
           _showError('Tidak ada QR code yang ditemukan dalam gambar');
+        }
+
+        // Bersihkan cache file picker setelah selesai
+        try {
+          await FilePicker.platform.clearTemporaryFiles();
+        } catch (e) {
+          debugPrint('Failed to clear temporary files: $e');
         }
       }
     } catch (e) {
@@ -211,8 +225,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
                                 () => DetailMeetPage(meetingId: meetingId),
                                 binding: BindingsBuilder(() {
                                   if (!Get.isRegistered<
-                                    GetAttendanceUseCase
-                                  >()) {
+                                      GetAttendanceUseCase>()) {
                                     MeetingBinding().dependencies();
                                     ParticipantBinding().dependencies();
                                     MeetingMinuteBinding().dependencies();

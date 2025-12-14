@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
-import 'package:sirapat_app/app/config/app_constants.dart';
 import 'package:sirapat_app/presentation/controllers/auth_controller.dart';
 import 'package:sirapat_app/presentation/controllers/user_binding.dart';
 import 'package:sirapat_app/presentation/controllers/division_binding.dart';
@@ -14,6 +14,11 @@ import 'package:sirapat_app/presentation/widgets/update_dialog.dart';
 
 class ProfilePage extends GetView<AuthController> {
   const ProfilePage({super.key});
+
+  Future<String> _getAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    return packageInfo.version;
+  }
 
   String _getRoleLabel(String? role) {
     switch (role?.toLowerCase()) {
@@ -213,12 +218,18 @@ class ProfilePage extends GetView<AuthController> {
     return _buildSection(
       title: 'Tentang',
       children: [
-        _buildMenuItem(
-          icon: Icons.info_outline,
-          title: 'Tentang Aplikasi',
-          subtitle: 'Versi ${AppConstants.appVersion}',
-          iconColor: Colors.teal,
-          onTap: () => _showAboutDialog(),
+        FutureBuilder<String>(
+          future: _getAppVersion(),
+          builder: (context, snapshot) {
+            final version = snapshot.data ?? '...';
+            return _buildMenuItem(
+              icon: Icons.info_outline,
+              title: 'Tentang Aplikasi',
+              subtitle: 'Versi $version',
+              iconColor: Colors.teal,
+              onTap: () => _showAboutDialog(),
+            );
+          },
         ),
         _buildDivider(),
         _buildMenuItem(
@@ -289,10 +300,10 @@ class ProfilePage extends GetView<AuthController> {
     final name = controller.currentUser?.fullName ?? '';
     final initials = name.isNotEmpty
         ? name
-              .split(' ')
-              .map((word) => word.isNotEmpty ? word[0].toUpperCase() : '')
-              .take(2)
-              .join()
+            .split(' ')
+            .map((word) => word.isNotEmpty ? word[0].toUpperCase() : '')
+            .take(2)
+            .join()
         : '?';
 
     return Container(
@@ -536,21 +547,27 @@ class ProfilePage extends GetView<AuthController> {
   }
 
   Widget _buildVersionSection() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.primary, width: 2),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Text(
-        'Versi ${AppConstants.appVersion}',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: AppColors.primary,
-          letterSpacing: 0.3,
-        ),
-      ),
+    return FutureBuilder<String>(
+      future: _getAppVersion(),
+      builder: (context, snapshot) {
+        final version = snapshot.data ?? '...';
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.primary, width: 2),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(
+            'Versi $version',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+              letterSpacing: 0.3,
+            ),
+          ),
+        );
+      },
     );
   }
 

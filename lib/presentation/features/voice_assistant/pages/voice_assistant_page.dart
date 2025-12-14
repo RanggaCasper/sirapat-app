@@ -327,7 +327,7 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Asisten Suara"),
+        title: const Text("Asisten Rapat"),
         centerTitle: false,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

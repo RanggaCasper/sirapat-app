@@ -158,7 +158,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
             ListTile(
               leading: Icon(Icons.mic, color: AppColors.primary),
               title: Text(
-                'Meeting Assistant',
+                'Asistent Rapat',
                 style: TextStyle(color: AppColors.primary),
               ),
               onTap: () {

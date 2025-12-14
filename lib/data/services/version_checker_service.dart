@@ -19,6 +19,7 @@ class VersionCheckerService {
     try {
       // Get current app version
       final packageInfo = await PackageInfo.fromPlatform();
+      print('Current app version: ${packageInfo}');
       final currentVersion = packageInfo.version;
 
       // Get latest release from GitHub

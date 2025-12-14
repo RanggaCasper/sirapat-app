@@ -1,4 +1,4 @@
-package com.example.sirapat_app
+package com.sirapat.diskominfo
 
 import io.flutter.embedding.android.FlutterActivity
 

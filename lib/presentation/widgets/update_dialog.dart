@@ -1,102 +1,149 @@
 import 'dart:developer' as dev;
+import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/data/services/version_checker_service.dart';
+import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-class UpdateDialog extends StatelessWidget {
+class UpdateBottomSheet extends StatefulWidget {
   final VersionCheckResult versionInfo;
 
-  const UpdateDialog({super.key, required this.versionInfo});
+  const UpdateBottomSheet({super.key, required this.versionInfo});
+
+  @override
+  State<UpdateBottomSheet> createState() => _UpdateBottomSheetState();
+}
+
+class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
+  bool _isDownloading = false;
+  double _downloadProgress = 0.0;
+  String _downloadStatus = '';
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Row(
-        children: [
-          Icon(
-            Icons.system_update,
-            color: Theme.of(context).primaryColor,
-            size: 28,
-          ),
-          const SizedBox(width: 12),
-          const Text('Update Tersedia'),
-        ],
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
-      content: SingleChildScrollView(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildVersionInfo(
-              'Versi Saat Ini',
-              versionInfo.currentVersion,
-              Colors.grey,
+            const Center(
+              child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 12)),
             ),
-            const SizedBox(height: 8),
-            _buildVersionInfo(
-              'Versi Terbaru',
-              versionInfo.latestVersion,
-              Colors.green,
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
-            const Text(
-              'Catatan Rilis:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                versionInfo.releaseNotes.isNotEmpty
-                    ? versionInfo.releaseNotes
-                    : 'Tidak ada catatan rilis',
-                style: const TextStyle(fontSize: 13),
-              ),
-            ),
+            _buildHeader(),
+            const SizedBox(height: 24),
+            _buildVersionInfo(),
+            const SizedBox(height: 20),
+            _buildReleaseNotes(),
+            const SizedBox(height: 24),
+            if (_isDownloading) _buildDownloadProgress(),
+            if (!_isDownloading) _buildActions(),
           ],
         ),
       ),
-      actions: [
-        TextButton(onPressed: () => Get.back(), child: const Text('Nanti')),
-        ElevatedButton.icon(
-          onPressed: () => _openReleaseUrl(context),
-          icon: const Icon(Icons.download, size: 18),
-          label: const Text('Update Sekarang'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Icon(
+            Icons.system_update,
+            size: 48,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Update Tersedia',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.3,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Versi baru aplikasi telah tersedia',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildVersionInfo(String label, String version, Color color) {
+  Widget _buildVersionInfo() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          _buildVersionRow(
+            'Versi Saat Ini',
+            widget.versionInfo.currentVersion,
+            Colors.grey,
+          ),
+          const SizedBox(height: 12),
+          const Icon(Icons.arrow_downward, color: Colors.grey, size: 20),
+          const SizedBox(height: 12),
+          _buildVersionRow(
+            'Versi Terbaru',
+            widget.versionInfo.latestVersion,
+            Colors.green,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVersionRow(String label, String version, Color color) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+            color: color.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: color.withOpacity(0.3)),
           ),
           child: Text(
             'v$version',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.primary,
             ),
@@ -106,54 +153,294 @@ class UpdateDialog extends StatelessWidget {
     );
   }
 
-  Future<void> _openReleaseUrl(BuildContext context) async {
-    final url = versionInfo.apkDownloadUrl ?? versionInfo.releaseUrl;
+  Widget _buildReleaseNotes() {
+    final releaseNotes = widget.versionInfo.releaseNotes.isNotEmpty
+        ? widget.versionInfo.releaseNotes
+        : 'Perbaikan bug dan peningkatan performa';
 
-    // Validasi URL
-    if (url.isEmpty) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Apa yang Baru:',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          constraints: const BoxConstraints(
+            maxHeight: 200, // Batasi tinggi untuk scroll
+          ),
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.blue.shade100),
+          ),
+          child: Markdown(
+            data: releaseNotes,
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            styleSheet: MarkdownStyleSheet(
+              p: const TextStyle(
+                fontSize: 13,
+                height: 1.5,
+                color: Colors.black87,
+              ),
+              h1: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              h2: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              h3: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              listBullet: TextStyle(
+                fontSize: 13,
+                color: AppColors.primary,
+              ),
+              code: TextStyle(
+                backgroundColor: Colors.grey.shade200,
+                color: Colors.black87,
+                fontSize: 12,
+              ),
+              codeblockDecoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDownloadProgress() {
+    return Column(
+      children: [
+        LinearProgressIndicator(
+          value: _downloadProgress,
+          backgroundColor: Colors.grey.shade200,
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          minHeight: 8,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          _downloadStatus,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey.shade700,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: TextButton(
+            onPressed: () => Get.back(),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+            ),
+            child: const Text(
+              'Nanti Saja',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: ElevatedButton.icon(
+            onPressed: _downloadAndInstall,
+            icon: const Icon(Icons.download, size: 20),
+            label: const Text(
+              'Update Sekarang',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _downloadAndInstall() async {
+    final apkUrl = widget.versionInfo.apkDownloadUrl;
+
+    if (apkUrl == null || apkUrl.isEmpty) {
       _showError('URL download tidak tersedia');
       return;
     }
 
+    setState(() {
+      _isDownloading = true;
+      _downloadProgress = 0.0;
+      _downloadStatus = 'Memulai download...';
+    });
+
     try {
-      final uri = Uri.parse(url);
+      final dio = Dio();
 
-      // Cek apakah URL valid
-      if (!uri.hasScheme || (!uri.isScheme('http') && !uri.isScheme('https'))) {
-        _showError('URL tidak valid');
-        return;
-      }
+      // Untuk Android 15, gunakan app-specific directory yang tidak butuh permission
+      // kemudian copy ke Downloads setelah selesai (jika memungkinkan)
+      Directory downloadDir;
 
-      // Cek apakah bisa membuka URL
-      final canLaunch = await canLaunchUrl(uri);
-      if (!canLaunch) {
-        _showError(
-          'Tidak dapat membuka browser. Silakan cek pengaturan aplikasi Anda.',
-        );
-        return;
-      }
-
-      // Buka URL
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-      if (launched) {
-        Get.back();
+      if (Platform.isAndroid) {
+        // Coba gunakan folder Download publik terlebih dahulu
+        try {
+          final publicDownloads = Directory('/storage/emulated/0/Download');
+          if (await publicDownloads.exists()) {
+            downloadDir = publicDownloads;
+          } else {
+            // Fallback ke app-specific external storage
+            final externalDir = await getExternalStorageDirectory();
+            downloadDir = externalDir!;
+          }
+        } catch (e) {
+          // Jika gagal, gunakan app-specific directory
+          final externalDir = await getExternalStorageDirectory();
+          downloadDir = externalDir!;
+        }
       } else {
-        _showError('Gagal membuka halaman download');
+        downloadDir = await getApplicationDocumentsDirectory();
       }
-    } on FormatException catch (e) {
-      dev.log('Invalid URL format: $url', error: e, name: 'UpdateDialog');
-      _showError('Format URL tidak valid');
+
+      final fileName = 'sirapat_app_v${widget.versionInfo.latestVersion}.apk';
+      final filePath = '${downloadDir.path}/$fileName';
+
+      dev.log(
+        'Downloading APK to: $filePath',
+        name: 'UpdateBottomSheet',
+      );
+
+      // Delete old file if exists
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+
+      await dio.download(
+        apkUrl,
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            setState(() {
+              _downloadProgress = received / total;
+              final receivedMB = (received / 1024 / 1024).toStringAsFixed(1);
+              final totalMB = (total / 1024 / 1024).toStringAsFixed(1);
+              _downloadStatus = 'Mendownload... $receivedMB MB / $totalMB MB';
+            });
+          }
+        },
+      );
+
+      setState(() {
+        _downloadStatus = 'Download selesai. Membuka installer...';
+      });
+
+      // Tunggu sebentar untuk memastikan file tersimpan dengan benar
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      // Verifikasi file ada dan ukurannya benar
+      final downloadedFile = File(filePath);
+      if (!await downloadedFile.exists()) {
+        _showError('File APK tidak ditemukan setelah download');
+        return;
+      }
+
+      final fileSize = await downloadedFile.length();
+      dev.log(
+        'APK file ready: $filePath (${(fileSize / 1024 / 1024).toStringAsFixed(2)} MB)',
+        name: 'UpdateBottomSheet',
+      );
+
+      Get.back();
+
+      // Buka installer APK secara otomatis
+      dev.log(
+        'Opening APK installer: $filePath',
+        name: 'UpdateBottomSheet',
+      );
+
+      final result = await OpenFilex.open(filePath);
+
+      dev.log(
+        'OpenFilex result: ${result.type} - ${result.message}',
+        name: 'UpdateBottomSheet',
+      );
+
+      // Berikan feedback ke user
+      if (result.type == ResultType.done) {
+        _showSuccess(
+          'Installer APK telah dibuka. Silakan klik "Install" untuk melanjutkan.',
+        );
+      } else if (result.type == ResultType.noAppToOpen) {
+        _showSuccess(
+          'File APK tersimpan. Installer akan terbuka dalam beberapa saat.',
+        );
+      } else if (result.type == ResultType.permissionDenied) {
+        _showError(
+          'Izin ditolak! Mohon aktifkan "Install unknown apps" untuk aplikasi ini:\n'
+          '1. Buka Settings\n'
+          '2. Pilih Apps → SiRapat App\n'
+          '3. Aktifkan "Install unknown apps"',
+        );
+      } else if (result.type == ResultType.fileNotFound) {
+        _showError('File APK tidak ditemukan. Silakan coba download ulang.');
+      } else {
+        _showError(
+          'Installer tidak dapat dibuka otomatis. '
+          'File tersimpan di: ${downloadDir.path}\n'
+          'Silakan buka folder Download dan install manual.',
+        );
+      }
     } catch (e, stackTrace) {
       dev.log(
-        'Error opening URL: $url',
+        'Error downloading APK',
         error: e,
         stackTrace: stackTrace,
-        name: 'UpdateDialog',
+        name: 'UpdateBottomSheet',
       );
-      _showError('Terjadi kesalahan saat membuka halaman download');
+      _showError('Gagal mendownload update: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+        });
+      }
     }
   }
 
@@ -164,11 +451,25 @@ class UpdateDialog extends StatelessWidget {
       dev.log(
         'Failed to show error notification: $message',
         error: e,
-        name: 'UpdateDialog',
+        name: 'UpdateBottomSheet',
       );
     }
   }
 
+  void _showSuccess(String message) {
+    try {
+      Get.find<NotificationController>().showSuccess(message);
+    } catch (e) {
+      dev.log(
+        'Failed to show success notification: $message',
+        error: e,
+        name: 'UpdateBottomSheet',
+      );
+    }
+  }
+}
+
+class UpdateDialog {
   static Future<void> checkAndShowUpdate({
     required String repoOwner,
     required String repoName,
@@ -183,7 +484,12 @@ class UpdateDialog extends StatelessWidget {
       final result = await versionChecker.checkForUpdate();
 
       if (result.hasUpdate) {
-        Get.dialog(UpdateDialog(versionInfo: result), barrierDismissible: true);
+        Get.bottomSheet(
+          UpdateBottomSheet(versionInfo: result),
+          isDismissible: true,
+          enableDrag: true,
+          isScrollControlled: true,
+        );
       } else if (forceShow) {
         // Tidak ada update tersedia, tapi user melakukan pengecekan manual
         Get.find<NotificationController>().showSuccess(

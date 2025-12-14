@@ -70,6 +70,10 @@ dependencies:
   # App Info & Launcher
   package_info_plus: ^8.1.2
   url_launcher: ^6.3.1
+  
+  # APK Installer & Markdown
+  open_filex: ^4.5.0
+  flutter_markdown: ^0.7.4+1
 
 dev_dependencies:
   flutter_test:
