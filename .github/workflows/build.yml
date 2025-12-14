@@ -4,11 +4,19 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'lib/**'
+      - 'pubspec.yaml'
+      - 'android/**'
+      - '.github/workflows/build.yml'
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
+    paths:
+      - 'lib/**'
+      - 'pubspec.yaml'
   workflow_dispatch:
 
 jobs:
@@ -19,6 +27,40 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-increment version
+        id: version_bump
+        run: |
+          # Get current version from pubspec.yaml
+          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION_NAME=$(echo $CURRENT_VERSION | cut -d'+' -f1)
+          BUILD_NUMBER=$(echo $CURRENT_VERSION | cut -d'+' -f2)
+          
+          # Increment build number
+          NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          NEW_VERSION="${VERSION_NAME}+${NEW_BUILD_NUMBER}"
+          
+          # Update pubspec.yaml
+          sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" pubspec.yaml
+          
+          # Output versions
+          echo "old_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "build_number=$NEW_BUILD_NUMBER" >> $GITHUB_OUTPUT
+          
+          echo "Version bumped: $CURRENT_VERSION -> $NEW_VERSION"
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "chore: bump version to ${{ steps.version_bump.outputs.new_version }} [skip ci]" || echo "No changes to commit"
+          git push || echo "Nothing to push"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -103,26 +145,42 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
-      - name: Extract changelog for current version
+      - name: Get previous release tag
+        id: prev_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "Previous tag: $PREV_TAG"
+
+      - name: Generate changelog from commits
         id: changelog
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ' | cut -d'+' -f1)
+          PREV_TAG="${{ steps.prev_tag.outputs.tag }}"
           
-          # Extract changelog section for current version
-          CHANGELOG=$(awk "/## \[$VERSION\]/,/## \[/" CHANGELOG.md | sed '/## \[/d' | sed '/^$/d' | head -n -1)
-          
-          # If no changelog found, use commit message as fallback
-          if [ -z "$CHANGELOG" ]; then
-            CHANGELOG=$(git log -1 --pretty=%B)
+          # Generate commit log
+          if [ -z "$PREV_TAG" ]; then
+            # If no previous tag, get all commits
+            COMMITS=$(git log --pretty=format:"- %s by @%an in %h" --no-merges)
+          else
+            # Get commits since last tag
+            COMMITS=$(git log $PREV_TAG..HEAD --pretty=format:"- %s by @%an in %h" --no-merges)
           fi
           
-          # Store changelog in output file to handle multiline
-          echo "$CHANGELOG" > /tmp/changelog.txt
+          # Also extract from CHANGELOG.md for structured changes
+          CHANGELOG_CONTENT=$(awk "/## \[$VERSION\]/,/## \[/" CHANGELOG.md | sed '/## \[/d' | sed '/^---/d' | sed '/^\[.*\]:/d')
           
-          # Set output using the file content
+          # Combine both
           {
             echo 'content<<EOF'
-            cat /tmp/changelog.txt
+            if [ ! -z "$CHANGELOG_CONTENT" ]; then
+              echo "$CHANGELOG_CONTENT"
+              echo ""
+              echo "### 📋 Commit History"
+              echo "$COMMITS"
+            else
+              echo "$COMMITS"
+            fi
             echo EOF
           } >> $GITHUB_OUTPUT
 
@@ -136,21 +194,30 @@ jobs:
             
             **Sistem Informasi Rapat - Diskominfo Badung**
             
-            ### 📦 Downloads
-            - **Android APK**: `app-release.apk` (Recommended for direct installation)
-            - **Android App Bundle**: `app-release.aab` (For Google Play Store)
+            ---
             
-            ### 📝 What's New
+            ### 📦 Downloads
+            - **Android APK**: `app-release.apk` *(Recommended for direct installation)*
+            - **Android App Bundle**: `app-release.aab` *(For Google Play Store)*
+            
+            ---
+            
+            ### 📝 What's Changed
             ${{ steps.changelog.outputs.content }}
             
-            ### 🔧 Installation
-            1. Download `app-release.apk`
+            ---
+            
+            ### 🔧 Installation Guide
+            1. Download `app-release.apk` from the downloads section above
             2. Enable "Install from Unknown Sources" in your device settings
-            3. Open the APK file and install
+            3. Open the APK file and follow the installation prompts
             4. Grant necessary permissions when prompted
             
-            ### 📖 Full Changelog
-            See [CHANGELOG.md](https://github.com/RanggaCasper/sirapat-app/blob/main/CHANGELOG.md) for complete release history.
+            ---
+            
+            ### 📖 Documentation
+            - **Full Changelog**: [CHANGELOG.md](https://github.com/RanggaCasper/sirapat-app/blob/main/CHANGELOG.md)
+            - **README**: [View Documentation](https://github.com/RanggaCasper/sirapat-app/blob/main/README.md)
           draft: false
           prerelease: false
           files: |
