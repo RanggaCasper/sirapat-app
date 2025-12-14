@@ -103,11 +103,28 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
-      - name: Get commit message
-        id: commit
+      - name: Extract changelog for current version
+        id: changelog
         run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          echo "message=$COMMIT_MSG" >> $GITHUB_OUTPUT
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ' | cut -d'+' -f1)
+          
+          # Extract changelog section for current version
+          CHANGELOG=$(awk "/## \[$VERSION\]/,/## \[/" CHANGELOG.md | sed '/## \[/d' | sed '/^$/d' | head -n -1)
+          
+          # If no changelog found, use commit message as fallback
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG=$(git log -1 --pretty=%B)
+          fi
+          
+          # Store changelog in output file to handle multiline
+          echo "$CHANGELOG" > /tmp/changelog.txt
+          
+          # Set output using the file content
+          {
+            echo 'content<<EOF'
+            cat /tmp/changelog.txt
+            echo EOF
+          } >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -115,22 +132,25 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
           body: |
-            ## Sirapat App v${{ steps.version.outputs.version }}
+            ## 📱 SiRapat App v${{ steps.version.outputs.version }}
+            
+            **Sistem Informasi Rapat - Diskominfo Badung**
             
             ### 📦 Downloads
             - **Android APK**: `app-release.apk` (Recommended for direct installation)
             - **Android App Bundle**: `app-release.aab` (For Google Play Store)
             
-            ### 📝 Latest Changes
-            ${{ steps.commit.outputs.message }}
+            ### 📝 What's New
+            ${{ steps.changelog.outputs.content }}
             
             ### 🔧 Installation
             1. Download `app-release.apk`
             2. Enable "Install from Unknown Sources" in your device settings
             3. Open the APK file and install
+            4. Grant necessary permissions when prompted
             
-            ---
-            Built automatically from commit: ${{ github.sha }}
+            ### 📖 Full Changelog
+            See [CHANGELOG.md](https://github.com/RanggaCasper/sirapat-app/blob/main/CHANGELOG.md) for complete release history.
           draft: false
           prerelease: false
           files: |
