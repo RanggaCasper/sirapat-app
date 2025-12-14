@@ -445,7 +445,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
 
               // Title
               const Text(
-                'Approve Notulen Rapat',
+                'Setujui Notulen Rapat',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -488,7 +488,6 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
                       child: const Text(
                         'Batal',
                         style: TextStyle(
-                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Colors.black54,
                         ),
@@ -548,9 +547,8 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
                                 ),
                               )
                             : const Text(
-                                'Approve',
+                                'Setujui',
                                 style: TextStyle(
-                                  fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
