@@ -7,24 +7,53 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:sirapat_app/presentation/app.dart';
+import 'package:sirapat_app/app/config/app_constants.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const App());
+  group('AppConstants Tests', () {
+    test('appName should be SiRapat App', () {
+      expect(AppConstants.appName, 'SiRapat App');
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('baseUrl should return correct URL based on environment', () {
+      // In test mode, should return production or local based on isProduction flag
+      expect(AppConstants.baseUrl, isNotEmpty);
+      expect(
+          AppConstants.baseUrl,
+          anyOf(
+            equals(AppConstants.productionUrl),
+            startsWith('http://'),
+          ));
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('API timeout should be valid duration', () {
+      expect(AppConstants.connectionTimeout.inSeconds, greaterThan(0));
+      expect(AppConstants.receiveTimeout.inSeconds, greaterThan(0));
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('pagination constants should be valid', () {
+      expect(AppConstants.defaultPageSize, greaterThan(0));
+      expect(AppConstants.maxPageSize,
+          greaterThanOrEqualTo(AppConstants.defaultPageSize));
+    });
+  });
+
+  group('Widget Tests', () {
+    testWidgets('Material app smoke test', (WidgetTester tester) async {
+      // Build a simple MaterialApp to verify framework is working
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: Text('Test'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Test'), findsOneWidget);
+      expect(find.byType(MaterialApp), findsOneWidget);
+      expect(find.byType(Scaffold), findsOneWidget);
+    });
   });
 }

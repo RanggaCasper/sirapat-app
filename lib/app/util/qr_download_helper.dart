@@ -129,7 +129,7 @@ class QrDownloadHelper {
   /// Capture widget as image from RepaintBoundary
   static Future<Uint8List?> _captureQrCode(GlobalKey key) async {
     Uint8List? result;
-    
+
     try {
       // Wait for the widget to be fully rendered
       await Future.delayed(const Duration(milliseconds: 300));
@@ -164,9 +164,9 @@ class QrDownloadHelper {
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Capture the image with error handling
-      final ui.Image? image = await boundary.toImage(pixelRatio: 3.0);
-      if (image == null) {
-        debugPrint('[QrDownloadHelper] Failed to capture image');
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      if (!context.mounted) {
+        debugPrint('[QrDownloadHelper] Context unmounted during capture');
         return null;
       }
 

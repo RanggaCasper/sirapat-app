@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class VersionCheckerService {
@@ -10,16 +11,16 @@ class VersionCheckerService {
     required String repoOwner,
     required String repoName,
     Dio? dio,
-  }) : _repoOwner = repoOwner,
-       _repoName = repoName,
-       _dio = dio ?? Dio();
+  })  : _repoOwner = repoOwner,
+        _repoName = repoName,
+        _dio = dio ?? Dio();
 
   /// Check if there's a newer version available on GitHub
   Future<VersionCheckResult> checkForUpdate() async {
     try {
       // Get current app version
       final packageInfo = await PackageInfo.fromPlatform();
-      print('Current app version: ${packageInfo}');
+      debugPrint('Current app version: $packageInfo');
       final currentVersion = packageInfo.version;
 
       // Get latest release from GitHub
@@ -101,9 +102,8 @@ class VersionCheckerService {
     final v1Parts = v1.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final v2Parts = v2.split('.').map((e) => int.tryParse(e) ?? 0).toList();
 
-    final maxLength = v1Parts.length > v2Parts.length
-        ? v1Parts.length
-        : v2Parts.length;
+    final maxLength =
+        v1Parts.length > v2Parts.length ? v1Parts.length : v2Parts.length;
 
     for (int i = 0; i < maxLength; i++) {
       final v1Part = i < v1Parts.length ? v1Parts[i] : 0;
@@ -161,7 +161,7 @@ class ReleaseInfo {
   factory ReleaseInfo.fromJson(Map<String, dynamic> json) {
     final assetsList =
         (json['assets'] as List?)?.map((a) => AssetInfo.fromJson(a)).toList() ??
-        [];
+            [];
 
     return ReleaseInfo(
       version: (json['tag_name'] as String).replaceAll('v', ''),
