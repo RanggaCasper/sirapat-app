@@ -1,32 +1,37 @@
 class MeetingMinute {
   final int id;
   final int meetingId;
-  final String content;
   final String? originalText;
   final String? summary;
-  final String? minutes;
-  final List<Decision>? decisions;
-  final Map<String, dynamic>? elements;
+  final String? pembahasan;
+  final List<String>? keputusan;
+  final List<String>? tindakan;
+  final List<Map<String, dynamic>>? anggaran;
+  final String? totalAnggaran;
+  final String? catatanAnggaran;
+  final dynamic meeting;
+  final dynamic approver;
   final int? approvedBy;
   final DateTime? approvedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   MeetingMinute({
     required this.id,
     required this.meetingId,
-    required this.content,
     this.originalText,
     this.summary,
-    this.minutes,
-    this.decisions,
-    this.elements,
+    this.pembahasan,
+    this.keputusan,
+    this.tindakan,
+    this.anggaran,
+    this.totalAnggaran,
+    this.catatanAnggaran,
+    this.meeting,
+    this.approver,
     this.approvedBy,
     this.approvedAt,
+    this.createdAt,
+    this.updatedAt,
   });
-}
-
-class Decision {
-  final String title;
-  final String description;
-
-  Decision({required this.title, required this.description});
 }

@@ -1,90 +1,78 @@
-import 'dart:convert';
 import 'package:sirapat_app/domain/entities/meeting_minute.dart';
 
 class MeetingMinuteModel extends MeetingMinute {
   MeetingMinuteModel({
     required super.id,
     required super.meetingId,
-    required super.content,
     super.originalText,
     super.summary,
-    super.minutes,
-    super.decisions,
-    super.elements,
+    super.pembahasan,
+    super.keputusan,
+    super.tindakan,
+    super.anggaran,
+    super.totalAnggaran,
+    super.catatanAnggaran,
+    super.meeting,
+    super.approver,
     super.approvedBy,
     super.approvedAt,
+    super.createdAt,
+    super.updatedAt,
   });
 
   factory MeetingMinuteModel.fromJson(Map<String, dynamic> json) {
-    // Parse decisions field - handle both String (JSON encoded) and List
-    List<Decision>? parseDecisions(dynamic decisionsField) {
-      if (decisionsField == null) return null;
-
-      List decisionsData;
-
-      // If it's a String, parse it as JSON
-      if (decisionsField is String) {
-        try {
-          decisionsData = jsonDecode(decisionsField) as List;
-        } catch (e) {
-          return null;
-        }
-      } else if (decisionsField is List) {
-        decisionsData = decisionsField;
-      } else {
-        return null;
+    // Parse string list fields (keputusan, tindakan)
+    List<String>? parseStringList(dynamic field) {
+      if (field == null) return null;
+      if (field is List) {
+        return field.map((e) => e.toString()).toList();
       }
-
-      return decisionsData.map((d) {
-        return Decision(
-          title: d is String ? d : d['title'],
-          description: d is String ? '' : (d['description'] ?? ''),
-        );
-      }).toList();
+      return null;
     }
 
-    // Parse elements field - handle both String (JSON encoded) and Map
-    Map<String, dynamic>? parseElements(dynamic elementsField) {
-      if (elementsField == null) return null;
-
-      // If it's a String, parse it as JSON
-      if (elementsField is String) {
-        try {
-          return jsonDecode(elementsField) as Map<String, dynamic>;
-        } catch (e) {
-          return null;
-        }
-      } else if (elementsField is Map<String, dynamic>) {
-        return elementsField;
-      } else {
-        return null;
+    // Parse anggaran list
+    List<Map<String, dynamic>>? parseAnggaran(dynamic field) {
+      if (field == null) return null;
+      if (field is List) {
+        return field.map((e) => e as Map<String, dynamic>).toList();
       }
+      return null;
     }
 
     return MeetingMinuteModel(
       id: json['id'] != null
           ? (json['id'] is String ? int.parse(json['id']) : json['id'])
           : (json['meeting_minute_id'] is String
-                ? int.parse(json['meeting_minute_id'])
-                : json['meeting_minute_id']),
+              ? int.parse(json['meeting_minute_id'])
+              : json['meeting_minute_id']),
       meetingId: json['meeting_id'] != null
           ? (json['meeting_id'] is String
-                ? int.parse(json['meeting_id'])
-                : json['meeting_id'])
-          : 0, // Default value if not provided
-      content: json['content'] ?? json['minutes'] ?? '',
+              ? int.parse(json['meeting_id'])
+              : json['meeting_id'])
+          : 0,
       originalText: json['original_text'],
       summary: json['summary'],
-      minutes: json['minutes'],
-      decisions: parseDecisions(json['decisions']),
-      elements: parseElements(json['elements']),
+      pembahasan: json['pembahasan'],
+      keputusan: parseStringList(json['keputusan']),
+      tindakan: parseStringList(json['tindakan']),
+      anggaran: parseAnggaran(json['anggaran']),
+      totalAnggaran: json['total_anggaran'],
+      catatanAnggaran: json['catatan_anggaran'],
+      meeting: json['meeting'],
+      approver: json['approver'],
       approvedBy: json['approved_by'] != null
           ? (json['approved_by'] is String
-                ? int.parse(json['approved_by'])
-                : json['approved_by'])
+              ? int.parse(json['approved_by'])
+              : json['approved_by'])
           : null,
       approvedAt: json['approved_at'] != null
           ? DateTime.parse(json['approved_at'])
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
     );
   }
@@ -92,16 +80,20 @@ class MeetingMinuteModel extends MeetingMinute {
   Map<String, dynamic> toJson() {
     return {
       "meeting_id": meetingId,
-      "content": content,
       "original_text": originalText,
       "summary": summary,
-      "minutes": minutes,
-      "decisions": decisions
-          ?.map((e) => {"title": e.title, "description": e.description})
-          .toList(),
-      "elements": elements,
+      "pembahasan": pembahasan,
+      "keputusan": keputusan,
+      "tindakan": tindakan,
+      "anggaran": anggaran,
+      "total_anggaran": totalAnggaran,
+      "catatan_anggaran": catatanAnggaran,
+      "meeting": meeting,
+      "approver": approver,
       "approved_by": approvedBy,
       "approved_at": approvedAt?.toIso8601String(),
+      "created_at": createdAt?.toIso8601String(),
+      "updated_at": updatedAt?.toIso8601String(),
     };
   }
 }
