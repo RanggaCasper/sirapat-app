@@ -65,7 +65,7 @@ jobs:
       - run: flutter analyze
         continue-on-error: true
 
-      - run: flutter build apk --release
+      - run: flutter build apk --release --target-platform android-arm64
       - run: flutter build appbundle --release
 
       - uses: actions/upload-artifact@v4
