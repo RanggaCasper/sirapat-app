@@ -16,12 +16,6 @@ class MeetingCard extends StatelessWidget {
     this.onTap,
   });
 
-  String _formatTime(DateTime date) {
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-    return '$hour.$minute';
-  }
-
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -74,15 +68,7 @@ class MeetingCard extends StatelessWidget {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        DateFormatter.formatToShortDate(date),
-                        style: AppTextStyles.body.copyWith(
-                          fontSize: AppTextStyles.caption.fontSize,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Text(
-                        _formatTime(date),
+                        DateFormatter.formatToDateTime(date),
                         style: AppTextStyles.body.copyWith(
                           fontSize: AppTextStyles.caption.fontSize,
                           color: AppColors.secondary,

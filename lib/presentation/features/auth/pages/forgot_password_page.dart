@@ -237,8 +237,8 @@ class ForgotPasswordPage extends GetView<ForgotPasswordController> {
                                         ),
                                         child: controller.isLoading.value
                                             ? const SizedBox(
-                                                height: 20,
-                                                width: 20,
+                                                height: 16,
+                                                width: 16,
                                                 child: CircularProgressIndicator(
                                                   strokeWidth: 2,
                                                   valueColor:

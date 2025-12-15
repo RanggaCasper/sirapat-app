@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/app/config/app_dimensions.dart';
 import 'package:sirapat_app/app/config/app_text_styles.dart';
+import 'package:sirapat_app/app/util/date_formatter.dart';
 import 'package:sirapat_app/domain/entities/attendance.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/domain/usecases/attendance/get_attendance_usecase.dart';
@@ -156,7 +157,7 @@ class _ParticipantPageState extends State<ParticipantPage> {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
-                      '${attendance.checkInTime}',
+                      DateFormatter.formatToDateTime(attendance.checkInTime),
                       style: AppTextStyles.body.copyWith(
                         fontSize: AppTextStyles.caption.fontSize,
                         color: AppColors.secondary,

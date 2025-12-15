@@ -32,6 +32,7 @@ class UserInfoPage extends GetView<AuthController> {
       ),
       body: Obx(() {
         final user = controller.currentUser;
+        print('User data: $user');
         if (user == null) {
           return const Center(child: Text('Data pengguna tidak ditemukan'));
         }

@@ -81,6 +81,7 @@ class AuthController extends GetxController {
     try {
       final user = await _getCurrentUserUseCase.execute();
       _currentUser.value = user;
+      debugPrint('[AuthController] Current user: $user');
       debugPrint('[AuthController] Current user loaded: ${user?.fullName}');
       debugPrint('[AuthController] Current user role: ${user?.role}');
       debugPrint(
@@ -258,45 +259,7 @@ class AuthController extends GetxController {
     }
   }
 
-  // Set loading state
-  void _setLoading(bool value) {
-    _isLoading.value = value;
-  }
-
-  // Navigate to role-specific dashboard
-  void _navigateToRoleDashboard(String? role) {
-    switch (role?.toLowerCase()) {
-      case 'master':
-        Get.offAllNamed(AppRoutes.masterDashboard);
-        break;
-      case 'admin':
-        Get.offAllNamed(AppRoutes.adminDashboard);
-        break;
-      case 'employee':
-        Get.offAllNamed(AppRoutes.employeeDashboard);
-        break;
-      default:
-        _notif.showError('Role tidak valid');
-        Get.offAllNamed(AppRoutes.login);
-    }
-  }
-
-  // Handle API exceptions with field errors using global handler
-  void _handleApiException(ApiException e) {
-    _errorMessage.value = e.message;
-
-    // Use global form error handler
-    final errors = FormErrorHandler.handleApiException(e);
-    _fieldErrors.addAll(errors);
-  }
-
-  // Handle generic errors
-  void _handleGenericError(dynamic e) {
-    final errorMsg = e.toString();
-    _errorMessage.value = errorMsg;
-    _notif.showError(errorMsg);
-  }
-
+  // Update user profile
   Future<void> updateProfile({
     required String fullName,
     required String phone,
@@ -307,6 +270,9 @@ class AuthController extends GetxController {
       clearAllErrors();
 
       debugPrint('[AuthController] Updating profile...');
+      debugPrint('[AuthController] Full Name: $fullName');
+      debugPrint('[AuthController] Phone: $phone');
+      debugPrint('[AuthController] Division ID: $divisionId');
 
       final updatedUser = await _updateProfileUseCase.execute(
         UpdateProfileParams(
@@ -326,38 +292,72 @@ class AuthController extends GetxController {
         '[AuthController] DivisionId after update: ${updatedUser.divisionId}',
       );
 
-      // Verify from server to get latest data (optional but recommended)
-      try {
-        final verifiedUser = await _authRepository.verifyUserFromServer();
-        if (verifiedUser != null) {
-          _currentUser.value = verifiedUser;
-          debugPrint('[AuthController] Profile verified from server');
-          debugPrint(
-            '[AuthController] Division after verify: ${verifiedUser.division?.name}',
-          );
-          debugPrint(
-            '[AuthController] DivisionId after verify: ${verifiedUser.divisionId}',
-          );
-
-          // Force update to trigger reactive UI
-          _currentUser.refresh();
-        }
-      } catch (e) {
-        debugPrint('[AuthController] Failed to verify from server: $e');
-        // Continue with local updated data
-      }
+      // Force update to trigger reactive UI
+      _currentUser.refresh();
 
       _notif.showSuccess('Profile berhasil diperbarui');
 
       // Navigation will be handled by UI layer
     } on ApiException catch (e) {
+      debugPrint(
+          '[AuthController] ApiException in updateProfile: ${e.message}');
+      debugPrint('[AuthController] Errors: ${e.errors}');
       _handleApiException(e);
-      rethrow; // Rethrow to let UI handle it
+      // Don't rethrow - error is handled, UI will check fieldErrors
     } catch (e) {
+      debugPrint('[AuthController] Generic error in updateProfile: $e');
       _handleGenericError(e);
-      rethrow; // Rethrow to let UI handle it
+      // Don't rethrow - error is handled, UI will check fieldErrors
     } finally {
       _setLoading(false);
     }
+  }
+
+  // Set loading state
+  void _setLoading(bool value) {
+    _isLoading.value = value;
+  }
+
+  // Navigate to role-specific dashboard
+  void _navigateToRoleDashboard(String? role) {
+    switch (role?.toLowerCase()) {
+      case 'master':
+        Get.offAllNamed(AppRoutes.masterDashboard);
+        break;
+      case 'admin':
+        Get.offAllNamed(AppRoutes.adminDashboard);
+        break;
+      case 'employee':
+        Get.offAllNamed(AppRoutes.employeeDashboard);
+        break;
+      default:
+        Get.offAllNamed(AppRoutes.login);
+    }
+  }
+
+  // Handle API exceptions with field errors using global handler
+  void _handleApiException(ApiException e) {
+    _errorMessage.value = e.message;
+
+    // Use global form error handler
+    final errors = FormErrorHandler.handleApiException(e);
+    _fieldErrors.addAll(errors);
+
+    // PERBAIKAN: Only show error notification if no field errors
+    // If there are field errors, they will be shown in the form
+    if (errors.isEmpty) {
+      _notif.showError(e.message);
+    } else {
+      debugPrint(
+          '[AuthController] Field errors detected, not showing notification');
+      debugPrint('[AuthController] Errors: $errors');
+    }
+  }
+
+  // Handle generic errors
+  void _handleGenericError(dynamic e) {
+    final errorMsg = e.toString();
+    _errorMessage.value = errorMsg;
+    _notif.showError(errorMsg);
   }
 }

@@ -17,6 +17,7 @@ import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart
 import 'package:sirapat_app/domain/entities/meeting_minute.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_minute_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final int meetingId;
@@ -33,10 +34,15 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   final MeetingController controller = Get.find<MeetingController>();
   final MeetingMinuteController meetingMinuteController =
       Get.find<MeetingMinuteController>();
+  final ParticipantController participantController =
+      Get.find<ParticipantController>();
+  final _inviteFormKey = GlobalKey<FormState>();
+  late final TextEditingController identifierController;
 
   @override
   void initState() {
     super.initState();
+    identifierController = TextEditingController();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     _tabController.addListener(() {
       setState(() {});
@@ -49,6 +55,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
 
   @override
   void dispose() {
+    identifierController.dispose();
     _tabController.dispose();
     // Clear selected meeting to prevent stale data
     controller.selectedMeeting.value = null;
@@ -154,7 +161,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
           children: [
             // Handle indicator
             const BottomSheetHandle(margin: EdgeInsets.only(bottom: 20)),
-            // Meeting Assistant feature commented out (flutter_sound removed)
+            // Meeting Assistant feature
             ListTile(
               leading: Icon(Icons.mic, color: AppColors.primary),
               title: Text(
@@ -213,19 +220,18 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
     if (meeting == null) return;
 
     final passcode = await controller.getMeetingPasscodeById(widget.meetingId);
-    final message =
-        """
-          📅 *Undangan Rapat*
-          Judul: ${meeting.title}
-          Tanggal: ${meeting.date}
-          Waktu: ${meeting.startTime} - ${meeting.endTime}
+    final message = """
+📅 *Undangan Rapat*
+Judul: ${meeting.title}
+Tanggal: ${meeting.date}
+Waktu: ${meeting.startTime} - ${meeting.endTime}
 
-          🔑 *Passcode:* $passcode
-          🔗 *Link Join:* (masukkan link jika ada)
-          📷 *QR Code tersedia pada aplikasi*
+🔑 *Passcode:* $passcode
+🔗 *Link Join:* (masukkan link jika ada)
+📷 *QR Code tersedia pada aplikasi*
 
-          Dibagikan via *SiRapat App*
-          """;
+Dibagikan via *SiRapat App*
+""";
 
     Share.share(message, subject: "Undangan Rapat: ${meeting.title}");
     _copyToClipboard(message);
@@ -256,6 +262,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
           },
           child: const Icon(Icons.person_add),
         );
+        
       case 2:
         return FutureBuilder<MeetingMinute?>(
           future: meetingMinuteController.getMeetingMinuteByMeetingId(
@@ -283,21 +290,18 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
             final meetingMinute = snapshot.data;
 
             // Cek approved
-            final isApproved =
-                meetingMinute?.approvedBy != null &&
+            final isApproved = meetingMinute?.approvedBy != null &&
                 meetingMinute?.approvedAt != null;
 
             // Jika sudah approved → TIDAK tampilkan tombol apa pun
             if (isApproved) {
-              return const SizedBox.shrink(); // penting!
+              return const SizedBox.shrink();
             }
 
             // Jika belum approved → tampil 2 tombol
             return Align(
               alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 10, bottom: 10),
-                child: Column(
+              child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     FloatingActionButton(
@@ -313,7 +317,6 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
                     ),
                   ],
                 ),
-              ),
             );
           },
         );
@@ -324,10 +327,6 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   }
 
   void _showInviteBottomSheet(BuildContext context) {
-    final ParticipantController participantController =
-        Get.find<ParticipantController>();
-    final TextEditingController identifierController = TextEditingController();
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -342,58 +341,110 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
             top: 20,
             bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle indicator
-              const Center(
-                child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
-              ),
-              Text(
-                "Invite Participant",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              TextField(
-                controller: identifierController,
-                decoration: InputDecoration(
-                  labelText: "Email / Phone Number / NIP",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+          child: Form(
+            key: _inviteFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Center(
+                  child: BottomSheetHandle(
+                    margin: EdgeInsets.only(bottom: 16),
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 16),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    final identifier = identifierController.text.trim();
-                    participantController.inviteParticipant(
-                      meetingId: widget.meetingId,
-                      identifier: identifier,
-                    );
-                    Navigator.pop(context);
+                Text(
+                  'Undang Peserta',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: identifierController,
+                  labelText: 'Email / Phone Number / NIP',
+                  hintText: 'Masukkan email, nomor telepon, atau NIP',
+                  prefixIcon: Icons.person_outline,
+                  keyboardType: TextInputType.text,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Field ini wajib diisi';
+                    }
+                    return null;
                   },
-                  icon: const Icon(Icons.send),
-                  label: const Text("Send Invitation"),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                ),
+                const SizedBox(height: 24),
+                SafeArea(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: AppColors.borderLight),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final isValid =
+                                  _inviteFormKey.currentState?.validate() ??
+                                      false;
+                              if (!isValid) return;
+
+                              final identifier =
+                                  identifierController.text.trim();
+
+                              participantController.inviteParticipant(
+                                meetingId: widget.meetingId,
+                                identifier: identifier,
+                              );
+
+                              // Clear field after submit
+                              identifierController.clear();
+                              Navigator.pop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Kirim',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

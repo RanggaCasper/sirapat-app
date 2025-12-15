@@ -15,7 +15,7 @@ class ChatController extends GetxController {
   final SaveChatMinuteUseCase _saveChatMinuteUseCase = SaveChatMinuteUseCase();
 
   ChatController({required GetChatMinutesUseCase getChatMinutesUseCase})
-    : _getChatMinutesUseCase = getChatMinutesUseCase;
+      : _getChatMinutesUseCase = getChatMinutesUseCase;
 
   // Observable untuk menyimpan pesan
   final RxList<ChatMessage> messages = <ChatMessage>[].obs;
@@ -26,6 +26,9 @@ class ChatController extends GetxController {
 
   // For WebSocket stream subscription
   StreamSubscription<dynamic>? _subscription;
+  int _retryCount = 0;
+  final int _maxRetry = 5;
+  bool _isReconnecting = false;
 
   // Reverb configuration
   final String reverbAppKey = 'zagzqeklkihbbgwhwh8j'; // Ganti dengan key Anda
@@ -107,7 +110,7 @@ class ChatController extends GetxController {
           userId: minute.sentBy,
           senderName: minute.sender.fullName ?? 'Unknown',
           message: minute.message,
-          timestamp: DateTime.parse(minute.createdAt),
+          timestamp: DateTime.parse(minute.createdAt).toLocal(),
           isMe: currentUserId?.toString() == minute.sentBy.toString(),
         );
         messages.add(chatMessage);
@@ -127,43 +130,84 @@ class ChatController extends GetxController {
   /// Listen ke incoming messages dari WebSocket
   void _listenToMessages(int meetingId) {
     try {
-      if (_chatService.messageStream == null) {
-        debugPrint('[ChatController] Message stream is null');
-        return;
-      }
+      final messageStream = _chatService.messageStream;
 
-      _subscription = _chatService.messageStream!.listen(
+      _subscription?.cancel();
+
+      _subscription = messageStream.listen(
         (data) {
           debugPrint('[ChatController] Received data: $data');
+          isConnected.value = true;
+          _retryCount = 0;
 
-          // Parse pesan yang diterima
-          if (data is String) {
-            // Jika string, parse as JSON
-            try {
-              final jsonData = _parseJson(data);
-              _handleIncomingMessage(jsonData);
-            } catch (e) {
-              debugPrint('[ChatController] Error parsing JSON: $e');
-            }
-          } else if (data is Map) {
-            _handleIncomingMessage(data as Map<String, dynamic>);
-          }
+          // Cast dynamic to Map<String, dynamic>
+          final messageMap = Map<String, dynamic>.from(data);
+          _handleIncomingMessage(messageMap);
         },
         onError: (error) {
           debugPrint('[ChatController] WebSocket error: $error');
-          errorMessage.value = 'Chat connection error: $error';
           isConnected.value = false;
+          errorMessage.value = 'Chat connection lost';
+          _retryListen(meetingId);
         },
         onDone: () {
           debugPrint('[ChatController] WebSocket closed');
           isConnected.value = false;
+          _retryListen(meetingId);
         },
+        cancelOnError: true,
       );
 
       debugPrint('[ChatController] Started listening to messages');
     } catch (e) {
       debugPrint('[ChatController] Listen error: $e');
+      _retryListen(meetingId);
     }
+  }
+
+  void _retryListen(int meetingId) {
+    if (_isReconnecting) return;
+
+    if (_retryCount >= _maxRetry) {
+      debugPrint('[ChatController] Max retry reached, stop reconnecting');
+      return;
+    }
+
+    _isReconnecting = true;
+    _retryCount++;
+
+    final delay = Duration(seconds: 2 * _retryCount);
+
+    debugPrint(
+      '[ChatController] Reconnecting ($_retryCount/$_maxRetry) in ${delay.inSeconds}s',
+    );
+
+    Future.delayed(delay, () async {
+      try {
+        await _subscription?.cancel();
+        await _chatService.disconnect();
+
+        await _chatService.connect(
+          meetingId: meetingId.toString(),
+          userId: Get.find<AuthController>().currentUser!.id.toString(),
+          userName:
+              Get.find<AuthController>().currentUser!.fullName ?? 'Unknown',
+          reverbAppKey: reverbAppKey,
+        );
+
+        isConnected.value = true;
+        _isReconnecting = false;
+        _retryCount = 0;
+
+        debugPrint('[ChatController] Reconnected successfully');
+
+        _listenToMessages(meetingId);
+      } catch (e) {
+        _isReconnecting = false;
+        debugPrint('[ChatController] Reconnect failed: $e');
+        _retryListen(meetingId);
+      }
+    });
   }
 
   /// Handle incoming message dari broadcast
@@ -172,10 +216,11 @@ class ChatController extends GetxController {
       debugPrint('[ChatController] _handleIncomingMessage raw data: $data');
 
       // Check if this is a Reverb system message (connection_established, etc)
-      final event = data['event'];
-      if (event == 'pusher:connection_established' ||
+      final event = data['event'] as String?;
+      if (event == null ||
+          event == 'pusher:connection_established' ||
           event == 'pusher:pong' ||
-          event == null) {
+          event == 'pusher_internal:subscription_succeeded') {
         debugPrint(
           '[ChatController] System message received, ignoring: $event',
         );
@@ -318,10 +363,15 @@ class ChatController extends GetxController {
   /// Disconnect dari chat
   Future<void> disconnect() async {
     try {
+      _retryCount = 0;
+      _isReconnecting = false;
+
       await _subscription?.cancel();
       await _chatService.disconnect();
+
       isConnected.value = false;
       messages.clear();
+
       debugPrint('[ChatController] Chat disconnected');
     } catch (e) {
       debugPrint('[ChatController] Disconnect error: $e');

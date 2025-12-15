@@ -18,18 +18,42 @@ class ChatMessage {
   });
 
   // Factory untuk parse dari JSON
-  factory ChatMessage.fromJson(Map<String, dynamic> json, {bool isMe = false}) {
+  factory ChatMessage.fromJson(
+    Map<String, dynamic> json, {
+    bool isMe = false,
+  }) {
+    // Extract sender name safely
+    String senderName = 'Unknown';
+
+    final sentBy = json['sent_by'];
+    if (sentBy is Map<String, dynamic>) {
+      senderName = sentBy['full_name'] ?? 'Unknown';
+    } else if (json['sender'] is Map<String, dynamic>) {
+      // fallback jika pakai relasi "sender"
+      senderName = json['sender']['full_name'] ?? 'Unknown';
+    }
+
+    // Parse timestamp safely + convert to local timezone
+    DateTime timestamp = DateTime.now();
+    final createdAt = json['created_at'];
+
+    if (createdAt != null) {
+      try {
+        timestamp = DateTime.parse(createdAt.toString()).toLocal();
+      } catch (_) {
+        timestamp = DateTime.now();
+      }
+    }
+
     return ChatMessage(
-      id:
-          json['id']?.toString() ??
+      id: json['id']?.toString() ??
           DateTime.now().millisecondsSinceEpoch.toString(),
       meetingId: json['meeting_id'] ?? 0,
-      userId: json['user_id'] ?? 0,
-      senderName: json['sender_name'] ?? json['user_name'] ?? 'Unknown',
+      userId: json['user_id'] ??
+          (sentBy is Map<String, dynamic> ? sentBy['id'] : 0),
+      senderName: senderName,
       message: json['message'] ?? '',
-      timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'].toString())
-          : DateTime.now(),
+      timestamp: timestamp,
       isMe: isMe,
     );
   }
