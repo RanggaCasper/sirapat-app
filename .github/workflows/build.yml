@@ -1,5 +1,8 @@
 name: Build and Release Flutter App
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -9,12 +12,6 @@ on:
       - 'pubspec.yaml'
       - 'android/**'
       - '.github/workflows/build.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'lib/**'
-      - 'pubspec.yaml'
   workflow_dispatch:
 
 jobs:
