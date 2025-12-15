@@ -139,12 +139,32 @@ jobs:
           body: |
             ## 📱 SiRapat App v${{ steps.version.outputs.version_name }}
 
-            ### 📦 Downloads
-            - **APK**
-            - **AAB**
+            **Sistem Informasi Rapat - Diskominfo Badung**
 
-            ### 📝 Changes
+            ---
+
+            ### 📦 Downloads
+            - **Android APK**: `app-release.apk` *(Recommended for direct installation)*
+            - **Android App Bundle**: `app-release.aab` *(For Google Play Store)*
+
+            ---
+
+            ### 📝 What's Changed
             ${{ steps.changelog.outputs.content }}
+
+            ---
+
+            ### 🔧 Installation Guide
+            1. Download `app-release.apk` from the downloads section above
+            2. Enable "Install from Unknown Sources" in your device settings
+            3. Open the APK file and follow the installation prompts
+            4. Grant necessary permissions when prompted
+
+            ---
+
+            ### 📖 Documentation
+            - **Full Changelog**: [CHANGELOG.md](https://github.com/RanggaCasper/sirapat-app/blob/main/CHANGELOG.md)
+            - **README**: [View Documentation](https://github.com/RanggaCasper/sirapat-app/blob/main/README.md)
           files: |
             artifacts/app-release.apk
             artifacts/app-release.aab
