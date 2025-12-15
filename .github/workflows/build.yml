@@ -9,8 +9,6 @@ on:
       - 'pubspec.yaml'
       - 'android/**'
       - '.github/workflows/build.yml'
-    tags:
-      - 'v*'
   pull_request:
     branches:
       - main
@@ -21,207 +19,134 @@ on:
 
 jobs:
   build-android:
-    name: Build Android APK
+    name: Build Android APK & AAB
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Auto-increment version
+      - name: Auto-increment build number
         id: version_bump
         run: |
-          # Get current version from pubspec.yaml
-          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
-          VERSION_NAME=$(echo $CURRENT_VERSION | cut -d'+' -f1)
-          BUILD_NUMBER=$(echo $CURRENT_VERSION | cut -d'+' -f2)
-          
-          # Increment build number
+          FULL_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION_NAME=$(echo "$FULL_VERSION" | cut -d'+' -f1)
+          BUILD_NUMBER=$(echo "$FULL_VERSION" | cut -d'+' -f2)
+
           NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
           NEW_VERSION="${VERSION_NAME}+${NEW_BUILD_NUMBER}"
-          
-          # Update pubspec.yaml
-          sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" pubspec.yaml
-          
-          # Output versions
-          echo "old_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+          sed -i "s/version: $FULL_VERSION/version: $NEW_VERSION/" pubspec.yaml
+
           echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
           echo "build_number=$NEW_BUILD_NUMBER" >> $GITHUB_OUTPUT
-          
-          echo "Version bumped: $CURRENT_VERSION -> $NEW_VERSION"
+          echo "full_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pubspec.yaml
-          git commit -m "chore: bump version to ${{ steps.version_bump.outputs.new_version }} [skip ci]" || echo "No changes to commit"
-          git push || echo "Nothing to push"
+          git commit -m "chore: bump build number to ${{ steps.version_bump.outputs.full_version }} [skip ci]" || true
+          git push || true
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
-          cache: 'gradle'
+          cache: gradle
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.0'
-          channel: 'stable'
+          channel: stable
           cache: true
 
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Run tests
-        run: flutter test
+      - run: flutter pub get
+      - run: flutter test
+        continue-on-error: true
+      - run: flutter analyze
         continue-on-error: true
 
-      - name: Analyze code
-        run: flutter analyze
-        continue-on-error: true
+      - run: flutter build apk --release --target-platform android-arm64
+      - run: flutter build appbundle --release
 
-      - name: Build APK (Debug)
-        run: flutter build apk --debug
-        
-      - name: Build APK (Release)
-        run: flutter build apk --release --target-platform android-arm64
-
-      - name: Build App Bundle
-        run: flutter build appbundle --release
-
-      - name: Upload APK Debug
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: android-apk-debug
-          path: build/app/outputs/flutter-apk/app-debug.apk
-
-      - name: Upload APK Release
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk-release
+          name: android-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Upload App Bundle
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: android-appbundle
+          name: android-aab
           path: build/app/outputs/bundle/release/app-release.aab
 
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-android]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: build-android
     permissions:
       contents: write
-    
+    if: github.ref == 'refs/heads/main'
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download Android APK
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
         with:
-          name: android-apk-release
-          path: ./artifacts
+          fetch-depth: 0
 
-      - name: Download Android App Bundle
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          name: android-appbundle
-          path: ./artifacts
+          name: android-apk
+          path: artifacts
 
-      - name: Get version from pubspec.yaml
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-aab
+          path: artifacts
+
+      - name: Get version name
         id: version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
+          FULL_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION_NAME=$(echo "$FULL_VERSION" | cut -d'+' -f1)
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
 
-      - name: Get previous release tag
+      - name: Get previous tag
         id: prev_tag
         run: |
           PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
-          echo "Previous tag: $PREV_TAG"
 
-      - name: Generate changelog from commits
+      - name: Generate changelog
         id: changelog
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ' | cut -d'+' -f1)
           PREV_TAG="${{ steps.prev_tag.outputs.tag }}"
-          
-          # Generate commit log
           if [ -z "$PREV_TAG" ]; then
-            # If no previous tag, get all commits
-            COMMITS=$(git log --pretty=format:"- %s by @%an in %h" --no-merges)
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
           else
-            # Get commits since last tag
-            COMMITS=$(git log $PREV_TAG..HEAD --pretty=format:"- %s by @%an in %h" --no-merges)
+            COMMITS=$(git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
           fi
-          
-          # Also extract from CHANGELOG.md for structured changes
-          CHANGELOG_CONTENT=$(awk "/## \[$VERSION\]/,/## \[/" CHANGELOG.md | sed '/## \[/d' | sed '/^---/d' | sed '/^\[.*\]:/d')
-          
-          # Combine both
-          {
-            echo 'content<<EOF'
-            if [ ! -z "$CHANGELOG_CONTENT" ]; then
-              echo "$CHANGELOG_CONTENT"
-              echo ""
-              echo "### 📋 Commit History"
-              echo "$COMMITS"
-            else
-              echo "$COMMITS"
-            fi
-            echo EOF
-          } >> $GITHUB_OUTPUT
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: Release v${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version_name }}
+          name: Release v${{ steps.version.outputs.version_name }}
           body: |
-            ## 📱 SiRapat App v${{ steps.version.outputs.version }}
-            
-            **Sistem Informasi Rapat - Diskominfo Badung**
-            
-            ---
-            
+            ## 📱 SiRapat App v${{ steps.version.outputs.version_name }}
+
             ### 📦 Downloads
-            - **Android APK**: `app-release.apk` *(Recommended for direct installation)*
-            - **Android App Bundle**: `app-release.aab` *(For Google Play Store)*
-            
-            ---
-            
-            ### 📝 What's Changed
+            - **APK**
+            - **AAB**
+
+            ### 📝 Changes
             ${{ steps.changelog.outputs.content }}
-            
-            ---
-            
-            ### 🔧 Installation Guide
-            1. Download `app-release.apk` from the downloads section above
-            2. Enable "Install from Unknown Sources" in your device settings
-            3. Open the APK file and follow the installation prompts
-            4. Grant necessary permissions when prompted
-            
-            ---
-            
-            ### 📖 Documentation
-            - **Full Changelog**: [CHANGELOG.md](https://github.com/RanggaCasper/sirapat-app/blob/main/CHANGELOG.md)
-            - **README**: [View Documentation](https://github.com/RanggaCasper/sirapat-app/blob/main/README.md)
-          draft: false
-          prerelease: false
           files: |
-            ./artifacts/app-release.apk
-            ./artifacts/app-release.aab
+            artifacts/app-release.apk
+            artifacts/app-release.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

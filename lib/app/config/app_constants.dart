@@ -6,7 +6,7 @@ class AppConstants {
   static const bool isProduction = true;
 
   // API Configuration
-  static const String productionUrl = 'https://sirapat.my.id';
+  static const String productionUrl = 'http://178.128.101.141';
   static const String localHost = '127.0.0.1';
   static const String localPort = '8000';
 
