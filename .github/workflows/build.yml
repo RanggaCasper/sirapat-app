@@ -5,8 +5,13 @@ permissions:
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+    paths:
+      - 'lib/**'
+      - 'pubspec.yaml'
+      - 'android/**'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
 
 jobs:
@@ -65,10 +70,11 @@ jobs:
 
   create-release:
     name: Create GitHub Release
-    needs: build-android
     runs-on: ubuntu-latest
+    needs: build-android
     permissions:
       contents: write
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
@@ -85,16 +91,23 @@ jobs:
           name: android-aab
           path: artifacts
 
-      - name: Get tag name
-        id: tag
+      - name: Get version name
+        id: version
         run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          FULL_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION_NAME=$(echo "$FULL_VERSION" | cut -d'+' -f1)
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
       - name: Generate changelog
         id: changelog
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          PREV_TAG="${{ steps.prev_tag.outputs.tag }}"
           if [ -z "$PREV_TAG" ]; then
             COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
           else
@@ -128,7 +141,7 @@ jobs:
 
             ### 🔧 Installation Guide
             1. Download `app-release.apk` from the downloads section above
-            2. Enable **Install from Unknown Sources** in your device settings
+            2. Enable "Install from Unknown Sources" in your device settings
             3. Open the APK file and follow the installation prompts
             4. Grant necessary permissions when prompted
 
@@ -137,10 +150,8 @@ jobs:
             ### 📖 Documentation
             - **Full Changelog**: [CHANGELOG.md](https://github.com/RanggaCasper/sirapat-app/blob/main/CHANGELOG.md)
             - **README**: [View Documentation](https://github.com/RanggaCasper/sirapat-app/blob/main/README.md)
-
-        files: |
-          artifacts/app-release.apk
-          artifacts/app-release.aab
+          files: |
+            artifacts/app-release.apk
+            artifacts/app-release.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
