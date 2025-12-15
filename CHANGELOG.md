@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - 🔑 Updated API base URL to production environment
 
-## [1.0.1] - 2025-12-14
+## [1.0.1] - 2025-12-15
 ### Added
 - ✅ Implements Update Meeting Minutes feature
 
@@ -54,4 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[1.0.2]: https://github.com/RanggaCasper/sirapat-app/releases/tag/v1.0.2
+[1.0.1]: https://github.com/RanggaCasper/sirapat-app/releases/tag/v1.0.1
 [1.0.0]: https://github.com/RanggaCasper/sirapat-app/releases/tag/v1.0.0
