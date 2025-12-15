@@ -116,20 +116,20 @@ class _EditMeetingPageState extends State<EditMeetingPage> {
                 ],
               ),
               child: SafeArea(
-                child: Row(
-                  children: [
-                    Expanded(
+                  child: Row(
+                children: [
+                  /// BATAL
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
                       child: OutlinedButton(
                         onPressed: () {
-                          // Close any open snackbars first
                           if (Get.isSnackbarOpen) {
                             Get.closeAllSnackbars();
                           }
-                          // Then navigate back
                           Navigator.of(context).pop();
                         },
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
                           side: BorderSide(color: AppColors.borderLight),
                           shape: RoundedRectangleBorder(
                             borderRadius: AppRadius.radiusMD,
@@ -144,19 +144,22 @@ class _EditMeetingPageState extends State<EditMeetingPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  /// SIMPAN
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
                       child: ElevatedButton(
                         onPressed: meetingController.isLoadingAction
                             ? null
-                            : () => meetingController.updateMeeting(
-                                widget.meetingId,
-                              ),
+                            : () => meetingController
+                                .updateMeeting(widget.meetingId),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: AppRadius.radiusMD,
                           ),
@@ -169,22 +172,21 @@ class _EditMeetingPageState extends State<EditMeetingPage> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
+                                      Colors.white),
                                 ),
                               )
                             : const Text(
                                 'Simpan',
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                ],
+              )),
             ),
           ],
         );
@@ -236,9 +238,8 @@ class _EditMeetingPageState extends State<EditMeetingPage> {
             lastDate: DateTime.now().add(const Duration(days: 365)),
           );
           if (date != null) {
-            meetingController.dateController.text = date
-                .toIso8601String()
-                .split('T')[0];
+            meetingController.dateController.text =
+                date.toIso8601String().split('T')[0];
             if (error != null) {
               meetingController.fieldErrors.remove('date');
             }

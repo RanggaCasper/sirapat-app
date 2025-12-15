@@ -54,6 +54,12 @@ class CustomBottomNavBar extends StatelessWidget {
           unselectedItemColor: Colors.grey.shade600,
           selectedFontSize: 12,
           unselectedFontSize: 12,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.normal,
+          ),
           elevation: 0,
           items: items
               .map(

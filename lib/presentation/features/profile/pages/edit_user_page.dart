@@ -17,54 +17,89 @@ class EditUserPage extends StatefulWidget {
 }
 
 class _EditUserPageState extends State<EditUserPage> {
-  // Text controllers untuk menghindari recreation
-  late final TextEditingController nipController;
-  late final TextEditingController fullNameController;
-  late final TextEditingController usernameController;
-  late final TextEditingController emailController;
-  late final TextEditingController phoneController;
+  // Local text values to avoid controller disposal issues
+  late String _nip;
+  late String _fullName;
+  late String _username;
+  late String _email;
+  late String _phone;
 
   // Selected division ID (as String for dropdown)
   String? selectedDivisionId;
+  // Form key for validation
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     final authController = Get.find<AuthController>();
+    final currentUser = authController.currentUser;
 
-    nipController = TextEditingController(
-      text: authController.currentUser?.nip,
-    );
-    fullNameController = TextEditingController(
-      text: authController.currentUser?.fullName,
-    );
-    usernameController = TextEditingController(
-      text: authController.currentUser?.username,
-    );
-    emailController = TextEditingController(
-      text: authController.currentUser?.email,
-    );
-    phoneController = TextEditingController(
-      text: authController.currentUser?.phone,
-    );
+    _nip = currentUser?.nip ?? '';
+    _fullName = currentUser?.fullName ?? '';
+    _username = currentUser?.username ?? '';
+    _email = currentUser?.email ?? '';
+    _phone = currentUser?.phone ?? '';
 
     // Set initial division value
-    if (authController.currentUser?.divisionId != null) {
-      selectedDivisionId = authController.currentUser!.divisionId.toString();
+    if (currentUser?.divisionId != null) {
+      selectedDivisionId = currentUser!.divisionId.toString();
     }
   }
 
-  @override
-  void dispose() {
-    // Check if widget is still mounted before disposing
-    if (mounted) {
-      nipController.dispose();
-      fullNameController.dispose();
-      usernameController.dispose();
-      emailController.dispose();
-      phoneController.dispose();
+  Future<void> _handleSave() async {
+    final authController = Get.find<AuthController>();
+
+    // Validate all form fields first
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
     }
-    super.dispose();
+
+    // Validate division selected as a fallback
+    if (selectedDivisionId == null || selectedDivisionId!.isEmpty) {
+      final notif = Get.find<NotificationController>();
+      notif.showError('Silakan pilih divisi');
+      return;
+    }
+
+    // Get text values before async operation
+    final fullNameValue = _fullName.trim();
+    final phoneValue = _phone.trim();
+
+    // Parse divisionId with error handling
+    int? divisionIdValue;
+    try {
+      divisionIdValue = int.parse(selectedDivisionId!);
+    } catch (e) {
+      final notif = Get.find<NotificationController>();
+      notif.showError('ID divisi tidak valid');
+      return;
+    }
+
+    await authController.updateProfile(
+      fullName: fullNameValue,
+      phone: phoneValue,
+      divisionId: divisionIdValue,
+    );
+
+    // Check if widget is still mounted and not disposed after async operation
+    if (!mounted) return;
+
+    if (authController.fieldErrors.isEmpty) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _handleCancel() {
+    try {
+      if (Get.isDialogOpen ?? false) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      debugPrint('Error closing dialog: $e');
+    }
   }
 
   @override
@@ -79,7 +114,7 @@ class _EditUserPageState extends State<EditUserPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Ubah Profil'),
+        title: const Text('Ubah Profile'),
         centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.primary,
@@ -90,179 +125,224 @@ class _EditUserPageState extends State<EditUserPage> {
           Expanded(
             child: SingleChildScrollView(
               padding: AppSpacing.paddingLG,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 24),
 
-                  // NIP Field
-                  Obx(
-                    () => CustomTextField(
-                      controller: nipController,
-                      labelText: 'NIP *',
-                      hintText: 'Masukkan NIP',
-                      prefixIcon: Icons.badge_outlined,
-                      errorText: authController.getFieldError('nip'),
-                      readOnly: true,
-                      onChanged: (value) {
-                        if (authController.getFieldError('nip') != null) {
-                          authController.clearFieldError('nip');
-                        }
-                      },
+                    // NIP Field
+                    Obx(
+                      () => CustomTextField(
+                        initialValue: _nip,
+                        labelText: 'NIP *',
+                        hintText: 'Masukkan NIP',
+                        prefixIcon: Icons.badge_outlined,
+                        errorText: authController.getFieldError('nip'),
+                        readOnly: true,
+                        onChanged: (value) {
+                          if (authController.getFieldError('nip') != null) {
+                            authController.clearFieldError('nip');
+                          }
+                        },
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'NIP tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Full Name Field
-                  Obx(
-                    () => CustomTextField(
-                      controller: fullNameController,
-                      labelText: 'Nama Lengkap *',
-                      hintText: 'Masukkan nama lengkap',
-                      prefixIcon: Icons.person_outlined,
-                      errorText: authController.getFieldError('full_name'),
-                      textCapitalization: TextCapitalization.words,
-                      onChanged: (value) {
-                        if (authController.getFieldError('full_name') != null) {
-                          authController.clearFieldError('full_name');
-                        }
-                      },
+                    // Full Name Field
+                    Obx(
+                      () => CustomTextField(
+                        initialValue: _fullName,
+                        labelText: 'Nama Lengkap *',
+                        hintText: 'Masukkan nama lengkap',
+                        prefixIcon: Icons.person_outlined,
+                        errorText: authController.getFieldError('full_name'),
+                        textCapitalization: TextCapitalization.words,
+                        onChanged: (value) {
+                          _fullName = value;
+                          if (authController.getFieldError('full_name') !=
+                              null) {
+                            authController.clearFieldError('full_name');
+                          }
+                        },
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Nama lengkap tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Username Field
-                  Obx(
-                    () => CustomTextField(
-                      controller: usernameController,
-                      labelText: 'Username *',
-                      hintText: 'Masukkan username',
-                      prefixIcon: Icons.account_circle_outlined,
-                      errorText: authController.getFieldError('username'),
-                      readOnly: true,
-                      onChanged: (value) {
-                        if (authController.getFieldError('username') != null) {
-                          authController.clearFieldError('username');
-                        }
-                      },
+                    // Username Field
+                    Obx(
+                      () => CustomTextField(
+                        initialValue: _username,
+                        labelText: 'Username *',
+                        hintText: 'Masukkan username',
+                        prefixIcon: Icons.account_circle_outlined,
+                        errorText: authController.getFieldError('username'),
+                        readOnly: true,
+                        onChanged: (value) {
+                          if (authController.getFieldError('username') !=
+                              null) {
+                            authController.clearFieldError('username');
+                          }
+                        },
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Username tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Email Field
-                  Obx(
-                    () => CustomTextField(
-                      controller: emailController,
-                      labelText: 'Email *',
-                      hintText: 'Masukkan email',
-                      prefixIcon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                      errorText: authController.getFieldError('email'),
-                      readOnly: true,
-                      onChanged: (value) {
-                        if (authController.getFieldError('email') != null) {
-                          authController.clearFieldError('email');
-                        }
-                      },
+                    // Email Field
+                    Obx(
+                      () => CustomTextField(
+                        initialValue: _email,
+                        labelText: 'Email *',
+                        hintText: 'Masukkan email',
+                        prefixIcon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        errorText: authController.getFieldError('email'),
+                        readOnly: true,
+                        onChanged: (value) {
+                          if (authController.getFieldError('email') != null) {
+                            authController.clearFieldError('email');
+                          }
+                        },
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Email tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Phone Field
-                  Obx(
-                    () => CustomTextField(
-                      controller: phoneController,
-                      labelText: 'Nomor Telepon *',
-                      hintText: 'Masukkan nomor telepon',
-                      prefixIcon: Icons.phone_outlined,
-                      keyboardType: TextInputType.phone,
-                      errorText: authController.getFieldError('phone'),
-                      onChanged: (value) {
-                        if (authController.getFieldError('phone') != null) {
-                          authController.clearFieldError('phone');
-                        }
-                      },
+                    // Phone Field
+                    Obx(
+                      () => CustomTextField(
+                        initialValue: _phone,
+                        labelText: 'Nomor Telepon *',
+                        hintText: 'Masukkan nomor telepon',
+                        prefixIcon: Icons.phone_outlined,
+                        keyboardType: TextInputType.phone,
+                        errorText: authController.getFieldError('phone'),
+                        onChanged: (value) {
+                          _phone = value;
+                          if (authController.getFieldError('phone') != null) {
+                            authController.clearFieldError('phone');
+                          }
+                        },
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Nomor telepon tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Divisi Dropdown
-                  Obx(() {
-                    final divisions = divisionController.divisionOptions;
+                    // Divisi Dropdown
+                    Obx(() {
+                      final divisions = divisionController.divisionOptions;
 
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Divisi *',
-                          style: AppTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.borderLight),
-                            borderRadius: AppRadius.radiusMD,
-                          ),
-                          child: DropdownButtonFormField<String>(
-                            value: selectedDivisionId,
-                            decoration: const InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              border: InputBorder.none,
-                              prefixIcon: Icon(
-                                Icons.admin_panel_settings_outlined,
-                              ),
-                            ),
-                            hint: const Text('Pilih Divisi'),
-                            isExpanded: true,
-                            menuMaxHeight: 300,
-                            items: divisions.isEmpty
-                                ? []
-                                : divisions.map((division) {
-                                    return DropdownMenuItem<String>(
-                                      value: division.id.toString(),
-                                      child: Text(
-                                        division.name,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    );
-                                  }).toList(),
-                            onChanged: divisions.isEmpty
-                                ? null
-                                : (value) {
-                                    setState(() {
-                                      selectedDivisionId = value;
-                                    });
-                                  },
-                          ),
-                        ),
-                        if (divisions.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              'Tidak ada divisi tersedia',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.red.shade700,
-                              ),
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Divisi *',
+                            style: AppTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textDark,
                             ),
                           ),
-                      ],
-                    );
-                  }),
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: AppColors.borderLight),
+                              borderRadius: AppRadius.radiusMD,
+                            ),
+                            child: DropdownButtonFormField<String>(
+                              value: selectedDivisionId,
+                              decoration: const InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                border: InputBorder.none,
+                                prefixIcon: Icon(
+                                  Icons.admin_panel_settings_outlined,
+                                ),
+                              ),
+                              hint: const Text('Pilih Divisi'),
+                              isExpanded: true,
+                              menuMaxHeight: 300,
+                              items: divisions.isEmpty
+                                  ? []
+                                  : divisions.map((division) {
+                                      return DropdownMenuItem<String>(
+                                        value: division.id.toString(),
+                                        child: Text(
+                                          division.name,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      );
+                                    }).toList(),
+                              onChanged: divisions.isEmpty
+                                  ? null
+                                  : (value) {
+                                      if (!mounted) return;
+                                      setState(() {
+                                        selectedDivisionId = value;
+                                      });
+                                    },
+                              validator: (value) {
+                                if (divisions.isEmpty) return null;
+                                if (value == null || value.isEmpty) {
+                                  return 'Silakan pilih divisi';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          if (divisions.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                'Tidak ada divisi tersedia',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red.shade700,
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    }),
 
-                  const SizedBox(height: 12),
-                  const Text(
-                    '* Wajib diisi',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    const Text(
+                      '* Wajib diisi',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -283,131 +363,65 @@ class _EditUserPageState extends State<EditUserPage> {
             child: SafeArea(
               child: Row(
                 children: [
+                  /// BATAL
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        if (Get.isDialogOpen ?? false) {
-                          Navigator.of(context).pop();
-                        } else {
-                          Navigator.pop(context);
-                        }
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: AppColors.borderLight),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: AppRadius.radiusMD,
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: _handleCancel,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: AppColors.borderLight),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.radiusMD,
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Batal',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black54,
+                        child: const Text(
+                          'Batal',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
                         ),
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 12),
+
+                  /// SIMPAN
                   Expanded(
-                    child: Obx(
-                      () => ElevatedButton(
-                        onPressed: authController.isLoading
-                            ? null
-                            : () async {
-                                // Check if widget is still mounted
-                                if (!mounted) return;
-
-                                // Validate division selected
-                                if (selectedDivisionId == null ||
-                                    selectedDivisionId!.isEmpty) {
-                                  final notif =
-                                      Get.find<NotificationController>();
-                                  notif.showError('Silakan pilih divisi');
-                                  return;
-                                }
-
-                                // Save role before update (role shouldn't change)
-                                final userRole = authController
-                                    .currentUser
-                                    ?.role
-                                    ?.toLowerCase();
-
-                                // Get text values before async operation
-                                final fullNameValue = fullNameController.text
-                                    .trim();
-                                final phoneValue = phoneController.text.trim();
-                                final divisionIdValue = int.parse(
-                                  selectedDivisionId!,
-                                );
-
-                                await authController.updateProfile(
-                                  fullName: fullNameValue,
-                                  phone: phoneValue,
-                                  divisionId: divisionIdValue,
-                                );
-
-                                // Check if widget is still mounted after async operation
-                                if (!mounted) return;
-
-                                if (authController.fieldErrors.isEmpty &&
-                                    context.mounted) {
-                                  // Navigate back to appropriate dashboard based on original role
-                                  if (userRole != null) {
-                                    String targetRoute;
-                                    switch (userRole) {
-                                      case 'master':
-                                        targetRoute = '/master-dashboard';
-                                        break;
-                                      case 'admin':
-                                        targetRoute = '/admin-dashboard';
-                                        break;
-                                      case 'employee':
-                                        targetRoute = '/employee-dashboard';
-                                        break;
-                                      default:
-                                        // Default fallback
-                                        if (mounted) {
-                                          Navigator.of(context).pop();
-                                        }
-                                        return;
-                                    }
-                                    // Navigate to dashboard and remove all previous routes
-                                    Get.offAllNamed(targetRoute);
-                                  } else {
-                                    if (mounted) {
-                                      Navigator.of(context).pop();
-                                    }
-                                  }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.radiusMD,
+                    child: SizedBox(
+                      height: 48,
+                      child: Obx(
+                        () => ElevatedButton(
+                          onPressed:
+                              authController.isLoading ? null : _handleSave,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: AppRadius.radiusMD,
+                            ),
+                            elevation: 0,
                           ),
-                          elevation: 0,
-                        ),
-                        child: authController.isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
+                          child: authController.isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Text(
+                                  'Simpan',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              )
-                            : const Text(
-                                'Simpan',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
+                        ),
                       ),
                     ),
                   ),

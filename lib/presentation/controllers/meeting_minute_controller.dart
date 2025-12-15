@@ -157,13 +157,23 @@ class MeetingMinuteController extends GetxController {
   Future<MeetingMinute?> getMeetingMinuteByMeetingId(int id) async {
     try {
       final data = await _getMeetingMinuteByMeetingId.execute(id);
-
+      
       return data;
     } on ApiException catch (e) {
       debugPrint(
         '[MeetingMinuteController] ApiException in getMeetingMinuteByMeetingId: ${e.message}',
       );
+
+      final message = e.message.toLowerCase();
+
+      if (message.contains('no meeting minute found') ||
+          message.contains('not found') ||
+          message.contains('tidak ditemukan')) {
+        return null;
+      }
+
       _notif.showError(e.message);
+
       return null;
     } catch (e) {
       debugPrint(

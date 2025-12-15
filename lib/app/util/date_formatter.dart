@@ -4,69 +4,56 @@ import 'package:intl/intl.dart';
 class DateFormatter {
   DateFormatter._();
 
-  /// Format date to Indonesian long format (e.g., "Senin, 27 November 2025")
-  static String formatToLongDate(DateTime date) {
-    try {
-      return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(date);
-    } catch (e) {
-      return date.toString();
-    }
+  /// INTERNAL: ensure DateTime always local
+  static DateTime _local(DateTime date) {
+    return date.isUtc ? date.toLocal() : date;
   }
 
-  /// Format date string to Indonesian long format
+  /// "Senin, 27 November 2025"
+  static String formatToLongDate(DateTime date) {
+    final local = _local(date);
+    return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(local);
+  }
+
+  /// "27 Nov 2025"
+  static String formatToShortDate(DateTime date) {
+    final local = _local(date);
+    return DateFormat('dd MMM yyyy', 'id_ID').format(local);
+  }
+
+  /// "27 November 2025, 14:30"
+  static String formatToDateTime(DateTime date) {
+    final local = _local(date);
+    return DateFormat('dd MMMM yyyy, HH:mm', 'id_ID').format(local);
+  }
+
+  /// "14:30"
+  static String formatToTimeOnly(DateTime date) {
+    final local = _local(date);
+    return DateFormat('HH:mm').format(local);
+  }
+
   static String formatStringToLongDate(String dateStr) {
     try {
-      final DateTime dateTime = DateTime.parse(dateStr);
-      return formatToLongDate(dateTime);
-    } catch (e) {
-      return dateStr;
+      return formatToLongDate(DateTime.parse(dateStr));
+    } catch (_) {
+      return '-';
     }
   }
 
-  /// Format date to short format (e.g., "27 Nov 2025")
-  static String formatToShortDate(DateTime date) {
-    try {
-      return DateFormat('dd MMM yyyy', 'id_ID').format(date);
-    } catch (e) {
-      return date.toString();
-    }
-  }
-
-  /// Format date with time (e.g., "27 November 2025, 14:30")
-  static String formatToDateTime(DateTime date) {
-    try {
-      return DateFormat('dd MMMM yyyy, HH:mm', 'id_ID').format(date);
-    } catch (e) {
-      return date.toString();
-    }
-  }
-
-  /// Format time only (e.g., "14:30")
-  static String formatToTimeOnly(DateTime date) {
-    try {
-      return DateFormat('HH:mm').format(date);
-    } catch (e) {
-      return date.toString();
-    }
-  }
-
-  /// Format date string to short format (e.g., "27 Nov 2025")
   static String formatStringToShortDate(String dateStr) {
     try {
-      final DateTime dateTime = DateTime.parse(dateStr);
-      return formatToShortDate(dateTime);
-    } catch (e) {
-      return dateStr;
+      return formatToShortDate(DateTime.parse(dateStr));
+    } catch (_) {
+      return '-';
     }
   }
 
-  /// Format date string with time (e.g., "27 November 2025, 14:30")
   static String formatStringToDateTime(String dateStr) {
     try {
-      final DateTime dateTime = DateTime.parse(dateStr);
-      return formatToDateTime(dateTime);
-    } catch (e) {
-      return dateStr;
+      return formatToDateTime(DateTime.parse(dateStr));
+    } catch (_) {
+      return '-';
     }
   }
 }

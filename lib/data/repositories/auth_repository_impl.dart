@@ -19,57 +19,41 @@ class AuthRepositoryImpl extends AuthRepository {
   @override
   Future<User> login(String nip, String password) async {
     try {
-      // Make API call
       final request = LoginRequest(nip: nip, password: password);
       final response = await request.request();
 
-      // Debug: print response
       debugPrint('API Response: $response');
 
-      // Parse response
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        throw ApiException.fromJson(response);
+      }
+
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
         (data) => LoginResponseData.fromJson(data as Map<String, dynamic>),
       );
 
-      // Check if login failed (status = false)
       if (!apiResponse.status || apiResponse.data == null) {
-        // Throw ApiException with error details from response
         debugPrint('Login failed, throwing ApiException');
         throw ApiException.fromJson(response);
       }
 
       final loginData = apiResponse.data as LoginResponseData;
 
-      // Save user and token to local storage
-      debugPrint('[AuthRepository] Saving user and token to storage...');
-      debugPrint('[AuthRepository] User: ${loginData.user.fullName}');
-      debugPrint(
-        '[AuthRepository] Token: ${loginData.token.substring(0, 20)}...',
-      );
-
-      final userSaved = await _storage.saveData(
+      // Save user & token
+      await _storage.saveData(
         StorageKey.user,
         loginData.user.toJson(),
       );
-      final tokenSaved = await _storage.saveData(
+      debugPrint('[AuthRepository] User saved: ${loginData.user.toJson()}');
+      await _storage.saveData(
         StorageKey.token,
         loginData.token,
       );
 
-      debugPrint('[AuthRepository] User saved: $userSaved');
-      debugPrint('[AuthRepository] Token saved: $tokenSaved');
-
-      // Verify saved data
-      final savedToken = _storage.getString(StorageKey.token);
-      debugPrint(
-        '[AuthRepository] Token verification after save: ${savedToken != null ? "Found" : "Not found"}',
-      );
-
       return loginData.user;
-    } on ApiException catch (e) {
-      debugPrint('ApiException caught: ${e.message}, errors: ${e.errors}');
-      rethrow; // Re-throw ApiException as-is
+    } on ApiException {
+      rethrow;
     } catch (e) {
       debugPrint('Generic exception: $e');
       throw ApiException(
@@ -303,10 +287,6 @@ class AuthRepositoryImpl extends AuthRepository {
   }) async {
     try {
       debugPrint('[AuthRepository] Updating profile...');
-      debugPrint('[AuthRepository] Request data:');
-      debugPrint('  - Full Name: $fullName');
-      debugPrint('  - Phone: $phone');
-      debugPrint('  - Division ID: $divisionId');
 
       final request = ProfileUpdateRequest(
         fullName: fullName,
@@ -318,9 +298,19 @@ class AuthRepositoryImpl extends AuthRepository {
 
       debugPrint('[AuthRepository] Update profile response: $response');
 
+      // PERBAIKAN: Check if response has errors field (validation error)
+      if (response is Map<String, dynamic> && response.containsKey('errors')) {
+        debugPrint('[AuthRepository] Validation errors detected');
+        throw ApiException.fromJson(response);
+      }
+
       // Check if response is null or not successful
       if (response == null || response['status'] != true) {
-        throw Exception('Failed to update profile: ${response?['message']}');
+        debugPrint('[AuthRepository] Update profile failed');
+        throw ApiException(
+          status: false,
+          message: response?['message'] ?? 'Gagal memperbarui profile',
+        );
       }
 
       // Since API returns data: null, we need to fetch fresh user data from server
@@ -329,7 +319,10 @@ class AuthRepositoryImpl extends AuthRepository {
       final updatedUser = await verifyUserFromServer();
 
       if (updatedUser == null) {
-        throw Exception('Failed to fetch updated user data from server');
+        throw ApiException(
+          status: false,
+          message: 'Gagal mengambil data user dari server',
+        );
       }
 
       debugPrint(
@@ -337,10 +330,18 @@ class AuthRepositoryImpl extends AuthRepository {
       );
 
       return updatedUser;
+    } on ApiException catch (e) {
+      debugPrint('[AuthRepository] Update Profile ApiException caught');
+      debugPrint('[AuthRepository] Message: ${e.message}');
+      debugPrint('[AuthRepository] Errors: ${e.errors}');
+      rethrow; // Re-throw ApiException to be handled by controller
     } catch (e, stackTrace) {
       debugPrint('[AuthRepository] Error updating profile: $e');
       debugPrint('[AuthRepository] Stack trace: $stackTrace');
-      rethrow;
+      throw ApiException(
+        status: false,
+        message: 'Gagal memperbarui profile: ${e.toString()}',
+      );
     }
   }
 }
