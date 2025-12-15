@@ -39,6 +39,10 @@ jobs:
       - name: Decode Android keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/sirapat-release.keystore
+      
+      - name: Debug keystore location
+        run: |
+          ls -lah android/app
 
       - name: Create key.properties
         run: |
@@ -48,7 +52,13 @@ jobs:
           keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
           storeFile=sirapat-release.keystore
           EOF
-
+          
+      - name: Verify keystore
+        run: |
+          keytool -list -v \
+            -keystore android/app/sirapat-release.keystore \
+            -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
+            
       - run: flutter pub get
       - run: flutter test
         continue-on-error: true
