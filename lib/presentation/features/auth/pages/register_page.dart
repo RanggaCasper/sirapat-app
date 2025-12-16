@@ -121,120 +121,129 @@ class RegisterPage extends GetView<AuthController> {
                       const SizedBox(height: 28),
 
                       // NIP
-                      CustomTextField(
-                        controller: _nipController,
-                        labelText: 'NIP',
-                        hintText: 'Nomor Induk Pegawai',
-                        keyboardType: TextInputType.number,
-                        prefixIcon: Icons.badge_outlined,
-                        errorText: controller.getFieldError('nip'),
-                        onTap: () => controller.clearFieldError('nip'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'NIP tidak boleh kosong';
-                          }
-                          return null;
-                        },
+                      Obx(
+                        () => CustomTextField(
+                          controller: _nipController,
+                          labelText: 'NIP',
+                          hintText: 'Nomor Induk Pegawai',
+                          keyboardType: TextInputType.number,
+                          prefixIcon: Icons.badge_outlined,
+                          errorText: controller.getFieldError('nip'),
+                          onTap: () => controller.clearFieldError('nip'),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'NIP tidak boleh kosong';
+                            }
+                            if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                              return 'NIP hanya boleh berisi angka';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
 
                       const SizedBox(height: 20),
 
                       // Username
-                      CustomTextField(
-                        controller: _usernameController,
-                        labelText: 'Username',
-                        hintText: 'Username',
-                        prefixIcon: Icons.person_outline,
-                        errorText: controller.getFieldError('username'),
-                        onTap: () => controller.clearFieldError('username'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Username tidak boleh kosong';
-                          }
-                          return null;
-                        },
+                      Obx(
+                        () => CustomTextField(
+                          controller: _usernameController,
+                          labelText: 'Username',
+                          hintText: 'Username',
+                          prefixIcon: Icons.person_outline,
+                          errorText: controller.getFieldError('username'),
+                          onTap: () => controller.clearFieldError('username'),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Username tidak boleh kosong';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
 
                       const SizedBox(height: 20),
 
                       // Full Name
-                      CustomTextField(
-                        controller: _fullNameController,
-                        labelText: 'Nama Lengkap',
-                        hintText: 'Nama Lengkap',
-                        prefixIcon: Icons.person_outline,
-                        errorText: controller.getFieldError('full_name'),
-                        onTap: () => controller.clearFieldError('full_name'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Nama lengkap tidak boleh kosong';
-                          }
-                          return null;
-                        },
+                      Obx(
+                        () => CustomTextField(
+                          controller: _fullNameController,
+                          labelText: 'Nama Lengkap',
+                          hintText: 'Nama Lengkap',
+                          prefixIcon: Icons.person_outline,
+                          errorText: controller.getFieldError('full_name'),
+                          onTap: () => controller.clearFieldError('full_name'),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Nama lengkap tidak boleh kosong';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
 
                       const SizedBox(height: 20),
 
                       // Email
-                      CustomTextField(
-                        controller: _emailController,
-                        labelText: 'Email',
-                        hintText: 'Email',
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: Icons.email_outlined,
-                        errorText: controller.getFieldError('email'),
-                        onTap: () => controller.clearFieldError('email'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Email tidak boleh kosong';
-                          }
-                          if (!GetUtils.isEmail(value)) {
-                            return 'Email tidak valid';
-                          }
-                          return null;
-                        },
+                      Obx(
+                        () => CustomTextField(
+                          controller: _emailController,
+                          labelText: 'Email',
+                          hintText: 'Email',
+                          keyboardType: TextInputType.emailAddress,
+                          prefixIcon: Icons.email_outlined,
+                          errorText: controller.getFieldError('email'),
+                          onTap: () => controller.clearFieldError('email'),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Email tidak boleh kosong';
+                            }
+                            if (!GetUtils.isEmail(value.trim())) {
+                              return 'Email tidak valid';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
 
                       const SizedBox(height: 20),
 
                       // Phone
-                      CustomTextField(
-                        controller: _phoneController,
-                        labelText: 'No. Ponsel',
-                        hintText: 'No. Ponsel',
-                        keyboardType: TextInputType.phone,
-                        prefixIcon: Icons.phone_outlined,
-                        errorText: controller.getFieldError('phone'),
-                        onTap: () => controller.clearFieldError('phone'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Nomor ponsel tidak boleh kosong';
-                          }
-                          if (!GetUtils.isPhoneNumber(value)) {
-                            return 'Nomor ponsel tidak valid';
-                          }
-                          return null;
-                        },
+                      Obx(
+                        () => CustomTextField(
+                          controller: _phoneController,
+                          labelText: 'No. Ponsel',
+                          hintText: 'No. Ponsel',
+                          keyboardType: TextInputType.phone,
+                          prefixIcon: Icons.phone_outlined,
+                          errorText: controller.getFieldError('phone'),
+                          onTap: () => controller.clearFieldError('phone'),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Nomor ponsel tidak boleh kosong';
+                            }
+                            if (!RegExp(r'^(08|62)[0-9]{8,11}$')
+                                .hasMatch(value.trim())) {
+                              return 'Nomor ponsel tidak valid';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
 
                       const SizedBox(height: 20),
 
                       // Password
-                      CustomTextField(
-                        controller: _passwordController,
-                        labelText: 'Password',
-                        hintText: 'Password',
-                        prefixIcon: Icons.lock_outline,
-                        obscureText: _obscurePassword.value,
-                        errorText: controller.getFieldError('password'),
-                        onTap: () => controller.clearFieldError('password'),
-                        suffixIcon: Obx(
-                          () => IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 40,
-                              minHeight: 40,
-                            ),
+                      Obx(
+                        () => CustomTextField(
+                          controller: _passwordController,
+                          labelText: 'Password',
+                          hintText: 'Password',
+                          prefixIcon: Icons.lock_outline,
+                          obscureText: _obscurePassword.value,
+                          errorText: controller.getFieldError('password'),
+                          onTap: () => controller.clearFieldError('password'),
+                          suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword.value
                                   ? Icons.visibility_off_outlined
@@ -244,39 +253,52 @@ class RegisterPage extends GetView<AuthController> {
                             ),
                             onPressed: _obscurePassword.toggle,
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password tidak boleh kosong';
+                            }
+
+                            if (value.length < 8) {
+                              return 'Password minimal 8 karakter';
+                            }
+
+                            if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                              return 'Password harus mengandung minimal 1 huruf besar';
+                            }
+
+                            if (!RegExp(r'[a-z]').hasMatch(value)) {
+                              return 'Password harus mengandung minimal 1 huruf kecil';
+                            }
+
+                            if (!RegExp(r'[0-9]').hasMatch(value)) {
+                              return 'Password harus mengandung minimal 1 angka';
+                            }
+
+                            if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]')
+                                .hasMatch(value)) {
+                              return 'Password harus mengandung minimal 1 simbol';
+                            }
+
+                            return null;
+                          },
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Password tidak boleh kosong';
-                          }
-                          if (value.length < 6) {
-                            return 'Password minimal 6 karakter';
-                          }
-                          return null;
-                        },
                       ),
 
                       const SizedBox(height: 20),
 
                       // Password Confirmation
-                      CustomTextField(
-                        controller: _passwordConfirmationController,
-                        labelText: 'Konfirmasi Password',
-                        hintText: 'Konfirmasi Password',
-                        prefixIcon: Icons.lock_outline,
-                        obscureText: _obscurePasswordConfirmation.value,
-                        errorText:
-                            controller.getFieldError('password_confirmation'),
-                        onTap: () => controller.clearFieldError(
-                          'password_confirmation',
-                        ),
-                        suffixIcon: Obx(
-                          () => IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 40,
-                              minHeight: 40,
-                            ),
+                      Obx(
+                        () => CustomTextField(
+                          controller: _passwordConfirmationController,
+                          labelText: 'Konfirmasi Password',
+                          hintText: 'Konfirmasi Password',
+                          prefixIcon: Icons.lock_outline,
+                          obscureText: _obscurePasswordConfirmation.value,
+                          errorText:
+                              controller.getFieldError('password_confirmation'),
+                          onTap: () => controller
+                              .clearFieldError('password_confirmation'),
+                          suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePasswordConfirmation.value
                                   ? Icons.visibility_off_outlined
@@ -286,16 +308,16 @@ class RegisterPage extends GetView<AuthController> {
                             ),
                             onPressed: _obscurePasswordConfirmation.toggle,
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Konfirmasi password tidak boleh kosong';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Password tidak cocok';
+                            }
+                            return null;
+                          },
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Konfirmasi password tidak boleh kosong';
-                          }
-                          if (value != _passwordController.text) {
-                            return 'Password tidak cocok';
-                          }
-                          return null;
-                        },
                       ),
 
                       const SizedBox(height: 32),

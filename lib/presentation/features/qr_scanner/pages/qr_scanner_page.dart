@@ -63,7 +63,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
   String _formatTime(String? timeStr) {
     if (timeStr == null || timeStr.isEmpty) return "-";
     try {
-      // Remove seconds if present (HH:mm:ss -> HH:mm)
       final parts = timeStr.split(':');
       if (parts.length >= 2) {
         return '${parts[0]}:${parts[1]}';
@@ -76,22 +75,18 @@ class _QrScannerPageState extends State<QrScannerPage> {
 
   Future<void> _pickImageAndScan() async {
     try {
-      // Hanya izinkan pilih dari galeri, BUKAN dari kamera
-      // Untuk menghindari Android menyimpan foto baru ke Pictures
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['jpg', 'jpeg', 'png'],
         allowMultiple: false,
-        withData: false, // Jangan load data ke memory
-        withReadStream: false, // Jangan buat stream
-        allowCompression:
-            false, // Jangan compress (hindari pembuatan file baru)
+        withData: false,
+        withReadStream: false,
+        allowCompression: false,
       );
 
       if (result != null && result.files.single.path != null) {
         final path = result.files.single.path!;
 
-        // Analyze the image file
         final barcodes = await cameraController.analyzeImage(path);
 
         if (barcodes != null && barcodes.barcodes.isNotEmpty) {
@@ -108,7 +103,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
           _showError('Tidak ada QR code yang ditemukan dalam gambar');
         }
 
-        // Bersihkan cache file picker setelah selesai
         try {
           await FilePicker.platform.clearTemporaryFiles();
         } catch (e) {
@@ -131,7 +125,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
 
     Map<String, dynamic>? data;
 
-    // Decode JSON
     try {
       debugPrint('[QR Scanner] Raw QR code data: $code');
       data = jsonDecode(code);
@@ -147,104 +140,112 @@ class _QrScannerPageState extends State<QrScannerPage> {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
-              const Icon(Icons.qr_code_scanner, color: Colors.blue, size: 64),
-              const SizedBox(height: 12),
-
-              Text(
-                data != null ? "QR Code Terdeteksi" : "QR Tidak Valid",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
+                const Icon(Icons.qr_code_scanner, color: Colors.blue, size: 64),
+                const SizedBox(height: 12),
+                Text(
+                  data != null ? "QR Code Terdeteksi" : "QR Tidak Valid",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // CONTENT CARD
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(14),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: data == null
+                      ? const Text(
+                          "Format QR tidak sesuai.\nPastikan QR berasal dari aplikasi.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _qrItem("Judul Rapat", data["title"]),
+                            _qrItem("Tanggal", _formatDate(data["date"])),
+                            _qrItem("Mulai", _formatTime(data["startTime"])),
+                            _qrItem("Selesai", _formatTime(data["endTime"])),
+                          ],
+                        ),
                 ),
-                child: data == null
-                    ? const Text(
-                        "Format QR tidak sesuai.\nPastikan QR berasal dari aplikasi.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16),
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _qrItem("Judul Rapat", data["title"]),
-                          _qrItem("Tanggal", _formatDate(data["date"])),
-                          _qrItem("Mulai", _formatTime(data["startTime"])),
-                          _qrItem("Selesai", _formatTime(data["endTime"])),
-                          // _qrItem("Passcode", data["passcode"]),
-                        ],
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _resumeScanning();
+                        },
+                        child: const Text('Scan Lagi'),
                       ),
-              ),
-
-              const SizedBox(height: 20),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        _resumeScanning();
-                      },
-                      child: const Text('Scan Lagi'),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: data == null
-                          ? null
-                          : () async {
-                              final passcode = data!["passcode"].toString();
-                              final meetingId = data["id"] as int;
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: data == null
+                            ? null
+                            : () async {
+                                try {
+                                  final passcode = data!["passcode"].toString();
+                                  final meetingId = data["id"] as int;
 
-                              await meetingController.joinMeetingByCode(
-                                passcode,
-                              );
+                                  await meetingController.joinMeetingByCode(
+                                    passcode,
+                                  );
 
-                              // Clear previous selected meeting to avoid conflicts
-                              meetingController.selectedMeeting.value = null;
+                                  meetingController.selectedMeeting.value =
+                                      null;
 
-                              Get.to(
-                                () => DetailMeetPage(meetingId: meetingId),
-                                binding: BindingsBuilder(() {
-                                  if (!Get.isRegistered<
-                                      GetAttendanceUseCase>()) {
-                                    MeetingBinding().dependencies();
-                                    ParticipantBinding().dependencies();
-                                    MeetingMinuteBinding().dependencies();
-                                  }
-                                }),
-                                transition: Transition.rightToLeft,
-                              );
-                            },
-                      child: const Text('Gunakan'),
+                                  Get.to(
+                                    () => DetailMeetPage(meetingId: meetingId),
+                                    binding: BindingsBuilder(() {
+                                      if (!Get.isRegistered<
+                                          GetAttendanceUseCase>()) {
+                                        MeetingBinding().dependencies();
+                                        ParticipantBinding().dependencies();
+                                        MeetingMinuteBinding().dependencies();
+                                      }
+                                    }),
+                                    transition: Transition.rightToLeft,
+                                  );
+                                } catch (e) {
+                                  debugPrint(
+                                    '[QR Scanner] Error joining meeting: $e',
+                                  );
+
+                                  Get.back();
+                                  _showError('Gagal bergabung ke rapat');
+                                }
+                              },
+                        child: const Text('Gunakan'),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-      isDismissible: false,
-    );
+      isDismissible: true,
+      enableDrag: true,
+      isScrollControlled: true,
+    ).then((_) {
+      _resumeScanning();
+    });
   }
 
   Widget _qrItem(String label, dynamic value) {
@@ -287,7 +288,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
       ),
       child: Column(
         children: [
-          // Header
           Container(
             decoration: BoxDecoration(
               color: AppColors.primary,
@@ -384,7 +384,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
               ],
             ),
           ),
-          // Scanner Body
           Expanded(
             child: Stack(
               children: [
@@ -418,7 +417,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 ),
                 child: Stack(
                   children: [
-                    // Corner decorations
                     Positioned(
                       top: 0,
                       left: 0,

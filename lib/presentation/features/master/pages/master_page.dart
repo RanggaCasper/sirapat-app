@@ -26,7 +26,7 @@ class _MasterPageState extends State<MasterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(child: _getCurrentSection()),
+      body: SafeArea(top: false, child: _getCurrentSection()),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavItemTapped,
@@ -75,9 +75,9 @@ class _MasterPageState extends State<MasterPage> {
       case 0:
         return _buildHomeSection();
       case 1:
-        return const UserManagementSection();
+        return const SafeArea(child: UserManagementSection());
       case 2:
-        return const DivisionManagementSection();
+        return const SafeArea(child: DivisionManagementSection());
       case 3:
         return const ProfilePage();
       default:

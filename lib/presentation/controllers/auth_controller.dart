@@ -160,6 +160,7 @@ class AuthController extends GetxController {
       );
 
       _currentUser.value = user;
+      debugPrint('[AuthController] Logged in user: ${user}');
       _notif.showSuccess('Selamat datang, ${user.fullName}!');
 
       // Navigate based on role
@@ -187,7 +188,7 @@ class AuthController extends GetxController {
       _setLoading(true);
       clearAllErrors();
 
-      final user = await _registerUseCase.execute(
+      await _registerUseCase.execute(
         RegisterParams(
           nip: nip,
           username: username,
@@ -199,13 +200,8 @@ class AuthController extends GetxController {
         ),
       );
 
-      _currentUser.value = user;
-      _notif.showSuccess(
-        'Registrasi berhasil! Selamat datang, ${user.fullName}!',
-      );
-
-      // Navigate based on role
-      _navigateToRoleDashboard(user.role);
+      // Login after registration
+      await login(nip, password);
     } on ApiException catch (e) {
       _handleApiException(e);
     } catch (e) {
@@ -331,7 +327,7 @@ class AuthController extends GetxController {
         Get.offAllNamed(AppRoutes.employeeDashboard);
         break;
       default:
-        Get.offAllNamed(AppRoutes.login);
+        Get.offAllNamed(AppRoutes.employeeDashboard);
     }
   }
 

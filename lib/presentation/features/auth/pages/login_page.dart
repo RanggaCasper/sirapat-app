@@ -113,20 +113,25 @@ class LoginPage extends GetView<AuthController> {
                       const SizedBox(height: 32),
 
                       // NIP
-                      CustomTextField(
-                        controller: _nipController,
-                        labelText: 'NIP',
-                        hintText: 'Nomor Induk Pegawai',
-                        keyboardType: TextInputType.number,
-                        prefixIcon: Icons.badge_outlined,
-                        errorText: controller.getFieldError('nip'),
-                        onTap: () => controller.clearFieldError('nip'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'NIP tidak boleh kosong';
-                          }
-                          return null;
-                        },
+                      Obx(
+                        () => CustomTextField(
+                          controller: _nipController,
+                          labelText: 'NIP',
+                          hintText: 'Nomor Induk Pegawai',
+                          keyboardType: TextInputType.number,
+                          prefixIcon: Icons.badge_outlined,
+                          errorText: controller.getFieldError('nip'),
+                          onTap: () => controller.clearFieldError('nip'),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'NIP tidak boleh kosong';
+                            }
+                            if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                              return 'NIP hanya boleh berisi angka';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
 
                       const SizedBox(height: 20),

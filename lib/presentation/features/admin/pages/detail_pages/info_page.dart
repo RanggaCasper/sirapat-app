@@ -15,8 +15,13 @@ import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart
 
 class InfoPage extends StatefulWidget {
   final Meeting meeting;
+  final GlobalKey? qrKey; // ⬅️ Tambahkan parameter ini
 
-  const InfoPage({super.key, required this.meeting});
+  const InfoPage({
+    super.key,
+    required this.meeting,
+    this.qrKey, // ⬅️ Optional parameter
+  });
 
   @override
   State<InfoPage> createState() => _InfoPageState();
@@ -28,6 +33,7 @@ class _InfoPageState extends State<InfoPage> {
   bool _isDownloading = false;
 
   NotificationController get _notif => Get.find<NotificationController>();
+
   @override
   void initState() {
     super.initState();
@@ -117,7 +123,8 @@ class _InfoPageState extends State<InfoPage> {
                     ),
                     const SizedBox(height: 16),
                     RepaintBoundary(
-                      key: _qrKey,
+                      key: widget.qrKey ??
+                          _qrKey, // ⬅️ Gunakan key dari parent atau lokal
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -272,9 +279,8 @@ class _InfoPageState extends State<InfoPage> {
     return Padding(
       padding: AppSpacing.paddingLG,
       child: Row(
-        crossAxisAlignment: isMultiline
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
+        crossAxisAlignment:
+            isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
           Icon(icon, size: 24, color: AppColors.primary),
           const SizedBox(width: 16),
@@ -321,7 +327,8 @@ class _InfoPageState extends State<InfoPage> {
 
     try {
       final String? filePath = await QrDownloadHelper.downloadQrCode(
-        repaintBoundaryKey: _qrKey,
+        repaintBoundaryKey:
+            widget.qrKey ?? _qrKey, // ⬅️ Gunakan key dari parent atau lokal
         fileName: 'qr_${widget.meeting.title}',
       );
 

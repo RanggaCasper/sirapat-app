@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 import 'dart:io';
+import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,169 @@ import 'package:sirapat_app/app/config/app_colors.dart';
 import 'package:sirapat_app/data/services/version_checker_service.dart';
 import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
+
+/// In-memory store to retain download progress when the bottom sheet is closed
+/// and reopened during the same app session.
+class DownloadProgressStore {
+  static bool isDownloading = false;
+  static double progress = 0.0;
+  static String status = '';
+  static String? apkUrl;
+  static String? tempPath;
+  static String? finalPath;
+
+  // Broadcast stream so UI can subscribe when reopened
+  static final StreamController<Map<String, dynamic>> _ctrl =
+      StreamController<Map<String, dynamic>>.broadcast();
+
+  static Stream<Map<String, dynamic>> get stream => _ctrl.stream;
+
+  static void _notify() {
+    try {
+      _ctrl.add({
+        'isDownloading': isDownloading,
+        'progress': progress,
+        'status': status,
+        'apkUrl': apkUrl,
+        'tempPath': tempPath,
+        'finalPath': finalPath,
+      });
+    } catch (_) {}
+  }
+
+  static void reset() {
+    isDownloading = false;
+    progress = 0.0;
+    status = '';
+    apkUrl = null;
+    tempPath = null;
+    finalPath = null;
+    _notify();
+  }
+
+  /// Start download in background (app lifetime). Multiple UI listeners
+  /// can subscribe to `DownloadProgressStore.stream` to receive live updates.
+  static Future<void> startDownload(String apkUrl) async {
+    // If same download already running, ignore
+    if (isDownloading && DownloadProgressStore.apkUrl == apkUrl) return;
+
+    isDownloading = true;
+    progress = 0.0;
+    status = 'Memulai download...';
+    DownloadProgressStore.apkUrl = apkUrl;
+    tempPath = null;
+    finalPath = null;
+    _notify();
+
+    final dio = Dio();
+
+    try {
+      Directory baseDir;
+      if (Platform.isAndroid) {
+        try {
+          baseDir = (await getExternalStorageDirectory())!;
+        } catch (_) {
+          baseDir = await getApplicationDocumentsDirectory();
+        }
+      } else {
+        baseDir = await getApplicationDocumentsDirectory();
+      }
+
+      final fileName = 'sirapat_app.apk';
+      final fPath = '${baseDir.path}/$fileName';
+      final tPath = '${baseDir.path}/$fileName.tmp';
+
+      tempPath = tPath;
+      finalPath = fPath;
+      _notify();
+
+      final tempFile = File(tPath);
+      final finalFile = File(fPath);
+
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+
+      await dio.download(
+        apkUrl,
+        tPath,
+        onReceiveProgress: (received, total) {
+          if (total > 0) {
+            progress = received / total;
+            final r = (received / 1024 / 1024).toStringAsFixed(1);
+            final t = (total / 1024 / 1024).toStringAsFixed(1);
+            status = 'Mendownload... $r MB / $t MB';
+            _notify();
+          }
+        },
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: true,
+        ),
+      );
+
+      if (!await tempFile.exists() || await tempFile.length() == 0) {
+        throw Exception('File hasil download tidak valid');
+      }
+
+      if (await finalFile.exists()) {
+        await finalFile.delete();
+      }
+
+      await tempFile.rename(fPath);
+
+      progress = 1.0;
+      status = 'Download selesai';
+      isDownloading = false;
+      tempPath = tPath;
+      finalPath = fPath;
+      _notify();
+
+      // Try to open installer; show notifications via NotificationController
+      try {
+        final result = await OpenFilex.open(fPath);
+
+        if (result.type == ResultType.done) {
+          try {
+            Get.find<NotificationController>().showSuccess(
+              'Installer APK terbuka. Silakan lanjutkan instalasi.',
+            );
+          } catch (_) {}
+        } else if (result.type == ResultType.permissionDenied) {
+          try {
+            Get.find<NotificationController>().showError(
+              'Izin ditolak. Aktifkan "Install unknown apps" di Settings.',
+            );
+          } catch (_) {}
+        } else {
+          try {
+            Get.find<NotificationController>().showError(
+              'Installer tidak bisa dibuka otomatis. File tersimpan di:\n$fPath',
+            );
+          } catch (_) {}
+        }
+      } catch (e) {
+        // ignore open errors but keep finalPath for user
+      }
+    } on DioException catch (e) {
+      isDownloading = false;
+      status = 'Gagal mendownload: ${e.message}';
+      _notify();
+      try {
+        Get.find<NotificationController>()
+            .showError('Gagal mendownload update: ${e.message}');
+      } catch (_) {}
+    } catch (e) {
+      isDownloading = false;
+      status = 'Gagal mendownload: $e';
+      _notify();
+      try {
+        Get.find<NotificationController>()
+            .showError('Gagal mendownload update: $e');
+      } catch (_) {}
+    }
+  }
+}
 
 class UpdateBottomSheet extends StatefulWidget {
   final VersionCheckResult versionInfo;
@@ -25,6 +189,40 @@ class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
   bool _isDownloading = false;
   double _downloadProgress = 0.0;
   String _downloadStatus = '';
+  StreamSubscription<Map<String, dynamic>>? _storeSub;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Restore progress if a download is already in progress for the same APK
+    _isDownloading = DownloadProgressStore.isDownloading &&
+        (DownloadProgressStore.apkUrl == widget.versionInfo.apkDownloadUrl);
+    _downloadProgress = DownloadProgressStore.progress;
+    _downloadStatus = DownloadProgressStore.status;
+
+    // Listen for live updates from the shared store so reopening sheet
+    // shows continuous progress updates.
+    _storeSub = DownloadProgressStore.stream.listen((snapshot) {
+      try {
+        if (snapshot['apkUrl'] == widget.versionInfo.apkDownloadUrl) {
+          if (mounted) {
+            setState(() {
+              _isDownloading = snapshot['isDownloading'] as bool? ?? false;
+              _downloadProgress = snapshot['progress'] as double? ?? 0.0;
+              _downloadStatus = snapshot['status'] as String? ?? '';
+            });
+          }
+        }
+      } catch (_) {}
+    });
+  }
+
+  @override
+  void dispose() {
+    _storeSub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,23 +234,25 @@ class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Center(
-              child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 12)),
-            ),
-            _buildHeader(),
-            const SizedBox(height: 24),
-            _buildVersionInfo(),
-            const SizedBox(height: 20),
-            _buildReleaseNotes(),
-            const SizedBox(height: 24),
-            if (_isDownloading) _buildDownloadProgress(),
-            if (!_isDownloading) _buildActions(),
-          ],
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Center(
+                child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 12)),
+              ),
+              _buildHeader(),
+              const SizedBox(height: 24),
+              _buildVersionInfo(),
+              const SizedBox(height: 20),
+              _buildReleaseNotes(),
+              const SizedBox(height: 24),
+              if (_isDownloading) _buildDownloadProgress(),
+              if (!_isDownloading) _buildActions()
+            ],
+          ),
         ),
       ),
     );
@@ -75,12 +275,12 @@ class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
         ),
         const SizedBox(height: 16),
         const Text(
-          'Update Tersedia',
+          'Pembaruan Tersedia',
           style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.3,
-          ),
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.3,
+              color: Colors.black87),
         ),
         const SizedBox(height: 8),
         const Text(
@@ -95,61 +295,86 @@ class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
   }
 
   Widget _buildVersionInfo() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          _buildVersionRow(
+    return Row(
+      children: [
+        Expanded(
+          child: _buildVersionCard(
             'Versi Saat Ini',
             widget.versionInfo.currentVersion,
             Colors.grey,
+            Colors.grey.shade50,
           ),
-          const SizedBox(height: 12),
-          const Icon(Icons.arrow_downward, color: Colors.grey, size: 20),
-          const SizedBox(height: 12),
-          _buildVersionRow(
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.arrow_forward,
+            color: Colors.grey,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildVersionCard(
             'Versi Terbaru',
             widget.versionInfo.latestVersion,
             Colors.green,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVersionRow(String label, String version, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withOpacity(0.3)),
-          ),
-          child: Text(
-            'v$version',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-            ),
+            Colors.green.shade50,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildVersionCard(
+    String label,
+    String version,
+    Color color,
+    Color backgroundColor,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: color.withOpacity(0.3)),
+            ),
+            child: Text(
+              'v$version',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -164,14 +389,12 @@ class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
         const Text(
           'Apa yang Baru:',
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         const SizedBox(height: 12),
         Container(
           constraints: const BoxConstraints(
-            maxHeight: 200, // Batasi tinggi untuk scroll
+            maxHeight: 200,
           ),
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -262,10 +485,10 @@ class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
               ),
             ),
             child: const Text(
-              'Nanti Saja',
+              'Abaikan',
               style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -277,10 +500,10 @@ class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
             onPressed: _downloadAndInstall,
             icon: const Icon(Icons.download, size: 20),
             label: const Text(
-              'Update Sekarang',
+              'Perbarui Sekarang',
               style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
               ),
             ),
             style: ElevatedButton.styleFrom(
@@ -305,143 +528,15 @@ class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
       return;
     }
 
+    // Update UI immediately and start background download via shared store.
     setState(() {
       _isDownloading = true;
       _downloadProgress = 0.0;
       _downloadStatus = 'Memulai download...';
     });
 
-    try {
-      final dio = Dio();
-
-      // Untuk Android 15, gunakan app-specific directory yang tidak butuh permission
-      // kemudian copy ke Downloads setelah selesai (jika memungkinkan)
-      Directory downloadDir;
-
-      if (Platform.isAndroid) {
-        // Coba gunakan folder Download publik terlebih dahulu
-        try {
-          final publicDownloads = Directory('/storage/emulated/0/Download');
-          if (await publicDownloads.exists()) {
-            downloadDir = publicDownloads;
-          } else {
-            // Fallback ke app-specific external storage
-            final externalDir = await getExternalStorageDirectory();
-            downloadDir = externalDir!;
-          }
-        } catch (e) {
-          // Jika gagal, gunakan app-specific directory
-          final externalDir = await getExternalStorageDirectory();
-          downloadDir = externalDir!;
-        }
-      } else {
-        downloadDir = await getApplicationDocumentsDirectory();
-      }
-
-      final fileName = 'sirapat_app_v${widget.versionInfo.latestVersion}.apk';
-      final filePath = '${downloadDir.path}/$fileName';
-
-      dev.log(
-        'Downloading APK to: $filePath',
-        name: 'UpdateBottomSheet',
-      );
-
-      // Delete old file if exists
-      final file = File(filePath);
-      if (await file.exists()) {
-        await file.delete();
-      }
-
-      await dio.download(
-        apkUrl,
-        filePath,
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-            setState(() {
-              _downloadProgress = received / total;
-              final receivedMB = (received / 1024 / 1024).toStringAsFixed(1);
-              final totalMB = (total / 1024 / 1024).toStringAsFixed(1);
-              _downloadStatus = 'Mendownload... $receivedMB MB / $totalMB MB';
-            });
-          }
-        },
-      );
-
-      setState(() {
-        _downloadStatus = 'Download selesai. Membuka installer...';
-      });
-
-      // Tunggu sebentar untuk memastikan file tersimpan dengan benar
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      // Verifikasi file ada dan ukurannya benar
-      final downloadedFile = File(filePath);
-      if (!await downloadedFile.exists()) {
-        _showError('File APK tidak ditemukan setelah download');
-        return;
-      }
-
-      final fileSize = await downloadedFile.length();
-      dev.log(
-        'APK file ready: $filePath (${(fileSize / 1024 / 1024).toStringAsFixed(2)} MB)',
-        name: 'UpdateBottomSheet',
-      );
-
-      Get.back();
-
-      // Buka installer APK secara otomatis
-      dev.log(
-        'Opening APK installer: $filePath',
-        name: 'UpdateBottomSheet',
-      );
-
-      final result = await OpenFilex.open(filePath);
-
-      dev.log(
-        'OpenFilex result: ${result.type} - ${result.message}',
-        name: 'UpdateBottomSheet',
-      );
-
-      // Berikan feedback ke user
-      if (result.type == ResultType.done) {
-        _showSuccess(
-          'Installer APK telah dibuka. Silakan klik "Install" untuk melanjutkan.',
-        );
-      } else if (result.type == ResultType.noAppToOpen) {
-        _showSuccess(
-          'File APK tersimpan. Installer akan terbuka dalam beberapa saat.',
-        );
-      } else if (result.type == ResultType.permissionDenied) {
-        _showError(
-          'Izin ditolak! Mohon aktifkan "Install unknown apps" untuk aplikasi ini:\n'
-          '1. Buka Settings\n'
-          '2. Pilih Apps → SiRapat App\n'
-          '3. Aktifkan "Install unknown apps"',
-        );
-      } else if (result.type == ResultType.fileNotFound) {
-        _showError('File APK tidak ditemukan. Silakan coba download ulang.');
-      } else {
-        _showError(
-          'Installer tidak dapat dibuka otomatis. '
-          'File tersimpan di: ${downloadDir.path}\n'
-          'Silakan buka folder Download dan install manual.',
-        );
-      }
-    } catch (e, stackTrace) {
-      dev.log(
-        'Error downloading APK',
-        error: e,
-        stackTrace: stackTrace,
-        name: 'UpdateBottomSheet',
-      );
-      _showError('Gagal mendownload update: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isDownloading = false;
-        });
-      }
-    }
+    // Kick off download in background store (it updates the store as it progresses)
+    DownloadProgressStore.startDownload(apkUrl);
   }
 
   void _showError(String message) {
@@ -450,18 +545,6 @@ class _UpdateBottomSheetState extends State<UpdateBottomSheet> {
     } catch (e) {
       dev.log(
         'Failed to show error notification: $message',
-        error: e,
-        name: 'UpdateBottomSheet',
-      );
-    }
-  }
-
-  void _showSuccess(String message) {
-    try {
-      Get.find<NotificationController>().showSuccess(message);
-    } catch (e) {
-      dev.log(
-        'Failed to show success notification: $message',
         error: e,
         name: 'UpdateBottomSheet',
       );

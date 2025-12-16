@@ -73,6 +73,40 @@ class QrDownloadHelper {
     }
   }
 
+  /// Generate QR code as temporary file for sharing
+  /// Returns File object if successful, null otherwise
+  static Future<File?> generateQrCodeFile({
+    required GlobalKey repaintBoundaryKey,
+    required String fileName,
+  }) async {
+    try {
+      // Capture QR code as image (reuse existing method)
+      final Uint8List? imageBytes = await _captureQrCode(repaintBoundaryKey);
+      if (imageBytes == null) {
+        debugPrint('[QrDownloadHelper] Failed to capture QR code for sharing');
+        return null;
+      }
+
+      // Save to temporary directory
+      final tempDir = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final sanitizedFileName = fileName
+          .replaceAll(RegExp(r'[^\w\s-]'), '')
+          .replaceAll(RegExp(r'\s+'), '_');
+      final file = File('${tempDir.path}/${sanitizedFileName}_$timestamp.png');
+
+      await file.writeAsBytes(imageBytes);
+
+      debugPrint(
+        '[QrDownloadHelper] QR code generated for sharing: ${file.path}',
+      );
+      return file;
+    } catch (e) {
+      debugPrint('[QrDownloadHelper] Error generating QR code file: $e');
+      return null;
+    }
+  }
+
   /// Request storage permission for Android 13+
   static Future<bool> _requestStoragePermission() async {
     try {
