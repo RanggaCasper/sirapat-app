@@ -51,6 +51,7 @@ class ProfilePage extends GetView<AuthController> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: SafeArea(
+        top: false,
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -63,7 +64,7 @@ class ProfilePage extends GetView<AuthController> {
               _buildAboutSection(context),
               const SizedBox(height: 24),
               _buildLogoutButton(context),
-              const SizedBox(height: 100),
+              const SizedBox(height: 24)
             ],
           ),
         ),
@@ -72,29 +73,46 @@ class ProfilePage extends GetView<AuthController> {
   }
 
   Widget _buildProfileHeader() {
+    final topPadding = MediaQuery.of(Get.context!).padding.top;
+
     return Obx(
-      () => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
-        decoration: BoxDecoration(color: AppColors.primary),
-        child: Column(
-          children: [
-            _buildAvatarStack(),
-            const SizedBox(height: 16),
-            Text(
-              controller.currentUser?.fullName ?? '-',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 0.5,
-              ),
-              textAlign: TextAlign.center,
+      () => Stack(
+        children: [
+          // 🔵 BACKGROUND BIRU (DINAMIS)
+          Positioned.fill(
+            child: Container(
+              color: AppColors.primary,
             ),
-            const SizedBox(height: 8),
-            _buildRoleBadge(),
-          ],
-        ),
+          ),
+
+          // ✅ CONTENT (AMAN & TIDAK TERGESER)
+          Padding(
+            padding: EdgeInsets.only(top: topPadding),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 36),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildAvatarStack(),
+                  const SizedBox(height: 16),
+                  Text(
+                    controller.currentUser?.fullName ?? '-',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildRoleBadge(),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -234,7 +252,7 @@ class ProfilePage extends GetView<AuthController> {
         _buildDivider(),
         _buildMenuItem(
           icon: Icons.system_update,
-          title: 'Cek Update',
+          title: 'Cek Pembaruan',
           subtitle: 'Periksa pembaruan aplikasi',
           iconColor: Colors.blue,
           onTap: () => _checkForUpdate(),
@@ -464,47 +482,113 @@ class ProfilePage extends GetView<AuthController> {
   void _showAboutDialog() {
     Get.bottomSheet(
       Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(Get.context!).size.height * 0.9,
-        ),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Center(
-                child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 12)),
-              ),
-              const Text(
-                'Tentang Aplikasi',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.3,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Center(
+                  child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 12)),
                 ),
-              ),
-              const SizedBox(height: 24),
-              _buildAppLogoSection(),
-              const SizedBox(height: 24),
-              _buildVersionSection(),
-              const SizedBox(height: 24),
-              const Center(
-                child: Text(
-                  '© 2025 Tim PKL Diskominfo Badung. Hak cipta dilindungi.',
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                const Text(
+                  'Tentang Aplikasi',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.3,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                _buildAppLogoSection(),
+                const SizedBox(height: 24),
+                FutureBuilder<String>(
+                  future: _getAppVersion(),
+                  builder: (context, snapshot) {
+                    final buildInfo = snapshot.data ?? '...';
+                    return _buildInfoItem(
+                      icon: Icons.info_rounded,
+                      title: 'Versi Aplikasi',
+                      value: 'v$buildInfo',
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildInfoItem(
+                  icon: Icons.business_rounded,
+                  title: 'Dikembangkan oleh',
+                  value: 'Tim PKL Diskominfo Badung',
+                ),
+                const SizedBox(height: 8),
+                _buildInfoItem(
+                  icon: Icons.calendar_today_rounded,
+                  title: 'Tahun Rilis',
+                  value: '2025',
+                ),
+                const SizedBox(height: 40),
+                const Center(
+                  child: Text(
+                    '© 2025 Tim PKL Diskominfo Badung. Hak cipta dilindungi.',
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
       isDismissible: true,
       enableDrag: true,
       isScrollControlled: true,
+    );
+  }
+
+  Widget _buildInfoItem({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.grey.shade600),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -525,9 +609,10 @@ class ProfilePage extends GetView<AuthController> {
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'SIRAPAT',
+        Text(
+          'SiRapat',
           style: TextStyle(
+            color: AppColors.primary,
             fontSize: 20,
             fontWeight: FontWeight.bold,
             letterSpacing: 1,
@@ -546,31 +631,6 @@ class ProfilePage extends GetView<AuthController> {
     );
   }
 
-  Widget _buildVersionSection() {
-    return FutureBuilder<String>(
-      future: _getAppVersion(),
-      builder: (context, snapshot) {
-        final version = snapshot.data ?? '...';
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.primary, width: 2),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Text(
-            'Versi $version',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-              letterSpacing: 0.3,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   void _showLogoutDialog() {
     Get.bottomSheet(
       Container(
@@ -579,83 +639,112 @@ class ProfilePage extends GetView<AuthController> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Center(
-              child: BottomSheetHandle(margin: EdgeInsets.only(bottom: 16)),
-            ),
-            const Text(
-              'Konfirmasi Keluar',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.3,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Apakah Anda yakin ingin keluar dari aplikasi? Data lokal Anda akan tetap aman.',
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 28),
-            Row(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: Colors.grey.shade400),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                const Center(
+                  child: BottomSheetHandle(
+                    margin: EdgeInsets.only(bottom: 16),
+                  ),
+                ),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      'Batal',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
+                    child: Icon(
+                      Icons.logout_rounded,
+                      size: 48,
+                      color: Colors.red.shade500,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Get.back();
-                      controller.logout();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade500,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Keluar',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
+                const SizedBox(height: 20),
+                const Center(
+                  child: Text(
+                    'Konfirmasi Keluar',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
                     ),
                   ),
+                ),
+                const SizedBox(height: 12),
+                const Center(
+                  child: Text(
+                    'Apakah Anda yakin ingin keluar dari aplikasi? '
+                    'Anda perlu masuk kembali untuk mengakses aplikasi.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Get.back(),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.grey.shade400),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Batal',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Get.back();
+                          controller.logout();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red.shade500,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Keluar',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
       isDismissible: true,
       enableDrag: true,
+      isScrollControlled: true,
     );
   }
 
@@ -663,7 +752,7 @@ class ProfilePage extends GetView<AuthController> {
     UpdateDialog.checkAndShowUpdate(
       repoOwner: 'RanggaCasper',
       repoName: 'sirapat-app',
-      forceShow: true, // Selalu tampil saat dicek manual
+      forceShow: true,
     );
   }
 }

@@ -251,6 +251,22 @@ class _EditUserPageState extends State<EditUserPage> {
                           if (value == null || value.trim().isEmpty) {
                             return 'Nomor telepon tidak boleh kosong';
                           }
+
+                          final phone = value.trim();
+
+                          if (!RegExp(r'^[0-9]+$').hasMatch(phone)) {
+                            return 'Nomor telepon hanya boleh berisi angka';
+                          }
+
+                          if (phone.length < 10 || phone.length > 13) {
+                            return 'Nomor telepon harus 10–13 digit';
+                          }
+
+                          if (!(phone.startsWith('08') ||
+                              phone.startsWith('62'))) {
+                            return 'Nomor telepon harus diawali 08 atau 62';
+                          }
+
                           return null;
                         },
                       ),

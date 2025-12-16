@@ -47,7 +47,7 @@ class _EmployeePageState extends State<EmployeePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(child: _getCurrentSection()),
+      body: SafeArea(top: false, child: _getCurrentSection()),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavItemTapped,

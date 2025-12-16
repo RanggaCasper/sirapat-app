@@ -30,18 +30,42 @@ class _DetailMeetPageState extends State<DetailMeetPage>
     _tabController.addListener(() {
       setState(() {});
     });
-    // Fetch meeting detail when page loads using meetingId parameter
+
     if (widget.meetingId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        controller.fetchMeetingById(widget.meetingId!);
+        _fetchMeetingAndCheckStatus();
       });
     }
+  }
+
+  Future<void> _fetchMeetingAndCheckStatus() async {
+    try {
+      await controller.fetchMeetingById(widget.meetingId!);
+
+      // Check if meeting was fetched successfully
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted && controller.selectedMeeting.value == null) {
+          _handleMeetingNotFound();
+        } else {}
+      });
+    } catch (e) {
+      if (mounted) {
+        _handleMeetingNotFound();
+      }
+    }
+  }
+
+  void _handleMeetingNotFound() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        Get.back();
+      }
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    // Clear selected meeting to prevent stale data on next navigation
     controller.selectedMeeting.value = null;
     super.dispose();
   }
@@ -115,7 +139,6 @@ class _DetailMeetPageState extends State<DetailMeetPage>
   }
 
   Widget? _buildFloatingButton(Meeting meeting) {
-    // Employee tidak punya fitur tambah peserta, hanya chat di semua tab
     return FloatingActionButton(
       backgroundColor: AppColors.primary,
       onPressed: _onChatButtonPressed,

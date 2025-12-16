@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:sirapat_app/app/config/app_colors.dart';
+import 'package:sirapat_app/app/util/qr_download_helper.dart';
 import 'package:sirapat_app/domain/entities/meeting.dart';
 import 'package:sirapat_app/presentation/controllers/chat_binding.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/edit_meeting_page.dart';
@@ -38,6 +39,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
       Get.find<ParticipantController>();
   final _inviteFormKey = GlobalKey<FormState>();
   late final TextEditingController identifierController;
+  final GlobalKey _qrKey = GlobalKey();
 
   @override
   void initState() {
@@ -47,7 +49,6 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
     _tabController.addListener(() {
       setState(() {});
     });
-    // Fetch meeting detail when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchMeetingById(widget.meetingId);
     });
@@ -57,7 +58,6 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   void dispose() {
     identifierController.dispose();
     _tabController.dispose();
-    // Clear selected meeting to prevent stale data
     controller.selectedMeeting.value = null;
     super.dispose();
   }
@@ -92,7 +92,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
         body: TabBarView(
           controller: _tabController,
           children: [
-            InfoPage(meeting: meeting),
+            InfoPage(
+              meeting: meeting,
+              qrKey: _qrKey, // ⬅️ PASS QR KEY KE INFO PAGE
+            ),
             ParticipantPage(meeting: meeting),
             SummaryPage(meetingId: meeting.id),
           ],
@@ -109,7 +112,6 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () {
-          // Clear selected meeting and go back
           controller.selectedMeeting.value = null;
           Get.back();
         },
@@ -151,90 +153,176 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
   void _showOptionsMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle indicator
-            const BottomSheetHandle(margin: EdgeInsets.only(bottom: 20)),
-            // Meeting Assistant feature
-            ListTile(
-              leading: Icon(Icons.mic, color: AppColors.primary),
-              title: Text(
-                'Asistent Rapat',
-                style: TextStyle(color: AppColors.primary),
+      builder: (context) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
+          child: SafeArea(
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const BottomSheetHandle(
+                    margin: EdgeInsets.only(bottom: 20),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.mic, color: AppColors.primary),
+                    title: Text(
+                      'Asisten Rapat',
+                      style: TextStyle(color: AppColors.primary),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Get.to(
+                        () => VoiceRecordPage(meetingId: widget.meetingId),
+                        transition: Transition.rightToLeft,
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.edit),
+                    title: const Text('Ubah Rapat'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      final meeting = controller.selectedMeeting.value;
+                      if (meeting != null) {
+                        controller.prepareEdit(meeting);
+                        Get.to(
+                          () => EditMeetingPage(
+                            meetingId: "${widget.meetingId}",
+                          ),
+                          transition: Transition.rightToLeft,
+                        );
+                      }
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.share),
+                    title: const Text('Bagikan'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _shareMeetingInfo();
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.delete, color: Colors.red),
+                    title: const Text(
+                      'Hapus',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      controller.deleteMeeting(widget.meetingId);
+                    },
+                  ),
+                ],
               ),
-              onTap: () {
-                Navigator.pop(context); // Close bottom sheet first
-                Get.to(
-                  () => VoiceRecordPage(meetingId: widget.meetingId),
-                  transition: Transition.rightToLeft,
-                );
-              },
             ),
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Ubah Rapat'),
-              onTap: () {
-                Navigator.pop(context); // Close bottom sheet first
-
-                // Ensure meeting data is available for edit
-                final meeting = controller.selectedMeeting.value;
-                if (meeting != null) {
-                  controller.prepareEdit(meeting);
-                  Get.to(
-                    () => EditMeetingPage(meetingId: "${widget.meetingId}"),
-                    transition: Transition.rightToLeft,
-                  );
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('Bagikan'),
-              onTap: () {
-                _shareMeetingInfo();
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Hapus', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                controller.deleteMeeting(widget.meetingId);
-              },
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
+  // ⬅️ FUNGSI SHARE YANG SUDAH DIUPDATE
   void _shareMeetingInfo() async {
     final meeting = controller.selectedMeeting.value;
     if (meeting == null) return;
 
-    final passcode = await controller.getMeetingPasscodeById(widget.meetingId);
-    final message = """
+    try {
+      final notif = Get.find<NotificationController>();
+
+      // Cek apakah QR sudah ter-render
+      final qrContext = _qrKey.currentContext;
+      final needsRendering = qrContext == null;
+
+      if (needsRendering) {
+        // Tampilkan notifikasi bahwa akan beralih ke tab Info
+        notif.showInfo('Mempersiapkan QR Code...');
+
+        // Pindah ke tab Info (index 0)
+        _tabController.animateTo(0);
+
+        // Tunggu hingga tab selesai berpindah dan QR ter-render
+        await Future.delayed(const Duration(milliseconds: 800));
+
+        // Cek lagi apakah QR sudah ter-render
+        final qrContextAfter = _qrKey.currentContext;
+        if (qrContextAfter == null) {
+          notif.showError(
+            'Gagal memuat QR Code. Silakan coba lagi.',
+          );
+          return;
+        }
+      }
+
+      // Tampilkan loading
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(),
+        ),
+        barrierDismissible: false,
+      );
+
+      final passcode =
+          await controller.getMeetingPasscodeById(widget.meetingId);
+
+      // Generate QR Code menggunakan QrDownloadHelper
+      final qrFile = await QrDownloadHelper.generateQrCodeFile(
+        repaintBoundaryKey: _qrKey,
+        fileName: 'qr_share_${meeting.title}',
+      );
+
+      // Tutup loading dialog
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+
+      if (qrFile == null) {
+        notif.showError(
+          'Gagal membuat QR Code. Silakan coba lagi.',
+        );
+        return;
+      }
+
+      final message = """
 📅 *Undangan Rapat*
-Judul: ${meeting.title}
-Tanggal: ${meeting.date}
-Waktu: ${meeting.startTime} - ${meeting.endTime}
 
-🔑 *Passcode:* $passcode
-🔗 *Link Join:* (masukkan link jika ada)
-📷 *QR Code tersedia pada aplikasi*
+Dengan hormat, Anda diundang untuk menghadiri rapat dengan detail berikut:
 
-Dibagikan via *SiRapat App*
+📝 *Judul Rapat* : ${meeting.title}
+📆 *Tanggal*     : ${meeting.date}
+⏰ *Waktu*       : ${meeting.startTime} – ${meeting.endTime}
+
+🔑 *Kode Akses*  : $passcode
+📷 *QR Code*     : Terlampir
+
+Undangan ini dibagikan melalui *Aplikasi SiRapat*.
 """;
 
-    Share.share(message, subject: "Undangan Rapat: ${meeting.title}");
-    _copyToClipboard(message);
+      // Share dengan file QR Code
+      await Share.shareXFiles(
+        [XFile(qrFile.path)],
+        text: message,
+        subject: "Undangan Rapat: ${meeting.title}",
+      );
+
+      _copyToClipboard(message);
+    } catch (e) {
+      if (Get.isDialogOpen ?? false) {
+        Get.back(); // Tutup loading jika masih ada
+      }
+      final notif = Get.find<NotificationController>();
+      notif.showError('Gagal membagikan: ${e.toString()}');
+      debugPrint('[MeetingDetailPage] Error sharing: $e');
+    }
   }
 
   void _copyToClipboard(String text) {
@@ -246,7 +334,6 @@ Dibagikan via *SiRapat App*
   Widget? _buildFloatingButton(Meeting meeting) {
     switch (_tabController.index) {
       case 0:
-        // Tab Info: Chat button
         return FloatingActionButton(
           backgroundColor: AppColors.primary,
           onPressed: _onChatButtonPressed,
@@ -254,7 +341,6 @@ Dibagikan via *SiRapat App*
         );
 
       case 1:
-        // Tab Peserta: Tambah peserta (hanya admin)
         return FloatingActionButton(
           backgroundColor: Colors.orange,
           onPressed: () {
@@ -262,14 +348,13 @@ Dibagikan via *SiRapat App*
           },
           child: const Icon(Icons.person_add),
         );
-        
+
       case 2:
         return FutureBuilder<MeetingMinute?>(
           future: meetingMinuteController.getMeetingMinuteByMeetingId(
             meeting.id,
           ),
           builder: (context, snapshot) {
-            // Sementara loading → tampilkan chat button
             if (snapshot.connectionState == ConnectionState.waiting) {
               return FloatingActionButton(
                 backgroundColor: AppColors.primary,
@@ -278,7 +363,6 @@ Dibagikan via *SiRapat App*
               );
             }
 
-            // Jika error → tampilkan chat button
             if (snapshot.hasError) {
               return FloatingActionButton(
                 backgroundColor: AppColors.primary,
@@ -288,35 +372,31 @@ Dibagikan via *SiRapat App*
             }
 
             final meetingMinute = snapshot.data;
-
-            // Cek approved
             final isApproved = meetingMinute?.approvedBy != null &&
                 meetingMinute?.approvedAt != null;
 
-            // Jika sudah approved → TIDAK tampilkan tombol apa pun
             if (isApproved) {
               return const SizedBox.shrink();
             }
 
-            // Jika belum approved → tampil 2 tombol
             return Align(
               alignment: Alignment.bottomRight,
               child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FloatingActionButton(
-                      backgroundColor: AppColors.accentRed,
-                      onPressed: _onNoteButtonPressed,
-                      child: const Icon(Icons.edit_note),
-                    ),
-                    const SizedBox(height: 12),
-                    FloatingActionButton(
-                      backgroundColor: AppColors.primary,
-                      onPressed: _onChatButtonPressed,
-                      child: const Icon(Icons.chat_bubble),
-                    ),
-                  ],
-                ),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloatingActionButton(
+                    backgroundColor: AppColors.accentRed,
+                    onPressed: _onNoteButtonPressed,
+                    child: const Icon(Icons.edit_note),
+                  ),
+                  const SizedBox(height: 12),
+                  FloatingActionButton(
+                    backgroundColor: AppColors.primary,
+                    onPressed: _onChatButtonPressed,
+                    child: const Icon(Icons.chat_bubble),
+                  ),
+                ],
+              ),
             );
           },
         );
@@ -330,120 +410,130 @@ Dibagikan via *SiRapat App*
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(20),
           ),
-          child: Form(
-            key: _inviteFormKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Center(
-                  child: BottomSheetHandle(
-                    margin: EdgeInsets.only(bottom: 16),
-                  ),
+          child: SafeArea(
+            child: Container(
+              color: Colors.white,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
                 ),
-                Text(
-                  'Undang Peserta',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  controller: identifierController,
-                  labelText: 'Email / Phone Number / NIP',
-                  hintText: 'Masukkan email, nomor telepon, atau NIP',
-                  prefixIcon: Icons.person_outline,
-                  keyboardType: TextInputType.text,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Field ini wajib diisi';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                SafeArea(
-                  child: Row(
+                child: Form(
+                  key: _inviteFormKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 48,
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: AppColors.borderLight),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text(
-                              'Batal',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ),
+                      const Center(
+                        child: BottomSheetHandle(
+                          margin: EdgeInsets.only(bottom: 16),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              final isValid =
-                                  _inviteFormKey.currentState?.validate() ??
-                                      false;
-                              if (!isValid) return;
-
-                              final identifier =
-                                  identifierController.text.trim();
-
-                              participantController.inviteParticipant(
-                                meetingId: widget.meetingId,
-                                identifier: identifier,
-                              );
-
-                              // Clear field after submit
-                              identifierController.clear();
-                              Navigator.pop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: const Text(
-                              'Kirim',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                      Text(
+                        'Undang Peserta',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        controller: identifierController,
+                        labelText: 'Email / Phone Number / NIP',
+                        hintText: 'Masukkan email, nomor telepon, atau NIP',
+                        prefixIcon: Icons.person_outline,
+                        keyboardType: TextInputType.text,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Field ini wajib diisi';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 48,
+                              child: OutlinedButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: AppColors.borderLight,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Batal',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black54,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: SizedBox(
+                              height: 48,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  final isValid =
+                                      _inviteFormKey.currentState?.validate() ??
+                                          false;
+                                  if (!isValid) return;
+
+                                  final identifier =
+                                      identifierController.text.trim();
+
+                                  participantController.inviteParticipant(
+                                    meetingId: widget.meetingId,
+                                    identifier: identifier,
+                                  );
+
+                                  identifierController.clear();
+                                  Navigator.pop(context);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: const Text(
+                                  'Kirim',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         );
@@ -452,7 +542,6 @@ Dibagikan via *SiRapat App*
   }
 
   void _onNoteButtonPressed() async {
-    // Ambil data meeting minute terlebih dahulu
     final meetingMinute = await meetingMinuteController
         .getMeetingMinuteByMeetingId(widget.meetingId);
 
@@ -470,147 +559,129 @@ Dibagikan via *SiRapat App*
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle indicator
-              const BottomSheetHandle(margin: EdgeInsets.only(bottom: 20)),
-
-              // Icon
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.description,
-                  size: 48,
-                  color: AppColors.primary,
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Title
-              const Text(
-                'Setujui Notulen Rapat',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 12),
-
-              // Description
-              Text(
-                'Apakah Anda yakin ingin menyetujui notulen rapat ini?',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade700,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 32),
-
-              // Action Buttons
-              Row(
-                children: [
-                  // Cancel Button
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: Colors.grey.shade400),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Batal',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ),
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const BottomSheetHandle(margin: EdgeInsets.only(bottom: 20)),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-
-                  const SizedBox(width: 12),
-
-                  // Approve Button
-                  Expanded(
-                    child: Obx(() {
-                      final isLoading = meetingMinuteController.isLoadingAction;
-
-                      return ElevatedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () async {
-                                // Call approve method dari controller
-                                final success = await meetingMinuteController
-                                    .approveMeetingMinute(meetingMinute.id);
-
-                                if (!context.mounted) return;
-
-                                Navigator.pop(context);
-
-                                if (success) {
-                                  // Refresh halaman summary
-                                  setState(() {});
-
-                                  // Show success message
-                                  final notif =
-                                      Get.find<NotificationController>();
-                                  notif.showSuccess(
-                                    'Notulen rapat telah disetujui',
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
+                  child: Icon(
+                    Icons.description,
+                    size: 48,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Setujui Notulen Rapat',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Apakah Anda yakin ingin menyetujui notulen rapat ini?',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.grey.shade400),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          elevation: 0,
                         ),
-                        child: isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
+                        child: const Text(
+                          'Batal',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Obx(() {
+                        final isLoading =
+                            meetingMinuteController.isLoadingAction;
+
+                        return ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  final success = await meetingMinuteController
+                                      .approveMeetingMinute(meetingMinute.id);
+
+                                  if (!context.mounted) return;
+
+                                  Navigator.pop(context);
+
+                                  if (success) {
+                                    setState(() {});
+                                    final notif =
+                                        Get.find<NotificationController>();
+                                    notif.showSuccess(
+                                      'Notulen rapat telah disetujui',
+                                    );
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Text(
+                                  'Setujui',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              )
-                            : const Text(
-                                'Setujui',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                      );
-                    }),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-            ],
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         );
       },

@@ -24,7 +24,7 @@ class _AdminPageState extends State<AdminPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(child: _getCurrentSection()),
+      body: SafeArea(top: false, child: _getCurrentSection()),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavItemTapped,
@@ -67,7 +67,7 @@ class _AdminPageState extends State<AdminPage> {
       case 0:
         return _buildHomeSection();
       case 1:
-        return const MeetingsPage();
+        return const SafeArea(child: MeetingsPage());
       case 2:
         return const ProfilePage();
       default:
