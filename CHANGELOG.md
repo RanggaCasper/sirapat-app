@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 📐 Bottom sheet interaction and gesture-safe spacing
 - 🎨 Minor UI spacing and padding refinements
 
+### ✨ Added
+- 🔳 Share meeting information via QR Code
+
 ### 🔧 Technical
 - Refactored UI components for better SafeArea handling
 
