@@ -30,13 +30,9 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
     _focusNode = FocusNode();
     _controller = Get.find<ChatController>();
 
-    // Listen to focus changes
     _focusNode.addListener(_onFocusChange);
-
-    // Listen to scroll position
     _scrollController.addListener(_updateScrollPosition);
 
-    // Initialize chat when page is opened
     if (widget.meetingId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _controller.initializeChat(meetingId: widget.meetingId!);
@@ -44,7 +40,6 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
       });
     }
 
-    // Listen to message changes and scroll to bottom
     ever(_controller.messages, (_) {
       if (_isAtBottom) {
         Future.delayed(const Duration(milliseconds: 100), () {
@@ -60,14 +55,12 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
 
   void _onFocusChange() {
     if (_focusNode.hasFocus) {
-      // Auto scroll to bottom saat input difokuskan
       Future.delayed(const Duration(milliseconds: 300), () {
         if (_scrollController.hasClients && _focusNode.hasFocus) {
           _scrollWithOffset();
         }
       });
 
-      // Juga scroll lagi saat keyboard fully appeared
       Future.delayed(const Duration(milliseconds: 600), () {
         if (_scrollController.hasClients && _focusNode.hasFocus) {
           _scrollWithOffset();
@@ -113,10 +106,8 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Detect keyboard height changes
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
-    // Trigger scroll when keyboard appears
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (keyboardHeight > 0 && keyboardHeight != _lastKeyboardHeight) {
         _lastKeyboardHeight = keyboardHeight;
@@ -145,7 +136,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
             image: const AssetImage('assets/background.jpg'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
-              Colors.white.withOpacity(0.35),
+              Colors.white.withOpacity(0.55),
               BlendMode.dstATop,
             ),
             onError: (exception, stackTrace) {},
@@ -201,7 +192,6 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
     );
   }
 
-  // Widget untuk App Bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: AppColors.primary,
@@ -237,7 +227,6 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
     );
   }
 
-  // Widget untuk List Pesan
   Widget _buildMessageList() {
     return Obx(() {
       final messages = _controller.messages;
@@ -264,11 +253,9 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
         );
       }
 
-      // Sort messages by timestamp
       final sortedMessages = List.from(messages);
       sortedMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-      // Scroll ke bawah setelah build jika user di posisi bottom
       Future.delayed(const Duration(milliseconds: 100), () {
         if (_isAtBottom && _scrollController.hasClients) {
           _scrollToBottom();
@@ -278,8 +265,6 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
       return ListView.builder(
         controller: _scrollController,
         padding: EdgeInsets.only(
-          left: AppSpacing.lg,
-          right: AppSpacing.lg,
           top: AppSpacing.md,
           bottom: AppSpacing.md,
         ),
@@ -292,10 +277,18 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
                 message.timestamp,
               );
 
+          // Cek apakah ini pesan pertama dari pengirim atau pengirim berbeda
+          final showSenderName = (index == 0 ||
+              sortedMessages[index - 1].senderName != message.senderName) && !message.isMe;
+
+          // Cek apakah pengirim berbeda dengan pesan berikutnya
+          final isDifferentSenderFromNext = index == sortedMessages.length - 1 ||
+              sortedMessages[index + 1].senderName != message.senderName;
+
           return Column(
             children: [
               if (showDateDivider) _buildDateDivider(message.timestamp),
-              _buildMessageBubble(message),
+              _buildMessageBubble(message, showSenderName, isDifferentSenderFromNext),
             ],
           );
         },
@@ -303,7 +296,6 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
     });
   }
 
-  // Widget untuk Date Divider
   Widget _buildDateDivider(DateTime timestamp) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -408,93 +400,95 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  // Widget untuk Message Bubble
-  Widget _buildMessageBubble(dynamic message) {
+  Widget _buildMessageBubble(dynamic message, bool showSenderName, bool isDifferentSenderFromNext) {
     final isMe = message.isMe;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: AppSpacing.md),
-      child: Column(
-        crossAxisAlignment:
-            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      padding: EdgeInsets.only(
+        bottom: isDifferentSenderFromNext ? AppSpacing.md : AppSpacing.xs,
+      ),
+      child: Row(
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
-          if (!isMe) _buildSenderName(message.senderName),
-          if (!isMe) const SizedBox(height: AppSpacing.xs),
-          Row(
-            mainAxisAlignment:
-                isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-            children: [
-              Flexible(
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: AppSpacing.md,
+          if (!isMe) SizedBox(width: AppSpacing.lg),
+          Flexible(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md,
+              ),
+              margin: EdgeInsets.only(
+                right: isMe ? AppSpacing.lg : 0,
+              ),
+              constraints: BoxConstraints(
+                minHeight: 40,
+                minWidth: 60,
+              ),
+              decoration: BoxDecoration(
+                color: isMe ? AppColors.primary : AppColors.cardBackground,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(AppRadius.lg),
+                  topRight: Radius.circular(AppRadius.lg),
+                  bottomLeft: Radius.circular(
+                    isMe ? AppRadius.lg : AppRadius.sm,
                   ),
-                  decoration: BoxDecoration(
-                    color: isMe ? AppColors.primary : AppColors.cardBackground,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(AppRadius.lg),
-                      topRight: Radius.circular(AppRadius.lg),
-                      bottomLeft: Radius.circular(
-                        isMe ? AppRadius.lg : AppRadius.sm,
-                      ),
-                      bottomRight: Radius.circular(
-                        isMe ? AppRadius.sm : AppRadius.lg,
-                      ),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: AppElevation.sm,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: isMe
-                        ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        message.message,
-                        style: AppTextStyles.body.copyWith(
-                          color: isMe ? Colors.white : AppColors.textDark,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        _formatTime(message.timestamp),
-                        style: AppTextStyles.caption.copyWith(
-                          color: isMe
-                              ? Colors.white.withOpacity(0.7)
-                              : AppColors.textLight,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
+                  bottomRight: Radius.circular(
+                    isMe ? AppRadius.sm : AppRadius.lg,
                   ),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: AppElevation.sm,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            ],
+              child: Column(
+                crossAxisAlignment:
+                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (!isMe && showSenderName)
+                    Padding(
+                      padding: EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: Text(
+                        message.senderName,
+                        style: AppTextStyles.caption.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  Text(
+                    message.message,
+                    style: AppTextStyles.body.copyWith(
+                      color: isMe ? Colors.white : AppColors.textDark,
+                      height: 1.4,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    _formatTimeHourMinute(message.timestamp),
+                    style: AppTextStyles.caption.copyWith(
+                      color: isMe
+                          ? Colors.white.withOpacity(0.7)
+                          : AppColors.textLight,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
+          if (isMe) SizedBox(width: AppSpacing.lg),
         ],
       ),
     );
   }
 
-  // Widget untuk Nama Pengirim
-  Widget _buildSenderName(String sender) {
-    return Padding(
-      padding: EdgeInsets.only(left: AppSpacing.sm),
-      child: Text(
-        sender,
-        style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-
-  // Widget untuk Input Pesan
   Widget _buildMessageInput() {
     return SafeArea(
       child: Container(
@@ -523,13 +517,15 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
     );
   }
 
-  // Widget untuk Text Field
   Widget _buildTextField() {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(color: AppColors.borderLight, width: 1),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: 120,
       ),
       child: TextField(
         controller: _messageController,
@@ -544,7 +540,8 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
           ),
         ),
         maxLines: null,
-        textInputAction: TextInputAction.send,
+        minLines: 1,
+        textInputAction: TextInputAction.newline,
         onSubmitted: (text) {
           if (widget.meetingId != null && text.trim().isNotEmpty) {
             _controller.sendMessage(text, widget.meetingId!);
@@ -556,7 +553,6 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
     );
   }
 
-  // Widget untuk Tombol Kirim
   Widget _buildSendButton() {
     return GestureDetector(
       onTap: () {
@@ -583,20 +579,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
     );
   }
 
-  // Format timestamp
-  String _formatTime(DateTime timestamp) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(
-      timestamp.year,
-      timestamp.month,
-      timestamp.day,
-    );
-
-    if (messageDate == today) {
-      return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
-    } else {
-      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
-    }
+  String _formatTimeHourMinute(DateTime timestamp) {
+    return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
   }
 }
