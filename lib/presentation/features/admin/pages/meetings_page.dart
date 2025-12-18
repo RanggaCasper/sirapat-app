@@ -128,6 +128,8 @@ class MeetingsPage extends GetView<MeetingController> {
                                   child: MeetingCard(
                                     title: meeting.title,
                                     date: DateTime.parse(meeting.date),
+                                    startTime: meeting.startTime,
+                                    endTime: meeting.endTime,
                                     onTap: () {
                                       Get.toNamed(
                                         '/admin-meeting-detail',

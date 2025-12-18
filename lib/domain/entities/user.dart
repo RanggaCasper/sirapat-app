@@ -50,7 +50,7 @@ class User {
           : null,
     );
 
-    debugPrint('[User.fromJson] Parsed user: ${user.fullName}, role: ${user.role}');
+    debugPrint('[User.fromJson] Parsed user: ${user.fullName}, role: ${user.role}, Division: ${user.division?.name}');
 
     return user;
   }
@@ -121,21 +121,6 @@ class User {
 
   @override
   String toString() {
-    return 'User(id: $id, nip: $nip, fullName: $fullName, role: $role)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is User &&
-        other.id == id &&
-        other.nip == nip &&
-        other.email == email;
-  }
-
-  @override
-  int get hashCode {
-    return id.hashCode ^ nip.hashCode ^ email.hashCode;
+    return 'User(id: $id, nip: $nip, fullName: $fullName, role: $role, division: ${division?.name})';
   }
 }

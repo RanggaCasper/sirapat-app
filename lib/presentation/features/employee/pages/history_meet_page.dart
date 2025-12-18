@@ -175,6 +175,8 @@ class _HistoryMeetPageState extends State<HistoryMeetPage> with AutomaticKeepAli
                           child: MeetingCard(
                             title: meeting.title,
                             date: DateTime.parse(meeting.date),
+                            startTime: meeting.startTime,
+                            endTime: meeting.endTime,
                             onTap: () {
                               // Clear any previous selected meeting before navigating
                               final meetingController = Get.find<MeetingController>();

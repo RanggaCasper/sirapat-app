@@ -18,7 +18,6 @@ import 'package:sirapat_app/presentation/shared/widgets/bottom_sheet_handle.dart
 import 'package:sirapat_app/domain/entities/meeting_minute.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_minute_controller.dart';
 import 'package:sirapat_app/presentation/shared/widgets/custom_notification.dart';
-import 'package:sirapat_app/presentation/shared/widgets/custom_text_field.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final int meetingId;
@@ -37,7 +36,6 @@ class _MeetingDetailPageState extends State<MeetingDetailPage>
       Get.find<MeetingMinuteController>();
   final ParticipantController participantController =
       Get.find<ParticipantController>();
-  final _inviteFormKey = GlobalKey<FormState>();
   late final TextEditingController identifierController;
   final GlobalKey _qrKey = GlobalKey();
 
@@ -342,11 +340,9 @@ Undangan ini dibagikan melalui *Aplikasi SiRapat*.
 
       case 1:
         return FloatingActionButton(
-          backgroundColor: Colors.orange,
-          onPressed: () {
-            _showInviteBottomSheet(context);
-          },
-          child: const Icon(Icons.person_add),
+          backgroundColor: AppColors.primary,
+          onPressed: _onChatButtonPressed,
+          child: const Icon(Icons.chat_bubble),
         );
 
       case 2:
@@ -404,141 +400,6 @@ Undangan ini dibagikan melalui *Aplikasi SiRapat*.
       default:
         return null;
     }
-  }
-
-  void _showInviteBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
-          child: SafeArea(
-            child: Container(
-              color: Colors.white,
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  left: 20,
-                  right: 20,
-                  top: 20,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                ),
-                child: Form(
-                  key: _inviteFormKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Center(
-                        child: BottomSheetHandle(
-                          margin: EdgeInsets.only(bottom: 16),
-                        ),
-                      ),
-                      Text(
-                        'Undang Peserta',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      CustomTextField(
-                        controller: identifierController,
-                        labelText: 'Email / Phone Number / NIP',
-                        hintText: 'Masukkan email, nomor telepon, atau NIP',
-                        prefixIcon: Icons.person_outline,
-                        keyboardType: TextInputType.text,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Field ini wajib diisi';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 48,
-                              child: OutlinedButton(
-                                onPressed: () => Navigator.pop(context),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: AppColors.borderLight,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Batal',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: SizedBox(
-                              height: 48,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  final isValid =
-                                      _inviteFormKey.currentState?.validate() ??
-                                          false;
-                                  if (!isValid) return;
-
-                                  final identifier =
-                                      identifierController.text.trim();
-
-                                  participantController.inviteParticipant(
-                                    meetingId: widget.meetingId,
-                                    identifier: identifier,
-                                  );
-
-                                  identifierController.clear();
-                                  Navigator.pop(context);
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: const Text(
-                                  'Kirim',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 
   void _onNoteButtonPressed() async {

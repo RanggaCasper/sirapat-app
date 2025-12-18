@@ -442,6 +442,8 @@ class _EmployeePageState extends State<EmployeePage> {
         child: MeetingCard(
           title: meeting.title,
           date: DateTime.parse(meeting.date),
+          startTime: meeting.startTime,
+          endTime: meeting.endTime,
           onTap: () => _onMeetingCardTapped(meeting),
         ),
       ),

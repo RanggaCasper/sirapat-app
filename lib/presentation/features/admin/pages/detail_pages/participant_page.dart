@@ -100,8 +100,6 @@ class _ParticipantPageState extends State<ParticipantPage> {
 
   Widget _buildParticipantCard(Attendance attendance) {
     final participant = attendance.participant;
-    final statusColor = attendance.isPresent ? Colors.green : Colors.orange;
-    final statusText = attendance.statusDisplay;
 
     return Container(
       padding: AppSpacing.paddingLG,
@@ -117,7 +115,7 @@ class _ParticipantPageState extends State<ParticipantPage> {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -128,7 +126,7 @@ class _ParticipantPageState extends State<ParticipantPage> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
-                  color: statusColor,
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -166,23 +164,6 @@ class _ParticipantPageState extends State<ParticipantPage> {
                   ],
                 ),
               ],
-            ),
-          ),
-
-          // Status Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              statusText,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: statusColor,
-              ),
             ),
           ),
         ],
