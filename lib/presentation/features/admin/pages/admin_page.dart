@@ -400,6 +400,8 @@ class _AdminPageState extends State<AdminPage> {
         child: MeetingCard(
           title: meeting.title,
           date: DateTime.parse(meeting.date),
+          startTime: meeting.startTime,
+          endTime: meeting.endTime,
           onTap: () => _onMeetingCardTapped(meeting),
         ),
       ),

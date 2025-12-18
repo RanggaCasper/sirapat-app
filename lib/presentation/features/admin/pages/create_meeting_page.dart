@@ -168,8 +168,8 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
                             : const Text(
                                 'Tambah',
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                       ),
@@ -228,9 +228,8 @@ class _CreateMeetingPageState extends State<CreateMeetingPage> {
             lastDate: DateTime.now().add(const Duration(days: 365)),
           );
           if (date != null) {
-            meetingController.dateController.text = date
-                .toIso8601String()
-                .split('T')[0];
+            meetingController.dateController.text =
+                date.toIso8601String().split('T')[0];
             if (error != null) {
               meetingController.fieldErrors.remove('date');
             }

@@ -88,19 +88,16 @@ class AuthRepositoryImpl extends AuthRepository {
 
       debugPrint('Register API Response: $response');
 
-      // Check if response has errors field (validation error)
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
         debugPrint('Register validation errors detected');
         throw ApiException.fromJson(response);
       }
 
-      // Parse response
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
         (data) => LoginResponseData.fromJson(data as Map<String, dynamic>),
       );
 
-      // Check if register failed (status = false)
       if (!apiResponse.status || apiResponse.data == null) {
         debugPrint('Register failed, throwing ApiException');
         throw ApiException.fromJson(response);
@@ -129,10 +126,29 @@ class AuthRepositoryImpl extends AuthRepository {
 
   @override
   Future<void> logout() async {
-    debugPrint('[AuthRepository] Logging out - clearing storage...');
-    await _storage.removeData(StorageKey.user);
-    await _storage.removeData(StorageKey.token);
-    debugPrint('[AuthRepository] Logout complete');
+    final token = _storage.getString(StorageKey.token);
+
+    try {
+      if (token != null && token.isNotEmpty) {
+        final GetConnect connect = GetConnect();
+        connect.timeout = AppConstants.apiTimeout;
+
+        await connect.post(
+          APIEndpoint.logout,
+          {},
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('[AuthRepository] Logout error: $e');
+    } finally {
+      // Selalu hapus data lokal (Token & User)
+      await _storage.removeData(StorageKey.token);
+      await _storage.removeData(StorageKey.user);
+    }
   }
 
   @override
@@ -147,8 +163,6 @@ class AuthRepositoryImpl extends AuthRepository {
     return user;
   }
 
-  /// Verify user from server (check if token is still valid)
-  /// Returns user if valid, null if unauthenticated, throws exception for other errors
   @override
   Future<User?> verifyUserFromServer() async {
     final token = _storage.getString(StorageKey.token);
@@ -157,11 +171,7 @@ class AuthRepositoryImpl extends AuthRepository {
       return null;
     }
 
-    debugPrint('[AuthRepository] Verifying token with server...');
-    debugPrint('[AuthRepository] Token: ${token.substring(0, 20)}...');
-
     try {
-      // Create a simple GET request to verify token
       final GetConnect connect = GetConnect();
       connect.timeout = AppConstants.apiTimeout;
 
@@ -173,21 +183,12 @@ class AuthRepositoryImpl extends AuthRepository {
         },
       );
 
-      debugPrint(
-        '[AuthRepository] Verification response status: ${response.statusCode}',
-      );
-      debugPrint(
-        '[AuthRepository] Verification response body: ${response.body}',
-      );
-
-      // If 401 Unauthorized - token is invalid, logout
       if (response.statusCode == 401) {
         debugPrint('[AuthRepository] Token is invalid (401), logging out');
         await logout();
         return null;
       }
 
-      // If successful
       if (response.statusCode == 200 && response.body != null) {
         final apiResponse = ApiResponse.fromJson(
           response.body as Map<String, dynamic>,
@@ -196,26 +197,16 @@ class AuthRepositoryImpl extends AuthRepository {
 
         if (apiResponse.status && apiResponse.data != null) {
           final user = apiResponse.data as User;
-          debugPrint(
-            '[AuthRepository] Verification successful for user: ${user.fullName}',
-          );
-          debugPrint(
-            '[AuthRepository] User division: ${user.division?.name ?? "null"}',
-          );
-          debugPrint('[AuthRepository] User divisionId: ${user.divisionId}');
-          // Update local storage with fresh data
           await _storage.saveData(StorageKey.user, user.toJson());
           return user;
         }
       }
 
-      // For other status codes or errors, throw exception to be handled by caller
       throw Exception(
         'Server verification failed with status: ${response.statusCode}',
       );
     } catch (e) {
       debugPrint('[AuthRepository] Verification error: $e');
-      // Re-throw so caller can decide what to do
       rethrow;
     }
   }
@@ -234,37 +225,23 @@ class AuthRepositoryImpl extends AuthRepository {
         newPasswordConfirmation: newPasswordConfirmation,
       );
 
-      debugPrint('[AuthRepository] Sending request to: ${request.url}');
       final response = await request.request();
 
-      debugPrint('[AuthRepository] Reset Password API Response: $response');
-
-      // Check if response has errors (validation failed)
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
-        debugPrint('[AuthRepository] Validation errors detected');
         throw ApiException.fromJson(response);
       }
 
-      // Parse response
       final apiResponse = ApiResponse.fromJson(
         response as Map<String, dynamic>,
         (data) => data,
       );
 
-      debugPrint('[AuthRepository] API Response status: ${apiResponse.status}');
-      debugPrint(
-        '[AuthRepository] API Response message: ${apiResponse.message}',
-      );
-
-      // Check if reset password failed
       if (!apiResponse.status) {
         debugPrint(
           '[AuthRepository] Reset password failed, throwing ApiException',
         );
         throw ApiException.fromJson(response);
       }
-
-      debugPrint('[AuthRepository] Password reset successful');
     } on ApiException catch (e) {
       debugPrint('[AuthRepository] Reset Password ApiException caught');
       debugPrint('[AuthRepository] Message: ${e.message}');
@@ -298,13 +275,10 @@ class AuthRepositoryImpl extends AuthRepository {
 
       debugPrint('[AuthRepository] Update profile response: $response');
 
-      // PERBAIKAN: Check if response has errors field (validation error)
       if (response is Map<String, dynamic> && response.containsKey('errors')) {
-        debugPrint('[AuthRepository] Validation errors detected');
         throw ApiException.fromJson(response);
       }
 
-      // Check if response is null or not successful
       if (response == null || response['status'] != true) {
         debugPrint('[AuthRepository] Update profile failed');
         throw ApiException(
@@ -312,9 +286,6 @@ class AuthRepositoryImpl extends AuthRepository {
           message: response?['message'] ?? 'Gagal memperbarui profile',
         );
       }
-
-      // Since API returns data: null, we need to fetch fresh user data from server
-      debugPrint('[AuthRepository] Fetching updated user data from server...');
 
       final updatedUser = await verifyUserFromServer();
 

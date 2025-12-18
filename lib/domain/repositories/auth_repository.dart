@@ -21,10 +21,7 @@ abstract class AuthRepository {
   );
 
   Future<User> updateProfile({
-    // required String nip,
-    // required String username,
     required String fullName,
-    // required String email,
     required String phone,
     required int divisionId,
   });

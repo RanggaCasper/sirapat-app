@@ -394,7 +394,13 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                                 ElevatedButton.icon(
                                   onPressed: _startRecording,
                                   icon: const Icon(Icons.mic),
-                                  label: const Text("Mulai Merekam"),
+                                  label: const Text(
+                                    "Mulai Merekam",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 32,
@@ -559,7 +565,13 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                           ElevatedButton.icon(
                             onPressed: _pickAndUploadFile,
                             icon: const Icon(Icons.folder_open),
-                            label: const Text("Pilih File"),
+                            label: const Text(
+                              "Pilih File",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 32,
@@ -703,13 +715,10 @@ class _VoiceRecordPageState extends State<VoiceRecordPage> {
                               icon: const Icon(Icons.description),
                               label: const Text("Buat Notulen Rapat"),
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
                                 backgroundColor: Colors.green,
                                 foregroundColor: Colors.white,
                                 textStyle: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

@@ -160,7 +160,6 @@ class AuthController extends GetxController {
       );
 
       _currentUser.value = user;
-      debugPrint('[AuthController] Logged in user: ${user}');
       _notif.showSuccess('Selamat datang, ${user.fullName}!');
 
       // Navigate based on role

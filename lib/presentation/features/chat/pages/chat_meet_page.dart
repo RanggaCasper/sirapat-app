@@ -279,16 +279,19 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
 
           // Cek apakah ini pesan pertama dari pengirim atau pengirim berbeda
           final showSenderName = (index == 0 ||
-              sortedMessages[index - 1].senderName != message.senderName) && !message.isMe;
+                  sortedMessages[index - 1].senderName != message.senderName) &&
+              !message.isMe;
 
           // Cek apakah pengirim berbeda dengan pesan berikutnya
-          final isDifferentSenderFromNext = index == sortedMessages.length - 1 ||
-              sortedMessages[index + 1].senderName != message.senderName;
+          final isDifferentSenderFromNext =
+              index == sortedMessages.length - 1 ||
+                  sortedMessages[index + 1].senderName != message.senderName;
 
           return Column(
             children: [
               if (showDateDivider) _buildDateDivider(message.timestamp),
-              _buildMessageBubble(message, showSenderName, isDifferentSenderFromNext),
+              _buildMessageBubble(
+                  message, showSenderName, isDifferentSenderFromNext),
             ],
           );
         },
@@ -400,7 +403,8 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  Widget _buildMessageBubble(dynamic message, bool showSenderName, bool isDifferentSenderFromNext) {
+  Widget _buildMessageBubble(
+      dynamic message, bool showSenderName, bool isDifferentSenderFromNext) {
     final isMe = message.isMe;
 
     return Padding(
@@ -410,20 +414,20 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
       child: Row(
         mainAxisAlignment:
             isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMe) SizedBox(width: AppSpacing.lg),
-          Flexible(
+          if (isMe) Expanded(child: SizedBox()),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
+            ),
             child: Container(
               padding: EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
                 vertical: AppSpacing.md,
               ),
-              margin: EdgeInsets.only(
-                right: isMe ? AppSpacing.lg : 0,
-              ),
-              constraints: BoxConstraints(
-                minHeight: 40,
-                minWidth: 60,
+              margin: EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
               ),
               decoration: BoxDecoration(
                 color: isMe ? AppColors.primary : AppColors.cardBackground,
@@ -448,7 +452,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
               child: Column(
                 crossAxisAlignment:
                     isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (!isMe && showSenderName)
                     Padding(
@@ -483,7 +487,7 @@ class _ChatMeetPageState extends State<ChatMeetPage> {
               ),
             ),
           ),
-          if (isMe) SizedBox(width: AppSpacing.lg),
+          if (!isMe) Expanded(child: SizedBox()),
         ],
       ),
     );

@@ -92,6 +92,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Ubah Password'),
+        centerTitle: false,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
