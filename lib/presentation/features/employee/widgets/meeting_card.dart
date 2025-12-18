@@ -70,7 +70,7 @@ class MeetingCard extends StatelessWidget {
                       Icon(Icons.event, size: 14, color: AppColors.secondary),
                       const SizedBox(width: 4),
                       Text(
-                        DateFormatter.formatToDateTime(date),
+                        DateFormatter.formatToShortDate(date),
                         style: AppTextStyles.body.copyWith(
                           fontSize: 12,
                           color: AppColors.secondary,
