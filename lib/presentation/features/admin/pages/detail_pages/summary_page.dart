@@ -497,7 +497,7 @@ class SummaryPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item['deskripsi'],
+                            item['description'] ?? '',
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.black87,
@@ -507,7 +507,7 @@ class SummaryPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Jumlah : ${item['jumlah'] ?? ''}',
+                            'Jumlah : ${item['budget'] ?? ''}',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.black87,
