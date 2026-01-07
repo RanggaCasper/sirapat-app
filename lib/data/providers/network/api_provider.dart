@@ -102,6 +102,35 @@ class APIProvider {
     }
   }
 
+  // Download file (e.g., PDF)
+  Future<dynamic> downloadFile(
+    String url,
+    String savePath, {
+    Map<String, dynamic>? query,
+    Map<String, String>? headers,
+    Function(int, int)? onReceiveProgress,
+  }) async {
+    try {
+      final response = await _dio.download(
+        url,
+        savePath,
+        queryParameters: query,
+        options: Options(
+          headers: headers,
+          responseType: ResponseType.bytes,
+          followRedirects: false,
+          validateStatus: (status) => status! < 500,
+        ),
+        onReceiveProgress: onReceiveProgress,
+      );
+      return _returnResponse(response);
+    } on DioException catch (e) {
+      return _handleDioException(e);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+  }
+
   dynamic _handleDioException(DioException e) {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
@@ -166,46 +195,46 @@ class AppException implements Exception {
 
 class FetchDataException extends AppException {
   FetchDataException(String? details)
-    : super(
-        code: "fetch-data",
-        message: "Error During Communication",
-        details: details,
-      );
+      : super(
+          code: "fetch-data",
+          message: "Error During Communication",
+          details: details,
+        );
 }
 
 class BadRequestException extends AppException {
   BadRequestException(String? details)
-    : super(
-        code: "invalid-request",
-        message: "Invalid Request",
-        details: details,
-      );
+      : super(
+          code: "invalid-request",
+          message: "Invalid Request",
+          details: details,
+        );
 }
 
 class UnauthorisedException extends AppException {
   UnauthorisedException(String? details)
-    : super(code: "unauthorised", message: "Unauthorised", details: details);
+      : super(code: "unauthorised", message: "Unauthorised", details: details);
 }
 
 class NotFoundException extends AppException {
   NotFoundException(String? details)
-    : super(code: "not-found", message: "Not Found", details: details);
+      : super(code: "not-found", message: "Not Found", details: details);
 }
 
 class InternalServerException extends AppException {
   InternalServerException(String? details)
-    : super(
-        code: "internal-server-error",
-        message: "Internal Server Error",
-        details: details,
-      );
+      : super(
+          code: "internal-server-error",
+          message: "Internal Server Error",
+          details: details,
+        );
 }
 
 class TimeOutException extends AppException {
   TimeOutException(String? details)
-    : super(
-        code: "request-timeout",
-        message: "Request Timeout",
-        details: details,
-      );
+      : super(
+          code: "request-timeout",
+          message: "Request Timeout",
+          details: details,
+        );
 }

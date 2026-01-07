@@ -3,7 +3,7 @@ class AppConstants {
 
   // Environment Configuration
   // 🔴 Set to true for PRODUCTION, false for LOCAL DEVELOPMENT
-  static const bool isProduction = true;
+  static const bool isProduction = false;
 
   // API Configuration
   static const String productionUrl = 'http://178.128.101.141';
@@ -15,8 +15,8 @@ class AppConstants {
       isProduction ? productionUrl : 'http://$localHost:$localPort';
 
   static const String apiVersion = 'v1';
-  static const Duration connectionTimeout = Duration(seconds: 30);
-  static const Duration receiveTimeout = Duration(seconds: 30);
+  static const Duration connectionTimeout = Duration(seconds: 360);
+  static const Duration receiveTimeout = Duration(seconds: 360);
 
   // Storage Keys
   static const String storageKeyUser = 'user';

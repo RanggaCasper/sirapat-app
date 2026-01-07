@@ -55,7 +55,8 @@ class APIEndpoint {
       debugPrint('[APIEndpoint] Using employee endpoint: $endpoint');
       return endpoint;
     } catch (e) {
-      debugPrint('[APIEndpoint] Error getting role, defaulting to employee: $e');
+      debugPrint(
+          '[APIEndpoint] Error getting role, defaulting to employee: $e');
       return "$baseUrl/employee/meeting";
     }
   }
@@ -104,6 +105,11 @@ class APIEndpoint {
       return "$baseUrl/employee/meeting-minute";
     }
   }
+
+  // Report endpoints
+  static String get meetingReportDownloadPdf =>
+      "$baseUrl/master/report/meeting/download-pdf";
+
   // // Endpoint khusus admin
   // static String get meetingsAdmin => "$baseUrl/admin/meeting";
 

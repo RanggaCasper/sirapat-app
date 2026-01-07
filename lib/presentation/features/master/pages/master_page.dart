@@ -231,6 +231,22 @@ class _MasterPageState extends State<MasterPage> {
               ),
             ],
           ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  icon: Icons.file_download_outlined,
+                  title: 'Laporan Rapat',
+                  subtitle: 'Unduh PDF',
+                  color: AppColors.accentOrange,
+                  onTap: () => Get.toNamed('/meeting-report'),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              const Expanded(child: SizedBox.shrink()),
+            ],
+          ),
         ],
       ),
     );
