@@ -15,6 +15,7 @@ class AppRoutes {
   static const String masterDashboard = '/master-dashboard';
   static const String divisions = '/divisions';
   static const String users = '/users';
+  static const String meetingReport = '/meeting-report';
 
   // Admin
   static const String adminDashboard = '/admin-dashboard';

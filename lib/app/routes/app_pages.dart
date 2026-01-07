@@ -6,6 +6,7 @@ import 'package:sirapat_app/presentation/controllers/participant_binding.dart';
 import 'package:sirapat_app/presentation/controllers/user_binding.dart';
 import 'package:sirapat_app/presentation/controllers/division_binding.dart';
 import 'package:sirapat_app/presentation/controllers/meeting_binding.dart';
+import 'package:sirapat_app/presentation/controllers/meeting_report_binding.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/admin_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/create_meeting_page.dart';
 import 'package:sirapat_app/presentation/features/admin/pages/meetings_page.dart';
@@ -16,6 +17,7 @@ import 'package:sirapat_app/presentation/features/auth/pages/login_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/register_page.dart';
 import 'package:sirapat_app/presentation/features/auth/pages/forgot_password_page.dart';
 import 'package:sirapat_app/presentation/features/master/pages/master_page.dart';
+import 'package:sirapat_app/presentation/features/master/pages/meeting_report_page.dart';
 import 'package:sirapat_app/presentation/features/profile/pages/profile_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/employee_page.dart';
 import 'package:sirapat_app/presentation/features/employee/pages/detail_meet_page.dart';
@@ -65,6 +67,11 @@ class AppPages {
       name: AppRoutes.masterDashboard,
       page: () => const MasterPage(),
       bindings: [AuthBinding(), DivisionBinding(), UserBinding()],
+    ),
+    GetPage(
+      name: AppRoutes.meetingReport,
+      page: () => const MeetingReportPage(),
+      binding: MeetingReportBinding(),
     ),
 
     // Admin Dashboard
